@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import Map from "./Map";
 import BookingModal from "./BookingModal";
+import { formatPriceStringAsMzn } from "@/lib/currency";
 import type { Ride } from "@shared/schema";
 
 interface RideResultsProps {
@@ -54,22 +55,22 @@ export default function RideResults({ searchParams }: RideResultsProps) {
             markers={rides.map(ride => ({
               lat: parseFloat(ride.fromLat || "40.7128"),
               lng: parseFloat(ride.fromLng || "-74.0060"),
-              popup: `${ride.type} - $${ride.price}`,
+              popup: `${ride.type} - ${formatPriceStringAsMzn(ride.price)}`,
             }))}
           />
         </div>
 
         {/* Ride Options */}
         <div className="space-y-4">
-          <h3 className="text-xl font-semibold text-dark">Available Rides</h3>
+          <h3 className="text-xl font-semibold text-dark">Viagens Disponíveis</h3>
           
           {rides.length === 0 ? (
             <div className="text-center py-8">
               <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i className="fas fa-car text-gray-400 text-2xl"></i>
               </div>
-              <p className="text-gray-medium">No rides available for this route</p>
-              <p className="text-sm text-gray-medium mt-2">Try adjusting your pickup or destination</p>
+              <p className="text-gray-medium">Nenhuma viagem disponível para esta rota</p>
+              <p className="text-sm text-gray-medium mt-2">Tente ajustar seu local de recolha ou destino</p>
             </div>
           ) : (
             rides.map((ride) => (
@@ -87,7 +88,7 @@ export default function RideResults({ searchParams }: RideResultsProps) {
                     <div>
                       <h4 className="font-semibold text-dark">{ride.type}</h4>
                       <p className="text-sm text-gray-medium">
-                        {ride.availableIn} min away
+                        {ride.availableIn} min de distância
                       </p>
                       {ride.driverName && (
                         <p className="text-xs text-gray-medium">{ride.driverName}</p>
@@ -95,13 +96,13 @@ export default function RideResults({ searchParams }: RideResultsProps) {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-dark">${ride.price}</p>
+                    <p className="font-semibold text-dark">{formatPriceStringAsMzn(ride.price)}</p>
                     <p className="text-xs text-gray-medium">
-                      {ride.estimatedDuration} min trip
+                      {ride.estimatedDuration} min de viagem
                     </p>
                     {ride.estimatedDistance && (
                       <p className="text-xs text-gray-medium">
-                        {ride.estimatedDistance} miles
+                        {ride.estimatedDistance} km
                       </p>
                     )}
                   </div>

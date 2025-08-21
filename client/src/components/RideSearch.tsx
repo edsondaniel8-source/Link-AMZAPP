@@ -5,11 +5,13 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const rideSearchSchema = z.object({
-  from: z.string().min(1, "Pickup location is required"),
-  to: z.string().min(1, "Destination is required"),
-  when: z.string().min(1, "Date and time is required"),
+  from: z.string().min(1, "Local de recolha é obrigatório"),
+  to: z.string().min(1, "Destino é obrigatório"),
+  when: z.string().min(1, "Data e hora são obrigatórias"),
+  passengers: z.number().min(1, "Número de passageiros é obrigatório").max(8, "Máximo 8 passageiros"),
 });
 
 type RideSearchForm = z.infer<typeof rideSearchSchema>;
@@ -25,6 +27,7 @@ export default function RideSearch({ onSearch }: RideSearchProps) {
       from: "",
       to: "",
       when: "",
+      passengers: 1,
     },
   });
 
@@ -34,20 +37,20 @@ export default function RideSearch({ onSearch }: RideSearchProps) {
 
   return (
     <div>
-      <h2 className="text-3xl font-bold text-dark mb-8 text-center">Where do you want to go?</h2>
+      <h2 className="text-3xl font-bold text-dark mb-8 text-center">Para onde você quer ir?</h2>
       
       <div className="bg-white rounded-2xl shadow-lg p-6">
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div className="md:col-span-1">
             <Label htmlFor="from" className="block text-sm font-medium text-gray-medium mb-2">
-              From
+              De
             </Label>
             <div className="relative">
               <i className="fas fa-map-marker-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
               <Input
                 id="from"
                 data-testid="input-pickup-location"
-                placeholder="Pickup location"
+                placeholder="Local de recolha"
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 {...form.register("from")}
               />
@@ -59,14 +62,14 @@ export default function RideSearch({ onSearch }: RideSearchProps) {
           
           <div className="md:col-span-1">
             <Label htmlFor="to" className="block text-sm font-medium text-gray-medium mb-2">
-              To
+              Para
             </Label>
             <div className="relative">
               <i className="fas fa-map-marker-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
               <Input
                 id="to"
                 data-testid="input-destination"
-                placeholder="Destination"
+                placeholder="Destino"
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 {...form.register("to")}
               />
@@ -78,7 +81,7 @@ export default function RideSearch({ onSearch }: RideSearchProps) {
           
           <div className="md:col-span-1">
             <Label htmlFor="when" className="block text-sm font-medium text-gray-medium mb-2">
-              When
+              Quando
             </Label>
             <div className="relative">
               <i className="fas fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
@@ -95,14 +98,38 @@ export default function RideSearch({ onSearch }: RideSearchProps) {
             )}
           </div>
           
+          <div className="md:col-span-1">
+            <Label htmlFor="passengers" className="block text-sm font-medium text-gray-medium mb-2">
+              Passageiros
+            </Label>
+            <Select
+              value={String(form.watch("passengers"))}
+              onValueChange={(value) => form.setValue("passengers", parseInt(value))}
+            >
+              <SelectTrigger data-testid="select-passengers">
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
+              <SelectContent>
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
+                  <SelectItem key={num} value={String(num)}>
+                    {num} {num === 1 ? 'passageiro' : 'passageiros'}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {form.formState.errors.passengers && (
+              <p className="text-sm text-destructive mt-1">{form.formState.errors.passengers.message}</p>
+            )}
+          </div>
+          
           <div className="md:col-span-1 flex items-end">
             <Button
               type="submit"
               data-testid="button-search-rides"
-              className="w-full bg-primary text-white py-3 px-6 rounded-lg font-semibold hover:bg-red-600 transition-colors"
+              className="w-full bg-primary text-primary-foreground py-3 px-6 rounded-lg font-semibold hover:bg-primary/90 transition-colors"
               disabled={form.formState.isSubmitting}
             >
-              <i className="fas fa-search mr-2"></i>Find Rides
+              <i className="fas fa-search mr-2"></i>Procurar Viagens
             </Button>
           </div>
         </form>

@@ -1,12 +1,17 @@
-# Link-A - Transportation & Accommodations Platform
+# Link-A Mz - Transportation & Accommodations Platform
 
 ## Overview
 
-Link-A is a full-stack travel booking platform that combines ride-sharing and accommodation services in a unified interface. The application allows users to search for transportation options (similar to Uber) and lodging accommodations (similar to Airbnb) through a single platform. Built with a React frontend and Express backend, it provides a seamless booking experience with real-time search capabilities, interactive maps, and comprehensive booking management.
+Link-A Mz is a full-stack travel booking platform designed specifically for the Mozambique market that combines ride-sharing and accommodation services in a unified interface. The application allows users to search for transportation options (similar to Uber) and lodging accommodations (similar to Airbnb) through a single platform. Built with a React frontend and Express backend, it provides a seamless booking experience with real-time search capabilities, interactive maps, comprehensive booking management, and promotional "Deal of the Day" packages combining rides and stays.
 
 ## User Preferences
 
-Preferred communication style: Simple, everyday language.
+- Preferred communication style: Simple, everyday language
+- Target market: Mozambique with Portuguese as main language
+- Currency: Mozambique Metical (MZN) for all pricing
+- Features: "Deal of the Day" promotional offers combining rides and accommodations
+- Seat selection for rides with available seat display
+- Multi-person booking capability for accommodations
 
 ## System Architecture
 

@@ -42,7 +42,7 @@ export default function Dashboard() {
                     alt="Link-A" 
                     className="h-10 w-10 mr-3"
                   />
-                  <h1 className="text-2xl font-bold text-primary">Link-A</h1>
+                  <h1 className="text-2xl font-bold text-primary">Link-A Mz</h1>
                 </div>
               </Link>
             </div>

@@ -4,6 +4,7 @@ import RideSearch from "@/components/RideSearch";
 import StaySearch from "@/components/StaySearch";
 import RideResults from "@/components/RideResults";
 import StayResults from "@/components/StayResults";
+import DealsOfTheDay from "@/components/DealsOfTheDay";
 
 export default function Home() {
   const [activeService, setActiveService] = useState<"rides" | "stays">("rides");
@@ -24,6 +25,13 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Deals of the Day Section */}
+      {!searchParams && (
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <DealsOfTheDay />
+        </section>
+      )}
+
       {/* Results Section */}
       {searchParams && (
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -39,8 +47,8 @@ export default function Home() {
       <section className="bg-gray-light py-12 mt-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-dark">Plan Your Complete Trip with Link-A</h2>
-            <p className="text-gray-medium mt-2">Combine rides and stays for seamless travel</p>
+            <h2 className="text-3xl font-bold text-dark">Planeie Sua Viagem Completa com Link-A Mz</h2>
+            <p className="text-gray-medium mt-2">Combine viagens e hospedagens para uma experiência perfeita</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

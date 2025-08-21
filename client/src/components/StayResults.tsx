@@ -4,6 +4,7 @@ import Map from "./Map";
 import BookingModal from "./BookingModal";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
+import { formatPriceStringAsMzn } from "@/lib/currency";
 import type { Accommodation } from "@shared/schema";
 
 interface StayResultsProps {

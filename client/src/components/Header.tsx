@@ -22,7 +22,7 @@ export default function Header({ activeService, onServiceChange }: HeaderProps) 
                   alt="Link-A" 
                   className="h-10 w-10 mr-3"
                 />
-                <h1 className="text-2xl font-bold text-primary">Link-A</h1>
+                <h1 className="text-2xl font-bold text-primary">Link-A Mz</h1>
               </div>
             </Link>
           </div>
@@ -38,7 +38,7 @@ export default function Header({ activeService, onServiceChange }: HeaderProps) 
                   : "text-gray-medium hover:text-dark"
               }`}
             >
-              <i className="fas fa-car mr-2"></i>Rides
+              <i className="fas fa-car mr-2"></i>Viagens
             </button>
             <button
               data-testid="service-toggle-stays"
@@ -49,13 +49,13 @@ export default function Header({ activeService, onServiceChange }: HeaderProps) 
                   : "text-gray-medium hover:text-dark"
               }`}
             >
-              <i className="fas fa-bed mr-2"></i>Stays
+              <i className="fas fa-bed mr-2"></i>Hospedagem
             </button>
           </div>
 
           <div className="flex items-center space-x-4">
             <button className="hidden md:block text-gray-medium hover:text-dark font-medium">
-              Become a host
+              Torne-se anfitrião
             </button>
             <div className="relative">
               <button
@@ -77,7 +77,7 @@ export default function Header({ activeService, onServiceChange }: HeaderProps) 
                       className="w-full text-left px-4 py-2 text-sm text-dark hover:bg-gray-50"
                       onClick={() => setShowUserMenu(false)}
                     >
-                      <i className="fas fa-calendar-alt mr-2"></i>My Bookings
+                      <i className="fas fa-calendar-alt mr-2"></i>Minhas Reservas
                     </button>
                   </Link>
                   <button
@@ -85,14 +85,14 @@ export default function Header({ activeService, onServiceChange }: HeaderProps) 
                     className="w-full text-left px-4 py-2 text-sm text-dark hover:bg-gray-50"
                     onClick={() => setShowUserMenu(false)}
                   >
-                    <i className="fas fa-user mr-2"></i>Profile
+                    <i className="fas fa-user mr-2"></i>Perfil
                   </button>
                   <button
                     data-testid="nav-help"
                     className="w-full text-left px-4 py-2 text-sm text-dark hover:bg-gray-50"
                     onClick={() => setShowUserMenu(false)}
                   >
-                    <i className="fas fa-question-circle mr-2"></i>Help
+                    <i className="fas fa-question-circle mr-2"></i>Ajuda
                   </button>
                   <hr className="my-2" />
                   <button
@@ -100,7 +100,7 @@ export default function Header({ activeService, onServiceChange }: HeaderProps) 
                     className="w-full text-left px-4 py-2 text-sm text-dark hover:bg-gray-50"
                     onClick={() => setShowUserMenu(false)}
                   >
-                    <i className="fas fa-sign-out-alt mr-2"></i>Log out
+                    <i className="fas fa-sign-out-alt mr-2"></i>Sair
                   </button>
                 </div>
               )}
