@@ -338,11 +338,159 @@ export type InsertRide = z.infer<typeof insertRideSchema>;
 export type InsertAccommodation = z.infer<typeof insertAccommodationSchema>;
 export type InsertBooking = z.infer<typeof insertBookingSchema>;
 
+// Events and Fairs System - Comprehensive event management
+export const eventManagers = pgTable("event_managers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id), // User who manages events
+  companyName: text("company_name").notNull(),
+  companyType: text("company_type").notNull(), // "event_company", "hotel", "restaurant", "venue"
+  description: text("description"),
+  contactEmail: text("contact_email").notNull(),
+  contactPhone: text("contact_phone"),
+  website: text("website"),
+  logo: text("logo"), // URL to company logo
+  isVerified: boolean("is_verified").default(false), // Admin verification
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const events = pgTable("events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  managerId: varchar("manager_id").references(() => eventManagers.id),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  eventType: text("event_type").notNull(), // "feira", "festival", "concerto", "conferencia", "casamento", "festa"
+  category: text("category").notNull(), // "cultura", "negocios", "entretenimento", "gastronomia", "educacao"
+  venue: text("venue").notNull(), // Event location/venue name
+  address: text("address").notNull(),
+  lat: decimal("lat", { precision: 10, scale: 7 }),
+  lng: decimal("lng", { precision: 10, scale: 7 }),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  startTime: text("start_time"), // e.g., "14:00"
+  endTime: text("end_time"), // e.g., "22:00"
+  images: text("images").array(), // Event photos
+  ticketPrice: decimal("ticket_price", { precision: 8, scale: 2 }), // Base ticket price
+  maxAttendees: integer("max_attendees"),
+  currentAttendees: integer("current_attendees").default(0),
+  status: text("status").notNull().default("upcoming"), // "upcoming", "ongoing", "completed", "cancelled"
+  isPublic: boolean("is_public").default(true),
+  isFeatured: boolean("is_featured").default(false), // Show on homepage
+  hasPartnerships: boolean("has_partnerships").default(false), // Offer partnerships
+  websiteUrl: text("website_url"),
+  socialMediaLinks: text("social_media_links").array(),
+  tags: text("tags").array(), // Search tags
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const eventPartnerships = pgTable("event_partnerships", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  eventId: varchar("event_id").references(() => events.id),
+  partnerType: text("partner_type").notNull(), // "hotel", "driver", "restaurant"
+  partnerId: varchar("partner_id").notNull(), // ID of hotel/driver/restaurant
+  partnerName: text("partner_name").notNull(),
+  discountPercentage: decimal("discount_percentage", { precision: 5, scale: 2 }).notNull(),
+  specialOffer: text("special_offer"), // Description of special offer
+  minEventTickets: integer("min_event_tickets").default(1), // Minimum tickets to qualify
+  isActive: boolean("is_active").default(true),
+  validFrom: timestamp("valid_from").defaultNow(),
+  validUntil: timestamp("valid_until"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const eventBookings = pgTable("event_bookings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  eventId: varchar("event_id").references(() => events.id),
+  userId: varchar("user_id").references(() => users.id),
+  ticketQuantity: integer("ticket_quantity").notNull().default(1),
+  totalPrice: decimal("total_price", { precision: 8, scale: 2 }).notNull(),
+  partnershipUsed: varchar("partnership_used"), // ID of partnership used
+  discountApplied: decimal("discount_applied", { precision: 8, scale: 2 }).default("0.00"),
+  bookingStatus: text("booking_status").notNull().default("confirmed"), // "confirmed", "cancelled", "attended"
+  paymentStatus: text("payment_status").notNull().default("pending"), // "pending", "paid", "refunded"
+  specialRequests: text("special_requests"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Loyalty System - Points and Rewards
+export const loyaltyProgram = pgTable("loyalty_program", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
+  totalPoints: integer("total_points").default(0),
+  currentPoints: integer("current_points").default(0), // Available to spend
+  membershipLevel: text("membership_level").default("bronze"), // "bronze", "silver", "gold", "platinum"
+  joinedAt: timestamp("joined_at").defaultNow(),
+  lastActivityAt: timestamp("last_activity_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const pointsHistory = pgTable("points_history", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
+  loyaltyId: varchar("loyalty_id").references(() => loyaltyProgram.id),
+  actionType: text("action_type").notNull(), // "earned", "redeemed", "expired"
+  pointsAmount: integer("points_amount").notNull(),
+  reason: text("reason").notNull(), // "ride_completed", "stay_booked", "event_attended", "reward_redeemed"
+  relatedId: varchar("related_id"), // ID of related booking/ride/event
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const loyaltyRewards = pgTable("loyalty_rewards", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  rewardType: text("reward_type").notNull(), // "discount", "free_ride", "upgrade", "event_ticket"
+  pointsCost: integer("points_cost").notNull(),
+  discountValue: decimal("discount_value", { precision: 8, scale: 2 }), // For discount rewards
+  minimumLevel: text("minimum_level").default("bronze"), // Required membership level
+  isActive: boolean("is_active").default(true),
+  maxRedemptions: integer("max_redemptions"), // Limit per user
+  validUntil: timestamp("valid_until"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const rewardRedemptions = pgTable("reward_redemptions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
+  rewardId: varchar("reward_id").references(() => loyaltyRewards.id),
+  pointsUsed: integer("points_used").notNull(),
+  status: text("status").notNull().default("active"), // "active", "used", "expired"
+  expiresAt: timestamp("expires_at"),
+  usedAt: timestamp("used_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Real-time Notifications System
+export const notifications = pgTable("notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  type: text("type").notNull(), // "ride", "stay", "event", "payment", "partnership", "loyalty", "system"
+  priority: text("priority").default("normal"), // "low", "normal", "high", "urgent"
+  isRead: boolean("is_read").default(false),
+  actionUrl: text("action_url"), // Optional URL to navigate to
+  relatedId: varchar("related_id"), // ID of related entity
+  createdAt: timestamp("created_at").defaultNow(),
+  readAt: timestamp("read_at"),
+});
+
 export type User = typeof users.$inferSelect;
 export type Ride = typeof rides.$inferSelect;
 export type Accommodation = typeof accommodations.$inferSelect;
 export type Booking = typeof bookings.$inferSelect;
 export type Rating = typeof ratings.$inferSelect;
+export type Event = typeof events.$inferSelect;
+export type EventManager = typeof eventManagers.$inferSelect;
+export type EventPartnership = typeof eventPartnerships.$inferSelect;
+export type EventBooking = typeof eventBookings.$inferSelect;
+export type LoyaltyProgram = typeof loyaltyProgram.$inferSelect;
+export type PointsHistory = typeof pointsHistory.$inferSelect;
+export type Notification = typeof notifications.$inferSelect;
 export type ChatMessage = typeof chatMessages.$inferSelect;
 export type Restaurant = typeof restaurants.$inferSelect;
 export type AdminAction = typeof adminActions.$inferSelect;

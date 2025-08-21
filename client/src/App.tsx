@@ -7,6 +7,8 @@ import Home from "@/pages/home";
 import Dashboard from "@/pages/dashboard";
 import AdminPanel from "@/pages/admin";
 import Partnerships from "@/pages/partnerships";
+import Events from "@/pages/events";
+import Loyalty from "@/pages/loyalty";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -16,6 +18,8 @@ function Router() {
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/partnerships" component={Partnerships} />
       <Route path="/host/partnerships" component={() => import("@/pages/host-partnerships")} />
+      <Route path="/events" component={Events} />
+      <Route path="/loyalty" component={Loyalty} />
       <Route path="/admin" component={AdminPanel} />
       <Route component={NotFound} />
     </Switch>

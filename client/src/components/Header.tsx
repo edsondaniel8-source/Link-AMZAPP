@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
+import NotificationCenter from "./NotificationCenter";
 import logoPath from "@assets/link-a-logo.png";
 
 interface HeaderProps {
@@ -55,6 +56,12 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
           </div>
 
           <div className="flex items-center space-x-4">
+            <Link href="/events">
+              <button className="hidden md:flex items-center text-gray-medium hover:text-dark font-medium transition-colors">
+                <i className="fas fa-calendar-star mr-2"></i>
+                Eventos
+              </button>
+            </Link>
             {onOfferRide && (
               <button 
                 onClick={onOfferRide}
@@ -68,6 +75,7 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
             <button className="hidden md:block text-gray-medium hover:text-dark font-medium">
               Torne-se anfitrião
             </button>
+            <NotificationCenter />
             <div className="relative">
               <button
                 data-testid="user-menu-button"
@@ -98,6 +106,24 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
                       onClick={() => setShowUserMenu(false)}
                     >
                       <i className="fas fa-handshake mr-2"></i>Parcerias
+                    </button>
+                  </Link>
+                  <Link href="/events">
+                    <button
+                      data-testid="nav-events"
+                      className="w-full text-left px-4 py-2 text-sm text-dark hover:bg-gray-50"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      <i className="fas fa-calendar-star mr-2"></i>Eventos
+                    </button>
+                  </Link>
+                  <Link href="/loyalty">
+                    <button
+                      data-testid="nav-loyalty"
+                      className="w-full text-left px-4 py-2 text-sm text-dark hover:bg-gray-50"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      <i className="fas fa-crown mr-2"></i>Programa Fidelidade
                     </button>
                   </Link>
                   <Link href="/admin">

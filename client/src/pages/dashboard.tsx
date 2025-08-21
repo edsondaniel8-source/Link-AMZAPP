@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
+import LoyaltyProgram from "@/components/LoyaltyProgram";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -79,6 +80,33 @@ export default function Dashboard() {
       <div className="max-w-6xl mx-auto p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-dark">Minha Conta</h2>
+        </div>
+
+        {/* Loyalty Program Widget */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="lg:col-span-2">
+            <LoyaltyProgram showFullView={false} />
+          </div>
+          <div className="lg:col-span-1">
+            <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+              <CardHeader>
+                <CardTitle className="flex items-center text-blue-800">
+                  <i className="fas fa-star mr-2"></i>
+                  Dica de Fidelidade
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-blue-700 mb-3">
+                  Complete mais uma viagem este mês para ganhar o bónus de 25 pontos!
+                </p>
+                <Link href="/loyalty">
+                  <Button variant="outline" size="sm" className="w-full border-blue-300 text-blue-800 hover:bg-blue-100">
+                    Ver Programa Completo
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
