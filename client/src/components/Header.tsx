@@ -80,6 +80,15 @@ export default function Header({ activeService, onServiceChange }: HeaderProps) 
                       <i className="fas fa-calendar-alt mr-2"></i>Minhas Reservas
                     </button>
                   </Link>
+                  <Link href="/admin">
+                    <button
+                      data-testid="nav-admin"
+                      className="w-full text-left px-4 py-2 text-sm text-dark hover:bg-gray-50"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      <i className="fas fa-shield-alt mr-2"></i>Painel Admin
+                    </button>
+                  </Link>
                   <button
                     data-testid="nav-profile"
                     className="w-full text-left px-4 py-2 text-sm text-dark hover:bg-gray-50"

@@ -49,6 +49,13 @@ The application uses a PostgreSQL-compatible schema with Drizzle ORM:
 - **Session Storage**: PostgreSQL session store with connect-pg-simple for persistent sessions
 - **User Management**: Complete user authentication system with secure password handling
 
+### Admin System
+- **User Management**: Comprehensive admin panel for blocking, penalizing, and removing users, drivers, and accommodations
+- **Price Regulation**: System for setting minimum and maximum price limits per kilometer for different ride types
+- **Penalty System**: Warning, suspension, banning, and account removal capabilities with reason tracking
+- **Admin Dashboard**: Statistics, reports, and platform configuration management
+- **Database Integration**: Admin actions tracking with PostgreSQL storage for audit trails
+
 ## External Dependencies
 
 ### Core Technologies

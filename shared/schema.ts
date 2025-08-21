@@ -98,6 +98,31 @@ export const restaurants = pgTable("restaurants", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Admin actions table
+export const adminActions = pgTable("admin_actions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  adminId: varchar("admin_id").references(() => users.id),
+  targetUserId: varchar("target_user_id").references(() => users.id),
+  action: text("action").notNull(), // warning, suspend, ban, remove
+  reason: text("reason").notNull(),
+  duration: integer("duration"), // days for suspension
+  notes: text("notes"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Price regulations table
+export const priceRegulations = pgTable("price_regulations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  rideType: text("ride_type").notNull(),
+  minPricePerKm: decimal("min_price_per_km", { precision: 8, scale: 2 }).notNull(),
+  maxPricePerKm: decimal("max_price_per_km", { precision: 8, scale: 2 }).notNull(),
+  baseFare: decimal("base_fare", { precision: 8, scale: 2 }).notNull(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const bookings = pgTable("bookings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id),
@@ -152,3 +177,5 @@ export type Booking = typeof bookings.$inferSelect;
 export type Rating = typeof ratings.$inferSelect;
 export type ChatMessage = typeof chatMessages.$inferSelect;
 export type Restaurant = typeof restaurants.$inferSelect;
+export type AdminAction = typeof adminActions.$inferSelect;
+export type PriceRegulation = typeof priceRegulations.$inferSelect;
