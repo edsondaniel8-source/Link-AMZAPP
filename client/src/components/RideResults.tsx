@@ -2,6 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import Map from "./Map";
 import BookingModal from "./BookingModal";
+import PreBookingChat from "./PreBookingChat";
+import UserRatings from "./UserRatings";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { formatPriceStringAsMzn } from "@/lib/currency";
 import type { Ride } from "@shared/schema";
 
@@ -80,31 +85,92 @@ export default function RideResults({ searchParams }: RideResultsProps) {
                 className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer"
                 onClick={() => handleBookRide(ride)}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-gray-light rounded-full flex items-center justify-center">
-                      <i className="fas fa-car text-gray-600"></i>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-12 h-12 bg-gray-light rounded-full flex items-center justify-center">
+                        <i className="fas fa-car text-gray-600"></i>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-dark">{ride.type}</h4>
+                        <p className="text-sm text-gray-medium">
+                          {ride.availableIn} min de distância
+                        </p>
+                        {ride.driverName && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-medium">{ride.driverName}</span>
+                            <div className="flex items-center gap-1">
+                              <i className="fas fa-star text-yellow-500 text-xs"></i>
+                              <span className="text-xs">4.8</span>
+                            </div>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="outline" className="text-xs">
+                            <i className="fas fa-users mr-1"></i>
+                            {ride.availableSeats || 4} lugares disponíveis
+                          </Badge>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-semibold text-dark">{ride.type}</h4>
-                      <p className="text-sm text-gray-medium">
-                        {ride.availableIn} min de distância
+                    <div className="text-right">
+                      <p className="font-semibold text-dark">{formatPriceStringAsMzn(ride.price)}</p>
+                      <p className="text-xs text-gray-medium">
+                        {ride.estimatedDuration} min de viagem
                       </p>
-                      {ride.driverName && (
-                        <p className="text-xs text-gray-medium">{ride.driverName}</p>
+                      {ride.estimatedDistance && (
+                        <p className="text-xs text-gray-medium">
+                          {ride.estimatedDistance} km
+                        </p>
                       )}
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-dark">{formatPriceStringAsMzn(ride.price)}</p>
-                    <p className="text-xs text-gray-medium">
-                      {ride.estimatedDuration} min de viagem
-                    </p>
-                    {ride.estimatedDistance && (
-                      <p className="text-xs text-gray-medium">
-                        {ride.estimatedDistance} km
-                      </p>
-                    )}
+                  
+                  <div className="flex gap-2 pt-2 border-t">
+                    <PreBookingChat
+                      recipientId={ride.id}
+                      recipientName={ride.driverName || "Motorista"}
+                      recipientType="driver"
+                      recipientAvatar="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
+                      recipientRating={4.8}
+                      isOnline={true}
+                      responseTime="~15 min"
+                      serviceDetails={{
+                        type: 'ride',
+                        from: searchParams.from,
+                        to: searchParams.to,
+                        date: searchParams.when,
+                        price: formatPriceStringAsMzn(ride.price)
+                      }}
+                    />
+                    
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <i className="fas fa-star mr-2"></i>
+                          Ver Avaliações
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl">
+                        <DialogHeader>
+                          <DialogTitle>Avaliações do Motorista</DialogTitle>
+                        </DialogHeader>
+                        <UserRatings 
+                          userId={ride.id}
+                          userType="driver"
+                        />
+                      </DialogContent>
+                    </Dialog>
+                    
+                    <Button 
+                      size="sm" 
+                      onClick={() => handleBookRide(ride)}
+                      className="ml-auto"
+                      data-testid={`book-ride-${ride.id}`}
+                    >
+                      <i className="fas fa-calendar-check mr-2"></i>
+                      Reservar
+                    </Button>
                   </div>
                 </div>
               </div>

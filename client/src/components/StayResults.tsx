@@ -2,8 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import Map from "./Map";
 import BookingModal from "./BookingModal";
+import PreBookingChat from "./PreBookingChat";
+import UserRatings from "./UserRatings";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { formatPriceStringAsMzn } from "@/lib/currency";
 import type { Accommodation } from "@shared/schema";
 
@@ -89,7 +93,7 @@ export default function StayResults({ searchParams }: StayResultsProps) {
                     alt={accommodation.name}
                     className="w-full h-48 object-cover"
                   />
-                  <div className="p-4">
+                  <div className="p-4 space-y-3">
                     <div className="flex items-start justify-between">
                       <div>
                         <h4 className="font-semibold text-dark">{accommodation.name}</h4>
@@ -114,10 +118,59 @@ export default function StayResults({ searchParams }: StayResultsProps) {
                       </div>
                       <div className="text-right">
                         <p className="text-lg font-semibold text-dark">
-                          ${accommodation.pricePerNight}
+                          {formatPriceStringAsMzn(accommodation.pricePerNight)}
                         </p>
-                        <p className="text-xs text-gray-medium">per night</p>
+                        <p className="text-xs text-gray-medium">por noite</p>
                       </div>
+                    </div>
+                    
+                    <div className="flex gap-2 pt-2 border-t">
+                      <PreBookingChat
+                        recipientId={accommodation.id}
+                        recipientName="Anfitrião"
+                        recipientType="host"
+                        recipientAvatar="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&h=150&fit=crop&crop=face"
+                        recipientRating={4.5}
+                        isOnline={true}
+                        responseTime="~30 min"
+                        serviceDetails={{
+                          type: 'stay',
+                          location: accommodation.address,
+                          date: searchParams.checkIn,
+                          price: formatPriceStringAsMzn(accommodation.pricePerNight)
+                        }}
+                      />
+                      
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            <i className="fas fa-star mr-2"></i>
+                            Avaliações
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl">
+                          <DialogHeader>
+                            <DialogTitle>Avaliações do Anfitrião</DialogTitle>
+                          </DialogHeader>
+                          <UserRatings 
+                            userId={accommodation.id}
+                            userType="host"
+                          />
+                        </DialogContent>
+                      </Dialog>
+                      
+                      <Button 
+                        size="sm" 
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          handleBookStay(accommodation); 
+                        }}
+                        className="ml-auto"
+                        data-testid={`book-stay-${accommodation.id}`}
+                      >
+                        <i className="fas fa-calendar-check mr-2"></i>
+                        Reservar
+                      </Button>
                     </div>
                   </div>
                 </div>

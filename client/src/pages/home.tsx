@@ -5,6 +5,7 @@ import StaySearch from "@/components/StaySearch";
 import RideResults from "@/components/RideResults";
 import StayResults from "@/components/StayResults";
 import DealsOfTheDay from "@/components/DealsOfTheDay";
+import RestaurantStops from "@/components/RestaurantStops";
 
 export default function Home() {
   const [activeService, setActiveService] = useState<"rides" | "stays">("rides");
@@ -29,6 +30,13 @@ export default function Home() {
       {!searchParams && (
         <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <DealsOfTheDay />
+        </section>
+      )}
+
+      {/* Restaurant Stops Section */}
+      {!searchParams && (
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <RestaurantStops />
         </section>
       )}
 

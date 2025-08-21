@@ -11,6 +11,11 @@ export const users = pgTable("users", {
   firstName: text("first_name"),
   lastName: text("last_name"),
   phone: text("phone"),
+  userType: text("user_type").default("user"), // user, driver, host, restaurant
+  avatar: text("avatar"),
+  rating: decimal("rating", { precision: 3, scale: 2 }).default("0.00"),
+  totalReviews: integer("total_reviews").default(0),
+  isVerified: boolean("is_verified").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -29,6 +34,8 @@ export const rides = pgTable("rides", {
   availableIn: integer("available_in"), // minutes until pickup
   driverName: text("driver_name"),
   vehicleInfo: text("vehicle_info"),
+  maxPassengers: integer("max_passengers").default(4), // Maximum seats in vehicle
+  availableSeats: integer("available_seats").default(4), // Currently available seats
   isActive: boolean("is_active").default(true),
 });
 
@@ -47,6 +54,48 @@ export const accommodations = pgTable("accommodations", {
   description: text("description"),
   distanceFromCenter: decimal("distance_from_center", { precision: 4, scale: 1 }),
   isAvailable: boolean("is_available").default(true),
+});
+
+// Ratings table for all user types
+export const ratings = pgTable("ratings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  fromUserId: varchar("from_user_id").references(() => users.id),
+  toUserId: varchar("to_user_id").references(() => users.id),
+  rating: integer("rating").notNull(), // 1-5 stars
+  comment: text("comment"),
+  serviceType: text("service_type").notNull(), // ride, stay, restaurant
+  bookingId: varchar("booking_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Chat messages table
+export const chatMessages = pgTable("chat_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  fromUserId: varchar("from_user_id").references(() => users.id),
+  toUserId: varchar("to_user_id").references(() => users.id),
+  message: text("message").notNull(),
+  messageType: text("message_type").default("text"), // text, image, location
+  bookingId: varchar("booking_id"),
+  isRead: boolean("is_read").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Restaurant table
+export const restaurants = pgTable("restaurants", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  location: text("location").notNull(),
+  cuisine: text("cuisine").notNull(),
+  rating: decimal("rating", { precision: 3, scale: 2 }).default("0.00"),
+  priceRange: text("price_range"), // $, $$, $$$
+  image: text("image"),
+  lat: decimal("lat", { precision: 10, scale: 7 }),
+  lng: decimal("lng", { precision: 10, scale: 7 }),
+  isOpen: boolean("is_open").default(true),
+  specialties: text("specialties").array(),
+  menu: jsonb("menu"), // Store menu items as JSON
+  dailySpecials: jsonb("daily_specials"), // Store daily specials as JSON
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const bookings = pgTable("bookings", {
@@ -100,3 +149,6 @@ export type User = typeof users.$inferSelect;
 export type Ride = typeof rides.$inferSelect;
 export type Accommodation = typeof accommodations.$inferSelect;
 export type Booking = typeof bookings.$inferSelect;
+export type Rating = typeof ratings.$inferSelect;
+export type ChatMessage = typeof chatMessages.$inferSelect;
+export type Restaurant = typeof restaurants.$inferSelect;

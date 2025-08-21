@@ -2,16 +2,21 @@
 
 ## Overview
 
-Link-A Mz is a full-stack travel booking platform designed specifically for the Mozambique market that combines ride-sharing and accommodation services in a unified interface. The application allows users to search for transportation options (similar to Uber) and lodging accommodations (similar to Airbnb) through a single platform. Built with a React frontend and Express backend, it provides a seamless booking experience with real-time search capabilities, interactive maps, comprehensive booking management, and promotional "Deal of the Day" packages combining rides and stays.
+Link-A Mz is a comprehensive travel booking platform designed specifically for the Mozambique market that combines ride-sharing, accommodation services, and restaurant meal stops in a unified interface. The application allows users to search for transportation options (similar to Uber), lodging accommodations (similar to Airbnb), and dining experiences through a single platform. Built with a React frontend and Express backend, it provides a seamless booking experience with real-time search capabilities, interactive maps focused on Mozambique territory, comprehensive booking management, promotional "Deal of the Day" packages, pre-booking chat functionality, user rating system, and restaurant meal stop ordering with advance chat capabilities.
 
 ## User Preferences
 
 - Preferred communication style: Simple, everyday language
 - Target market: Mozambique with Portuguese as main language
 - Currency: Mozambique Metical (MZN) for all pricing
-- Features: "Deal of the Day" promotional offers combining rides and accommodations
-- Seat selection for rides with available seat display
-- Multi-person booking capability for accommodations
+- Map restriction: Limited to Mozambique territory only with Portuguese labels
+- Features: 
+  - "Deal of the Day" promotional offers combining rides and accommodations
+  - Restaurant/meal stops with advance ordering and chat capabilities
+  - Pre-booking chat system between users, drivers, and hosts
+  - Comprehensive user rating system for drivers, hosts, and restaurants
+  - Seat selection for rides with available seat display
+  - Multi-person booking capability for accommodations
 
 ## System Architecture
 
@@ -32,7 +37,11 @@ The server follows a REST API pattern with Express.js:
 
 ### Data Architecture
 The application uses a PostgreSQL-compatible schema with Drizzle ORM:
-- **Database Schema**: Well-defined tables for users, rides, accommodations, and bookings with proper relationships
+- **Database Schema**: Well-defined tables for users, rides, accommodations, bookings, ratings, chat messages, and restaurants with proper relationships
+- **User Management**: Enhanced user system with ratings, verification status, and user types (user, driver, host, restaurant)
+- **Rating System**: Comprehensive rating and review system for all service providers
+- **Chat System**: Pre-booking and post-booking chat functionality between users and service providers
+- **Restaurant Integration**: Full restaurant database with menus, daily specials, and ordering capabilities
 - **Type Safety**: Shared TypeScript types generated from Drizzle schema ensuring consistency across frontend and backend
 - **Validation**: Zod schemas for runtime validation derived from database schema
 

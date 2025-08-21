@@ -23,13 +23,13 @@ export default function Map({ type, from, to, location, markers = [] }: MapProps
       mapContainer.innerHTML = `
         <div class="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">
           <div class="bg-white rounded-lg p-4 shadow-lg text-center">
-            <p class="text-gray-600 text-sm mb-2">Interactive ${type === "ride" ? "route" : "location"} map</p>
+            <p class="text-gray-600 text-sm mb-2">Mapa interativo de ${type === "ride" ? "rota" : "localização"} - Moçambique</p>
             ${type === "ride" && from && to 
               ? `<p class="text-xs text-gray-500">${from} → ${to}</p>`
-              : `<p class="text-xs text-gray-500">${location || "Search area"}</p>`
+              : `<p class="text-xs text-gray-500">${location || "Área de pesquisa"}</p>`
             }
             ${markers.length > 0 
-              ? `<p class="text-xs text-gray-500 mt-1">${markers.length} locations shown</p>`
+              ? `<p class="text-xs text-gray-500 mt-1">${markers.length} localizações mostradas</p>`
               : ""
             }
           </div>
