@@ -120,13 +120,13 @@ export default function Dashboard() {
                       <div className="flex items-center justify-between">
                         <div>
                           <h4 className="font-semibold text-dark">{booking.type}</h4>
-                          <p className="text-gray-medium">{booking.details}</p>
+                          <p className="text-gray-medium">{booking.rideId || booking.accommodationId || 'Detalhes da reserva'}</p>
                         </div>
                         <div className="text-right">
                           <Badge variant={booking.status === 'confirmed' ? 'default' : 'secondary'}>
                             {booking.status === 'confirmed' ? 'Confirmado' : 'Pendente'}
                           </Badge>
-                          <p className="text-sm text-gray-medium mt-1">{booking.date}</p>
+                          <p className="text-sm text-gray-medium mt-1">{booking.pickupTime ? new Date(booking.pickupTime).toLocaleDateString() : new Date(booking.createdAt || '').toLocaleDateString()}</p>
                         </div>
                       </div>
                     </CardContent>
@@ -142,11 +142,11 @@ export default function Dashboard() {
                           <div className="flex items-center justify-between">
                             <div>
                               <h4 className="font-semibold text-dark">{booking.type}</h4>
-                              <p className="text-gray-medium">{booking.details}</p>
+                              <p className="text-gray-medium">{booking.rideId || booking.accommodationId || 'Detalhes da reserva'}</p>
                             </div>
                             <div className="text-right">
                               <Badge variant="outline">Completo</Badge>
-                              <p className="text-sm text-gray-medium mt-1">{booking.date}</p>
+                              <p className="text-sm text-gray-medium mt-1">{booking.pickupTime ? new Date(booking.pickupTime).toLocaleDateString() : new Date(booking.createdAt || '').toLocaleDateString()}</p>
                             </div>
                           </div>
                         </CardContent>

@@ -17,10 +17,12 @@ const rideSearchSchema = z.object({
 type RideSearchForm = z.infer<typeof rideSearchSchema>;
 
 interface RideSearchProps {
-  onSearch: (params: RideSearchForm) => void;
+  onSearch: (params: RideSearchForm & { transportType?: string }) => void;
 }
 
 export default function RideSearch({ onSearch }: RideSearchProps) {
+  const [selectedTransportType, setSelectedTransportType] = useState("carros");
+  
   const form = useForm<RideSearchForm>({
     resolver: zodResolver(rideSearchSchema),
     defaultValues: {
@@ -32,7 +34,7 @@ export default function RideSearch({ onSearch }: RideSearchProps) {
   });
 
   const handleSubmit = (data: RideSearchForm) => {
-    onSearch(data);
+    onSearch({ ...data, transportType: selectedTransportType });
   };
 
   return (
@@ -43,7 +45,7 @@ export default function RideSearch({ onSearch }: RideSearchProps) {
         <form onSubmit={form.handleSubmit(handleSubmit)} className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div className="md:col-span-1">
             <Label htmlFor="from" className="block text-sm font-medium text-gray-medium mb-2">
-              De
+              Saindo de
             </Label>
             <div className="relative">
               <i className="fas fa-map-marker-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
@@ -62,7 +64,7 @@ export default function RideSearch({ onSearch }: RideSearchProps) {
           
           <div className="md:col-span-1">
             <Label htmlFor="to" className="block text-sm font-medium text-gray-medium mb-2">
-              Para
+              Indo para
             </Label>
             <div className="relative">
               <i className="fas fa-map-marker-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
@@ -133,6 +135,78 @@ export default function RideSearch({ onSearch }: RideSearchProps) {
             </Button>
           </div>
         </form>
+
+        {/* Transportation Categories */}
+        <div className="mt-6">
+          <h3 className="text-lg font-semibold text-dark mb-4 text-center">Tipo de Transporte</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div 
+              onClick={() => setSelectedTransportType("aereo")}
+              className={`cursor-pointer rounded-xl p-6 transition-all duration-200 ${
+                selectedTransportType === "aereo" 
+                  ? "bg-primary text-white shadow-lg transform scale-105" 
+                  : "bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-primary/30"
+              }`}
+              data-testid="transport-aereo"
+            >
+              <div className="text-center">
+                <i className={`fas fa-plane text-3xl mb-3 ${
+                  selectedTransportType === "aereo" ? "text-white" : "text-primary"
+                }`}></i>
+                <h4 className={`font-semibold text-lg ${
+                  selectedTransportType === "aereo" ? "text-white" : "text-dark"
+                }`}>Transporte Aéreo</h4>
+                <p className={`text-sm mt-2 ${
+                  selectedTransportType === "aereo" ? "text-white/80" : "text-gray-medium"
+                }`}>Voos domésticos e charters</p>
+              </div>
+            </div>
+
+            <div 
+              onClick={() => setSelectedTransportType("ferroviario")}
+              className={`cursor-pointer rounded-xl p-6 transition-all duration-200 ${
+                selectedTransportType === "ferroviario" 
+                  ? "bg-primary text-white shadow-lg transform scale-105" 
+                  : "bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-primary/30"
+              }`}
+              data-testid="transport-ferroviario"
+            >
+              <div className="text-center">
+                <i className={`fas fa-train text-3xl mb-3 ${
+                  selectedTransportType === "ferroviario" ? "text-white" : "text-primary"
+                }`}></i>
+                <h4 className={`font-semibold text-lg ${
+                  selectedTransportType === "ferroviario" ? "text-white" : "text-dark"
+                }`}>Transporte Ferroviário</h4>
+                <p className={`text-sm mt-2 ${
+                  selectedTransportType === "ferroviario" ? "text-white/80" : "text-gray-medium"
+                }`}>Comboios e metros</p>
+              </div>
+            </div>
+
+            <div 
+              onClick={() => setSelectedTransportType("carros")}
+              className={`cursor-pointer rounded-xl p-6 transition-all duration-200 ${
+                selectedTransportType === "carros" 
+                  ? "bg-primary text-white shadow-lg transform scale-105" 
+                  : "bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-primary/30"
+              }`}
+              data-testid="transport-carros"
+            >
+              <div className="text-center">
+                <i className={`fas fa-car text-3xl mb-3 ${
+                  selectedTransportType === "carros" ? "text-white" : "text-primary"
+                }`}></i>
+                <h4 className={`font-semibold text-lg ${
+                  selectedTransportType === "carros" ? "text-white" : "text-dark"
+                }`}>Carros</h4>
+                <p className={`text-sm mt-2 ${
+                  selectedTransportType === "carros" ? "text-white/80" : "text-gray-medium"
+                }`}>Carros particulares e táxis</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
