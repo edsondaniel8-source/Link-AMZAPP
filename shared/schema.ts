@@ -389,18 +389,64 @@ export const events = pgTable("events", {
   endDate: timestamp("end_date").notNull(),
   startTime: text("start_time"), // e.g., "14:00"
   endTime: text("end_time"), // e.g., "22:00"
+  
+  // Enhanced pricing and ticketing
+  isPaid: boolean("is_paid").default(false), // Free vs paid events
+  ticketPrice: decimal("ticket_price", { precision: 8, scale: 2 }).default("0"), // Base ticket price
+  maxTickets: integer("max_tickets").default(100), // Total tickets available
+  ticketsSold: integer("tickets_sold").default(0), // Tickets sold counter
+  
+  // Partnership settings
+  enablePartnerships: boolean("enable_partnerships").default(false),
+  accommodationDiscount: integer("accommodation_discount").default(10), // %
+  transportDiscount: integer("transport_discount").default(15), // %
+  
+  // Organizer information
+  organizerName: text("organizer_name"),
+  organizerContact: text("organizer_contact"),
+  organizerEmail: text("organizer_email"),
+  
   images: text("images").array(), // Event photos
-  ticketPrice: decimal("ticket_price", { precision: 8, scale: 2 }), // Base ticket price
-  maxAttendees: integer("max_attendees"),
+  maxAttendees: integer("max_attendees"), // For capacity planning (different from tickets)
   currentAttendees: integer("current_attendees").default(0),
-  status: text("status").notNull().default("upcoming"), // "upcoming", "ongoing", "completed", "cancelled"
+  
+  // Status and visibility
+  status: text("status").notNull().default("pending"), // "pending", "approved", "upcoming", "ongoing", "completed", "cancelled"
+  requiresApproval: boolean("requires_approval").default(true), // Events need admin approval
   isPublic: boolean("is_public").default(true),
   isFeatured: boolean("is_featured").default(false), // Show on homepage
-  hasPartnerships: boolean("has_partnerships").default(false), // Offer partnerships
+  hasPartnerships: boolean("has_partnerships").default(false), // Offer partnerships (legacy)
+  
   websiteUrl: text("website_url"),
   socialMediaLinks: text("social_media_links").array(),
   tags: text("tags").array(), // Search tags
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Event tickets for paid events
+export const eventTickets = pgTable("event_tickets", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  eventId: varchar("event_id").references(() => events.id).notNull(),
+  buyerId: varchar("buyer_id").references(() => users.id).notNull(),
+  ticketNumber: text("ticket_number").notNull(), // Unique ticket identifier
+  purchasePrice: decimal("purchase_price", { precision: 8, scale: 2 }).notNull(),
+  paymentStatus: text("payment_status").default("pending"), // "pending", "paid", "refunded", "cancelled"
+  transactionId: varchar("transaction_id").references(() => transactions.id),
+  
+  // Ticket details
+  holderName: text("holder_name").notNull(), // Name on the ticket
+  holderEmail: text("holder_email"), 
+  holderContact: text("holder_contact"),
+  
+  // Ticket status
+  isUsed: boolean("is_used").default(false), // If ticket has been redeemed at event
+  usedAt: timestamp("used_at"), // When ticket was used
+  qrCode: text("qr_code"), // QR code for ticket validation
+  
+  // Metadata
+  notes: text("notes"), // Special requirements or notes
+  purchasedAt: timestamp("purchased_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
@@ -545,6 +591,7 @@ export type PriceRegulation = typeof priceRegulations.$inferSelect;
 export type Transaction = typeof transactions.$inferSelect;
 export type PaymentMethod = typeof paymentMethods.$inferSelect;
 export type DriverDocument = typeof driverDocuments.$inferSelect;
+export type EventTicket = typeof eventTickets.$inferSelect;
 
 // Partnership system types
 export type DriverHotelPartnership = typeof driverHotelPartnerships.$inferSelect;
@@ -577,3 +624,14 @@ export const insertDriverHotelPartnershipSchema = createInsertSchema(driverHotel
 
 export type InsertDriverStats = z.infer<typeof insertDriverStatsSchema>;
 export type InsertDriverHotelPartnership = z.infer<typeof insertDriverHotelPartnershipSchema>;
+
+// Event and ticket schemas
+export const insertEventTicketSchema = createInsertSchema(eventTickets).omit({
+  id: true,
+  ticketNumber: true,
+  qrCode: true,
+  purchasedAt: true,
+  updatedAt: true,
+});
+
+export type InsertEventTicket = z.infer<typeof insertEventTicketSchema>;

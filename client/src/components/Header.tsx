@@ -124,6 +124,29 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
                       </div>
                     </div>
                   </button>
+                  <hr className="my-2" />
+                  <button 
+                    className="w-full text-left px-4 py-3 text-sm text-dark hover:bg-gray-50 flex items-center"
+                    onClick={() => {
+                      // Check if user is verified first
+                      const isVerified = false; // This would come from user context
+                      if (!isVerified) {
+                        window.location.href = "/profile/verification";
+                        return;
+                      }
+                      window.location.href = "/events/create";
+                      setShowServicesMenu(false);
+                    }}
+                  >
+                    <i className="fas fa-calendar-plus mr-3 text-primary"></i>
+                    <div>
+                      <div className="font-medium">Gestor de Eventos</div>
+                      <div className="text-xs text-gray-500">Criar e gerir eventos e feiras</div>
+                      <div className="text-xs text-red-500">
+                        <i className="fas fa-shield-alt mr-1"></i>Verificação obrigatória
+                      </div>
+                    </div>
+                  </button>
                 </div>
               )}
             </div>
@@ -161,15 +184,7 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
                       <i className="fas fa-handshake mr-2"></i>Parcerias
                     </button>
                   </Link>
-                  <Link href="/events">
-                    <button
-                      data-testid="nav-events"
-                      className="w-full text-left px-4 py-2 text-sm text-dark hover:bg-gray-50"
-                      onClick={() => setShowUserMenu(false)}
-                    >
-                      <i className="fas fa-calendar-star mr-2"></i>Eventos
-                    </button>
-                  </Link>
+
                   <Link href="/loyalty">
                     <button
                       data-testid="nav-loyalty"

@@ -64,6 +64,16 @@ Link-A Mz is a comprehensive travel booking platform designed specifically for t
 - Added verification badges and seals for authenticated users
 - Implemented security notices and verification requirements in UI
 
+**Events System Restructure & Enhancement**
+- Moved "Event Manager" option to services menu with verification requirement
+- Added `FeaturedEvents` component displaying events on homepage like restaurants
+- Created comprehensive `/events/create` page for free and paid event creation
+- Enhanced events table schema with ticket purchasing functionality and partnership settings
+- Added `eventTickets` table for complete ticket management with QR codes and validation
+- Implemented event-accommodation-transport partnership system with configurable discounts
+- Support for both free and paid events with integrated payment processing
+- Event approval workflow with admin oversight for all created events
+
 **Key Architecture Changes:**
 - New table: `accommodation_partnership_programs` (host-controlled settings)
 - Modified: `accommodations` table (added partnership flags)  
@@ -80,6 +90,15 @@ Link-A Mz is a comprehensive travel booking platform designed specifically for t
 - Added verification badge system with bronze, silver, gold, platinum levels
 - Created document verification workflow with file upload capabilities
 - Integrated verification requirements into service offering flows
+
+**Events System Architecture Changes:**
+- Enhanced `events` table with comprehensive ticketing and partnership fields
+- New table: `eventTickets` for paid event ticket management and validation
+- Added event approval workflow with pending/approved status tracking
+- Integrated partnership discounts for accommodations and transport
+- Event creation restricted to verified users with admin approval requirement
+- Full ticket purchase and validation system with QR code generation
+- Partnership system integration allowing events to offer transport/accommodation discounts
 
 ## System Architecture
 

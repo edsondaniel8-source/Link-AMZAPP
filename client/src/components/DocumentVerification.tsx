@@ -28,7 +28,7 @@ export default function DocumentVerification({
 }: DocumentVerificationProps) {
   const [documents, setDocuments] = useState({
     // Basic user documents
-    identityDocumentType: "",
+    identityDocumentType: "bilhete_identidade",
     identityDocument: null as File | null,
     profilePhoto: null as File | null,
     fullName: "",

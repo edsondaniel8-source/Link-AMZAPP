@@ -1,281 +1,204 @@
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, Star } from "lucide-react";
-import { format } from "date-fns";
-import { formatMzn } from "@/lib/currency";
-import type { Event, EventPartnership } from "@shared/schema";
+import { Calendar, MapPin, Users, Ticket, Star, Clock } from "lucide-react";
 
-// Mock featured events for demonstration
-const mockFeaturedEvents: (Event & { partnerships: EventPartnership[] })[] = [
+const mockEvents = [
   {
-    id: "1",
-    managerId: "mgr-1",
-    title: "Festival de Música de Maputo 2024",
-    description: "O maior festival de música do país",
-    eventType: "festival",
-    category: "cultura",
-    venue: "Estádio Nacional do Zimpeto",
-    address: "Zimpeto, Maputo",
-    lat: "-25.9324",
-    lng: "32.4532",
-    startDate: new Date("2024-09-15T18:00:00"),
-    endDate: new Date("2024-09-17T23:00:00"),
-    startTime: "18:00",
-    endTime: "23:00",
-    images: ["https://images.unsplash.com/photo-1514525253161-7a46d19cd819"],
-    ticketPrice: "1500.00",
-    maxAttendees: 15000,
-    currentAttendees: 8500,
-    status: "upcoming",
-    isPublic: true,
-    isFeatured: true,
-    hasPartnerships: true,
-    websiteUrl: "https://festivalmaputo.mz",
-    socialMediaLinks: ["@festivalmaputo"],
-    tags: ["musica", "festival", "cultura"],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    partnerships: [
-      {
-        id: "p1",
-        eventId: "1",
-        partnerType: "hotel",
-        partnerId: "hotel-1",
-        partnerName: "Hotel Polana Serena",
-        discountPercentage: "20.00",
-        specialOffer: "20% desconto + pequeno-almoço incluído",
-        minEventTickets: 1,
-        isActive: true,
-        validFrom: new Date(),
-        validUntil: new Date("2024-09-17"),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-    ]
+    id: "event-1",
+    title: "Festival de Música Tradicional",
+    description: "Venha celebrar a música tradicional moçambicana com artistas locais",
+    category: "culture",
+    location: "Maputo Centro Cultural",
+    date: "2025-09-15",
+    time: "19:00",
+    price: 0, // Evento gratuito
+    isPaid: false,
+    ticketsAvailable: 500,
+    attendees: 234,
+    rating: 4.8,
+    image: "/api/placeholder/300/200",
+    organizer: "Ministério da Cultura",
+    hasPartnership: true,
+    partnershipDiscount: 15,
+    tags: ["música", "cultura", "grátis"]
   },
   {
-    id: "2",
-    managerId: "mgr-2", 
-    title: "Feira de Negócios EXPO Maputo",
-    description: "Feira de oportunidades de negócio e investimento",
-    eventType: "feira",
-    category: "negocios",
-    venue: "Centro Internacional de Feiras de Maputo",
-    address: "Maputo, Marracuene",
-    lat: "-25.8897",
-    lng: "32.6074",
-    startDate: new Date("2024-10-05T09:00:00"),
-    endDate: new Date("2024-10-07T18:00:00"),
-    startTime: "09:00",
-    endTime: "18:00",
-    images: ["https://images.unsplash.com/photo-1591115765373-5207764f72e7"],
-    ticketPrice: "500.00",
-    maxAttendees: 5000,
-    currentAttendees: 2100,
-    status: "upcoming",
-    isPublic: true,
-    isFeatured: true,
-    hasPartnerships: true,
-    websiteUrl: null,
-    socialMediaLinks: null,
-    tags: ["negocios", "networking", "expo"],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    partnerships: [
-      {
-        id: "p2",
-        eventId: "2",
-        partnerType: "driver",
-        partnerId: "driver-1",
-        partnerName: "Link-A Motoristas",
-        discountPercentage: "15.00",
-        specialOffer: "15% desconto em viagens para o evento",
-        minEventTickets: 1,
-        isActive: true,
-        validFrom: new Date(),
-        validUntil: new Date("2024-10-07"),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-    ]
+    id: "event-2", 
+    title: "Feira de Negócios EXPO2025",
+    description: "A maior feira de negócios do país com oportunidades de networking",
+    category: "business",
+    location: "Centro de Conferências Joaquim Chissano",
+    date: "2025-09-20",
+    time: "09:00",
+    price: 2500,
+    isPaid: true,
+    ticketsAvailable: 200,
+    attendees: 142,
+    rating: 4.6,
+    image: "/api/placeholder/300/200", 
+    organizer: "CTA - Confederação das Associações Económicas",
+    hasPartnership: true,
+    partnershipDiscount: 20,
+    tags: ["negócios", "networking", "professional"]
+  },
+  {
+    id: "event-3",
+    title: "Festival Gastronómico de Inhambane",
+    description: "Descubra os sabores únicos da culinária de Inhambane",
+    category: "gastronomy",
+    location: "Praia do Tofo, Inhambane",
+    date: "2025-10-05",
+    time: "17:00",
+    price: 1500,
+    isPaid: true,
+    ticketsAvailable: 300,
+    attendees: 89,
+    rating: 4.9,
+    image: "/api/placeholder/300/200",
+    organizer: "Associação de Restaurantes de Inhambane",
+    hasPartnership: true,
+    partnershipDiscount: 10,
+    tags: ["gastronomia", "festival", "praia"]
   }
 ];
 
-interface FeaturedEventsProps {
-  onViewEvent?: (eventId: string) => void;
-}
+export default function FeaturedEvents() {
+  const formatPrice = (price: number) => {
+    if (price === 0) return "Gratuito";
+    return `${price.toLocaleString('pt-MZ')} MZN`;
+  };
 
-export default function FeaturedEvents({ onViewEvent }: FeaturedEventsProps) {
-  const { data: events = [], isLoading } = useQuery<(Event & { partnerships: EventPartnership[] })[]>({
-    queryKey: ["/api/events/featured"],
-    initialData: mockFeaturedEvents,
-  });
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case "culture": return "bg-purple-100 text-purple-800";
+      case "business": return "bg-blue-100 text-blue-800";
+      case "entertainment": return "bg-green-100 text-green-800";
+      case "gastronomy": return "bg-orange-100 text-orange-800";
+      default: return "bg-gray-100 text-gray-800";
+    }
+  };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <div className="h-6 bg-gray-200 rounded animate-pulse w-48"></div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[1, 2].map((i) => (
-            <div key={i} className="bg-gray-200 rounded-xl h-64 animate-pulse"></div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (events.length === 0) {
-    return null;
-  }
-
-  const getEventTypeIcon = (type: string) => {
-    const icons: Record<string, string> = {
-      feira: "🏪",
-      festival: "🎪",
-      concerto: "🎵",
-      conferencia: "🎤",
-      workshop: "🔧",
-      exposicao: "🖼️"
-    };
-    return icons[type] || "📅";
+  const getCategoryName = (category: string) => {
+    switch (category) {
+      case "culture": return "Cultura";
+      case "business": return "Negócios";
+      case "entertainment": return "Entretenimento";
+      case "gastronomy": return "Gastronomia";
+      default: return "Geral";
+    }
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Eventos em Destaque</h2>
-          <p className="text-gray-600">Descubra os melhores eventos com ofertas especiais</p>
+          <h2 className="text-2xl font-bold text-gray-900">Eventos e Feiras em Destaque</h2>
+          <p className="text-gray-600">Descubra os melhores eventos perto de si</p>
         </div>
-        
-        <Button 
-          variant="outline"
-          onClick={() => window.location.href = '/events'}
-          data-testid="view-all-events"
-        >
+        <Button variant="outline" onClick={() => window.location.href = "/events"}>
           Ver Todos os Eventos
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {events.map((event) => (
-          <Card 
-            key={event.id} 
-            className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group"
-            onClick={() => onViewEvent?.(event.id)}
-            data-testid={`featured-event-${event.id}`}
-          >
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {mockEvents.map((event) => (
+          <Card key={event.id} className="overflow-hidden hover:shadow-lg transition-shadow">
             <div className="relative">
-              <img
-                src={event.images?.[0] || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30"}
+              <img 
+                src={event.image} 
                 alt={event.title}
-                className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                className="w-full h-48 object-cover"
               />
-              
-              {/* Featured badge */}
-              <Badge className="absolute top-3 left-3 bg-yellow-500 text-white">
-                <Star className="w-3 h-3 mr-1" />
-                Destaque
-              </Badge>
-
-              {/* Partnership badge */}
-              {event.hasPartnerships && event.partnerships?.length > 0 && (
-                <Badge className="absolute top-3 right-3 bg-green-600 text-white">
-                  <i className="fas fa-handshake mr-1"></i>
-                  Parcerias
+              <div className="absolute top-2 left-2">
+                <Badge className={getCategoryColor(event.category)}>
+                  {getCategoryName(event.category)}
                 </Badge>
+              </div>
+              {!event.isPaid && (
+                <div className="absolute top-2 right-2">
+                  <Badge className="bg-green-500 text-white">
+                    Grátis
+                  </Badge>
+                </div>
+              )}
+            </div>
+            
+            <CardHeader>
+              <CardTitle className="text-lg">{event.title}</CardTitle>
+              <p className="text-sm text-gray-600 line-clamp-2">{event.description}</p>
+            </CardHeader>
+            
+            <CardContent className="space-y-3">
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <Calendar className="w-4 h-4" />
+                <span>{new Date(event.date).toLocaleDateString('pt-MZ')}</span>
+                <Clock className="w-4 h-4 ml-2" />
+                <span>{event.time}</span>
+              </div>
+              
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <MapPin className="w-4 h-4" />
+                <span className="line-clamp-1">{event.location}</span>
+              </div>
+              
+              <div className="flex items-center space-x-4 text-sm">
+                <div className="flex items-center space-x-1">
+                  <Users className="w-4 h-4 text-gray-500" />
+                  <span className="text-gray-600">{event.attendees} interessados</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Star className="w-4 h-4 text-yellow-500" />
+                  <span className="text-gray-600">{event.rating}</span>
+                </div>
+              </div>
+              
+              {event.hasPartnership && (
+                <div className="bg-blue-50 rounded-lg p-3 text-sm">
+                  <div className="flex items-center space-x-2 text-blue-700">
+                    <i className="fas fa-handshake"></i>
+                    <span className="font-medium">Parceria Link-A</span>
+                  </div>
+                  <p className="text-blue-600 text-xs mt-1">
+                    {event.partnershipDiscount}% desconto em alojamentos e transporte
+                  </p>
+                </div>
               )}
               
-              <div className="absolute bottom-3 left-3">
-                <span className="text-3xl">{getEventTypeIcon(event.eventType)}</span>
-              </div>
-            </div>
-
-            <CardContent className="p-6 space-y-4">
-              <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2 line-clamp-2">
-                  {event.title}
-                </h3>
-                <p className="text-gray-600 text-sm line-clamp-2">
-                  {event.description}
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center text-sm text-gray-600">
-                  <Calendar className="w-4 h-4 mr-2" />
-                  <span>
-                    {format(new Date(event.startDate), "dd/MM/yyyy")} às {event.startTime}
-                  </span>
-                </div>
-                
-                <div className="flex items-center text-sm text-gray-600">
-                  <MapPin className="w-4 h-4 mr-2" />
-                  <span className="line-clamp-1">{event.venue}</span>
-                </div>
-              </div>
-
-              {/* Price and partnerships preview */}
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between pt-2">
                 <div>
-                  {event.ticketPrice && (
-                    <div>
-                      <span className="text-xl font-bold text-purple-600">
-                        {formatMzn(parseFloat(event.ticketPrice))}
-                      </span>
-                      <p className="text-xs text-gray-500">por bilhete</p>
+                  <div className="font-bold text-lg text-primary">
+                    {formatPrice(event.price)}
+                  </div>
+                  {event.isPaid && (
+                    <div className="text-xs text-gray-500">
+                      <Ticket className="w-3 h-3 inline mr-1" />
+                      {event.ticketsAvailable} bilhetes disponíveis
                     </div>
                   )}
                 </div>
-                
-                {event.partnerships && event.partnerships.length > 0 && (
-                  <div className="text-right">
-                    <div className="text-sm font-medium text-green-600">
-                      Até {Math.max(...event.partnerships.map(p => parseFloat(p.discountPercentage)))}% desconto
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {event.partnerships.length} parceria{event.partnerships.length !== 1 ? 's' : ''}
-                    </div>
-                  </div>
-                )}
+                <Button 
+                  size="sm"
+                  onClick={() => window.location.href = `/events/${event.id}`}
+                  data-testid={`button-view-event-${event.id}`}
+                >
+                  {event.isPaid ? "Comprar Bilhete" : "Participar"}
+                </Button>
               </div>
-
-              {/* Quick partnership preview */}
-              {event.partnerships && event.partnerships.length > 0 && (
-                <div className="bg-green-50 rounded-lg p-3 border border-green-200">
-                  <h4 className="text-sm font-medium text-green-800 mb-1">Ofertas Especiais:</h4>
-                  <div className="space-y-1">
-                    {event.partnerships.slice(0, 2).map((partnership) => (
-                      <div key={partnership.id} className="text-xs text-green-700 flex items-center">
-                        <i className={`fas fa-${partnership.partnerType === 'hotel' ? 'bed' : partnership.partnerType === 'driver' ? 'car' : 'utensils'} mr-2`}></i>
-                        {partnership.partnerName}: {partnership.discountPercentage}% desconto
-                      </div>
-                    ))}
-                    {event.partnerships.length > 2 && (
-                      <div className="text-xs text-green-600 font-medium">
-                        +{event.partnerships.length - 2} mais parcerias
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              <Button 
-                className="w-full bg-purple-600 hover:bg-purple-700" 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onViewEvent?.(event.id);
-                }}
-                data-testid={`view-event-${event.id}`}
-              >
-                <i className="fas fa-ticket-alt mr-2"></i>
-                Ver Detalhes & Reservar
-              </Button>
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      <div className="text-center">
+        <Button 
+          variant="ghost" 
+          size="lg"
+          onClick={() => window.location.href = "/events"}
+          className="text-primary hover:text-primary-dark"
+        >
+          Explorar Mais Eventos →
+        </Button>
       </div>
     </div>
   );
