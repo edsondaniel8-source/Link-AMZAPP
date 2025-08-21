@@ -9,6 +9,9 @@ interface User {
   isVerified: boolean;
   verificationStatus: "pending" | "in_review" | "verified" | "rejected";
   canOfferServices: boolean;
+  loginMethod?: "email" | "phone" | "google";
+  googleId?: string;
+  profileImage?: string;
 }
 
 interface AuthContextType {
@@ -17,6 +20,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (identifier: string, password: string) => Promise<void>;
   register: (userData: RegisterData) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   logout: () => void;
   updateUser: (userData: Partial<User>) => void;
 }
@@ -150,6 +154,40 @@ export function useAuthState() {
     window.location.href = '/';
   };
 
+  const loginWithGoogle = async () => {
+    try {
+      // Store current location to return after auth
+      localStorage.setItem('auth_return_to', window.location.pathname);
+      
+      // TODO: Replace with actual Google OAuth URL
+      const googleAuthUrl = '/api/auth/google';
+      
+      // For development, simulate Google login
+      const mockGoogleUser: User = {
+        id: 'google-user-' + Date.now(),
+        firstName: 'João',
+        lastName: 'Santos',
+        email: 'joao.santos@gmail.com',
+        phone: '', // Google users might not have phone initially
+        isVerified: false,
+        verificationStatus: 'pending',
+        canOfferServices: false,
+        loginMethod: 'google',
+        googleId: 'google_' + Date.now(),
+        profileImage: 'https://lh3.googleusercontent.com/a/default-user=s96-c'
+      };
+      
+      setUser(mockGoogleUser);
+      localStorage.setItem('auth_token', 'google_token_' + Date.now());
+      localStorage.setItem('user_data', JSON.stringify(mockGoogleUser));
+      
+      // In production, redirect to Google OAuth
+      // window.location.href = googleAuthUrl;
+    } catch (error) {
+      throw new Error('Erro no login com Google');
+    }
+  };
+
   const updateUser = (userData: Partial<User>) => {
     if (user) {
       const updatedUser = { ...user, ...userData };
@@ -164,6 +202,7 @@ export function useAuthState() {
     isLoading,
     login,
     register,
+    loginWithGoogle,
     logout,
     updateUser,
   };

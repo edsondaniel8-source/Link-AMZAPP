@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Shield, Phone, Mail, User, Lock, Eye, EyeOff } from "lucide-react";
+import { FaGoogle } from "react-icons/fa";
 import { useToast } from "@/hooks/use-toast";
 
 interface LoginModalProps {
@@ -35,6 +36,44 @@ export default function LoginModal({ isOpen, onClose, onSuccess }: LoginModalPro
   });
 
   const { toast } = useToast();
+
+  const handleGoogleLogin = async () => {
+    setIsLoading(true);
+    
+    try {
+      // TODO: Implement actual Google OAuth
+      // For now, simulate Google login with mock data
+      const mockGoogleUser = {
+        id: 'google-user-' + Date.now(),
+        name: 'Maria Santos',
+        email: 'maria.santos@gmail.com',
+        phone: '', // Google users might not have phone initially
+        isVerified: false,
+        verificationStatus: 'pending' as const,
+        canOfferServices: false,
+        loginMethod: 'google'
+      };
+      
+      setTimeout(() => {
+        toast({
+          title: "Login Google Realizado",
+          description: "Bem-vindo ao Link-A através da sua conta Google!"
+        });
+        
+        setIsLoading(false);
+        onSuccess?.(mockGoogleUser);
+        onClose();
+      }, 1500);
+      
+    } catch (error) {
+      setIsLoading(false);
+      toast({
+        title: "Erro no Login Google",
+        description: "Não foi possível conectar com o Google. Tente novamente.",
+        variant: "destructive"
+      });
+    }
+  };
 
   const validateMozambiquePhone = (phone: string) => {
     // Mozambique phone formats: +258XXXXXXXXX, 258XXXXXXXXX, 8XXXXXXXX, 8XXXXXXX
@@ -217,6 +256,27 @@ export default function LoginModal({ isOpen, onClose, onSuccess }: LoginModalPro
                 <CardTitle className="text-lg">Iniciar Sessão</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Google Login Button */}
+                <Button
+                  onClick={handleGoogleLogin}
+                  disabled={isLoading}
+                  variant="outline"
+                  className="w-full border-red-300 hover:bg-red-50 text-red-700"
+                  data-testid="button-google-login"
+                >
+                  <FaGoogle className="w-4 h-4 mr-2 text-red-500" />
+                  Continuar com Google
+                </Button>
+                
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-white px-2 text-muted-foreground">Ou continue com</span>
+                  </div>
+                </div>
+
                 <div>
                   <Label htmlFor="identifier">Email ou Telefone</Label>
                   <Input
@@ -288,6 +348,27 @@ export default function LoginModal({ isOpen, onClose, onSuccess }: LoginModalPro
                 <CardTitle className="text-lg">Criar Conta</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Google Registration Button */}
+                <Button
+                  onClick={handleGoogleLogin}
+                  disabled={isLoading}
+                  variant="outline"
+                  className="w-full border-red-300 hover:bg-red-50 text-red-700"
+                  data-testid="button-google-register"
+                >
+                  <FaGoogle className="w-4 h-4 mr-2 text-red-500" />
+                  Registar com Google
+                </Button>
+                
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-white px-2 text-muted-foreground">Ou registe-se com email</span>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="firstName">Nome</Label>

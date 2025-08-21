@@ -5,6 +5,7 @@ import EventSearchModal, { type EventSearchParams } from "./EventSearchModal";
 import LoginModal from "./LoginModal";
 import { Button } from "@/components/ui/button";
 import { User, LogOut } from "lucide-react";
+import { FaGoogle } from "react-icons/fa";
 import logoPath from "@assets/link-a-logo.png";
 
 interface HeaderProps {
@@ -179,10 +180,21 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
                     onClick={() => setShowUserMenu(!showUserMenu)}
                     className="flex items-center space-x-2 text-gray-medium hover:text-dark transition-colors"
                   >
-                    <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                      <User className="w-4 h-4 text-white" />
+                    <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center overflow-hidden">
+                      {user?.profileImage ? (
+                        <img 
+                          src={user.profileImage} 
+                          alt="Perfil" 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <User className="w-4 h-4 text-white" />
+                      )}
                     </div>
                     <span className="hidden md:inline font-medium">{user?.name || "Utilizador"}</span>
+                    {user?.loginMethod === 'google' && (
+                      <FaGoogle className="w-3 h-3 text-red-500" />
+                    )}
                     <i className="fas fa-chevron-down text-xs"></i>
                   </button>
                 
