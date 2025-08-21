@@ -9,6 +9,7 @@ import AdminPanel from "@/pages/admin";
 import Partnerships from "@/pages/partnerships";
 import Events from "@/pages/events";
 import Loyalty from "@/pages/loyalty";
+import ProfileVerification from "@/pages/profile-verification";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -17,9 +18,9 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/partnerships" component={Partnerships} />
-      <Route path="/host/partnerships" component={() => import("@/pages/host-partnerships")} />
       <Route path="/events" component={Events} />
       <Route path="/loyalty" component={Loyalty} />
+      <Route path="/profile/verification" component={ProfileVerification} />
       <Route path="/admin" component={AdminPanel} />
       <Route component={NotFound} />
     </Switch>

@@ -12,11 +12,31 @@ export const users = pgTable("users", {
   lastName: text("last_name"),
   phone: text("phone"),
   userType: text("user_type").default("user"), // user, driver, host, restaurant
+  canOfferServices: boolean("can_offer_services").default(false), // Only verified users can offer rides/accommodations
   avatar: text("avatar"),
   rating: decimal("rating", { precision: 3, scale: 2 }).default("0.00"),
   totalReviews: integer("total_reviews").default(0),
   isVerified: boolean("is_verified").default(false),
   createdAt: timestamp("created_at").defaultNow(),
+  
+  // Document verification system
+  verificationStatus: text("verification_status").default("pending"), // pending, in_review, verified, rejected
+  verificationDate: timestamp("verification_date"),
+  verificationNotes: text("verification_notes"), // Admin notes
+  
+  // Required documents
+  identityDocumentUrl: text("identity_document_url"),
+  identityDocumentType: text("identity_document_type"), // bilhete_identidade, passaporte, carta_conducao
+  profilePhotoUrl: text("profile_photo_url"),
+  
+  // Additional verification fields
+  fullName: text("full_name"),
+  documentNumber: text("document_number"),
+  dateOfBirth: timestamp("date_of_birth"),
+  
+  // Verification badge/seal
+  verificationBadge: text("verification_badge"), // bronze, silver, gold, platinum
+  badgeEarnedDate: timestamp("badge_earned_date"),
 });
 
 export const rides = pgTable("rides", {
@@ -479,6 +499,33 @@ export const notifications = pgTable("notifications", {
   readAt: timestamp("read_at"),
 });
 
+// Driver verification documents (vehicle documents for drivers)
+export const driverDocuments = pgTable("driver_documents", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  driverId: varchar("driver_id").references(() => users.id).notNull(),
+  
+  // Vehicle documents
+  vehicleRegistrationUrl: text("vehicle_registration_url"), // Registo do veículo
+  drivingLicenseUrl: text("driving_license_url"), // Carta de condução
+  vehicleInsuranceUrl: text("vehicle_insurance_url"), // Seguro do veículo
+  vehicleInspectionUrl: text("vehicle_inspection_url"), // Inspecção técnica
+  
+  // Vehicle details
+  vehicleMake: text("vehicle_make"), // Marca
+  vehicleModel: text("vehicle_model"), // Modelo
+  vehicleYear: integer("vehicle_year"), // Ano
+  vehiclePlate: text("vehicle_plate"), // Matrícula
+  vehicleColor: text("vehicle_color"), // Cor
+  
+  // Verification status
+  isVerified: boolean("is_verified").default(false),
+  verificationDate: timestamp("verification_date"),
+  verificationNotes: text("verification_notes"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export type User = typeof users.$inferSelect;
 export type Ride = typeof rides.$inferSelect;
 export type Accommodation = typeof accommodations.$inferSelect;
@@ -497,6 +544,7 @@ export type AdminAction = typeof adminActions.$inferSelect;
 export type PriceRegulation = typeof priceRegulations.$inferSelect;
 export type Transaction = typeof transactions.$inferSelect;
 export type PaymentMethod = typeof paymentMethods.$inferSelect;
+export type DriverDocument = typeof driverDocuments.$inferSelect;
 
 // Partnership system types
 export type DriverHotelPartnership = typeof driverHotelPartnerships.$inferSelect;

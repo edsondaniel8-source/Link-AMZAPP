@@ -11,6 +11,7 @@ interface HeaderProps {
 
 export default function Header({ activeService, onServiceChange, onOfferRide }: HeaderProps) {
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showServicesMenu, setShowServicesMenu] = useState(false);
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
@@ -62,19 +63,71 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
                 Eventos
               </button>
             </Link>
-            {onOfferRide && (
-              <button 
-                onClick={onOfferRide}
-                className="hidden md:block bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 font-medium transition-colors"
-                data-testid="offer-ride-button"
+            
+            {/* Services Menu Button */}
+            <div className="relative">
+              <button
+                data-testid="services-menu-button"
+                onClick={() => setShowServicesMenu(!showServicesMenu)}
+                className="hidden md:flex items-center text-gray-medium hover:text-dark font-medium transition-colors"
               >
-                <i className="fas fa-plus mr-2"></i>
-                Oferecer Viagem
+                <i className="fas fa-briefcase mr-2"></i>
+                Serviços
+                <i className="fas fa-chevron-down ml-1 text-xs"></i>
               </button>
-            )}
-            <button className="hidden md:block text-gray-medium hover:text-dark font-medium">
-              Torne-se anfitrião
-            </button>
+              
+              {showServicesMenu && (
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
+                  {onOfferRide && (
+                    <button 
+                      onClick={() => {
+                        // Check if user is verified first
+                        const isVerified = false; // This would come from user context
+                        if (!isVerified) {
+                          window.location.href = "/profile/verification";
+                          return;
+                        }
+                        onOfferRide();
+                        setShowServicesMenu(false);
+                      }}
+                      className="w-full text-left px-4 py-3 text-sm text-dark hover:bg-gray-50 flex items-center"
+                      data-testid="offer-ride-button"
+                    >
+                      <i className="fas fa-plus mr-3 text-primary"></i>
+                      <div>
+                        <div className="font-medium">Oferecer Viagem</div>
+                        <div className="text-xs text-gray-500">Ganhe dinheiro como motorista</div>
+                        <div className="text-xs text-red-500">
+                          <i className="fas fa-shield-alt mr-1"></i>Verificação obrigatória
+                        </div>
+                      </div>
+                    </button>
+                  )}
+                  <button 
+                    className="w-full text-left px-4 py-3 text-sm text-dark hover:bg-gray-50 flex items-center"
+                    onClick={() => {
+                      // Check if user is verified first
+                      const isVerified = false; // This would come from user context
+                      if (!isVerified) {
+                        window.location.href = "/profile/verification";
+                        return;
+                      }
+                      setShowServicesMenu(false);
+                    }}
+                  >
+                    <i className="fas fa-home mr-3 text-primary"></i>
+                    <div>
+                      <div className="font-medium">Torne-se Anfitrião</div>
+                      <div className="text-xs text-gray-500">Alugue o seu espaço</div>
+                      <div className="text-xs text-red-500">
+                        <i className="fas fa-shield-alt mr-1"></i>Verificação obrigatória
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              )}
+            </div>
+            
             <NotificationCenter />
             <div className="relative">
               <button
@@ -124,6 +177,20 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
                       onClick={() => setShowUserMenu(false)}
                     >
                       <i className="fas fa-crown mr-2"></i>Programa Fidelidade
+                    </button>
+                  </Link>
+                  <hr className="my-2" />
+                  <Link href="/profile/verification">
+                    <button
+                      data-testid="nav-verification"
+                      className="w-full text-left px-4 py-2 text-sm text-dark hover:bg-gray-50 flex items-center"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      <i className="fas fa-shield-alt mr-2 text-blue-600"></i>
+                      <div>
+                        <div className="font-medium">Verificar Perfil</div>
+                        <div className="text-xs text-gray-500">Obrigatório para oferecer serviços</div>
+                      </div>
                     </button>
                   </Link>
                   <Link href="/admin">
