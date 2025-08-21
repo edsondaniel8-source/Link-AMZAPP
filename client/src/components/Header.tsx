@@ -2,6 +2,9 @@ import { useState } from "react";
 import { Link } from "wouter";
 import NotificationCenter from "./NotificationCenter";
 import EventSearchModal, { type EventSearchParams } from "./EventSearchModal";
+import LoginModal from "./LoginModal";
+import { Button } from "@/components/ui/button";
+import { User, LogOut } from "lucide-react";
 import logoPath from "@assets/link-a-logo.png";
 
 interface HeaderProps {
@@ -14,6 +17,15 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showServicesMenu, setShowServicesMenu] = useState(false);
   const [showEventSearch, setShowEventSearch] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  
+  // Mock authentication state - replace with actual auth logic
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<{
+    name: string;
+    email: string;
+    isVerified: boolean;
+  } | null>(null);
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
@@ -155,21 +167,27 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
               )}
             </div>
             
-            <NotificationCenter />
-            <div className="relative">
-              <button
-                data-testid="user-menu-button"
-                onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center space-x-2 border border-gray-300 rounded-full py-2 px-4 hover:shadow-md transition-shadow"
-              >
-                <i className="fas fa-bars text-gray-medium"></i>
-                <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                  <i className="fas fa-user text-gray-600 text-sm"></i>
-                </div>
-              </button>
-              
-              {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
+            {/* Authentication Section */}
+            {isAuthenticated ? (
+              <>
+                <NotificationCenter />
+                
+                {/* User Menu */}
+                <div className="relative">
+                  <button
+                    data-testid="user-menu-button"
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    className="flex items-center space-x-2 text-gray-medium hover:text-dark transition-colors"
+                  >
+                    <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                      <User className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="hidden md:inline font-medium">{user?.name || "Utilizador"}</span>
+                    <i className="fas fa-chevron-down text-xs"></i>
+                  </button>
+                
+                  {showUserMenu && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
                   <Link href="/dashboard">
                     <button
                       data-testid="nav-dashboard"
@@ -243,9 +261,20 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
                   >
                     <i className="fas fa-sign-out-alt mr-2"></i>Sair
                   </button>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </>
+            ) : (
+              <Button
+                onClick={() => setShowLoginModal(true)}
+                className="bg-primary hover:bg-primary-dark"
+                data-testid="button-login"
+              >
+                <User className="w-4 h-4 mr-2" />
+                Entrar
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -256,6 +285,16 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
         onClose={() => setShowEventSearch(false)}
         onSearch={(params: EventSearchParams) => {
           console.log('Searching events:', params);
+        }}
+      />
+      
+      {/* Login Modal */}
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onSuccess={(userData: any) => {
+          setIsAuthenticated(true);
+          setUser(userData);
         }}
       />
     </header>
