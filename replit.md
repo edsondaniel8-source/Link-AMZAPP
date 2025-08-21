@@ -28,7 +28,7 @@ Built with React and TypeScript, featuring a modular component architecture, sta
 An Express.js REST API layer handles requests. It uses an interface-based storage abstraction with Drizzle ORM for PostgreSQL and includes centralized error handling. Development is supported by Vite for hot module replacement.
 
 ### Data Architecture
-The application uses a PostgreSQL-compatible schema with Drizzle ORM, encompassing over 15 tables for users, rides, accommodations, bookings, ratings, chat messages, restaurants, and a comprehensive partnership system. It includes enhanced user management with verification and types, a comprehensive rating system, chat functionality, and full restaurant integration. Type safety is ensured across the stack via shared TypeScript types from Drizzle.
+The application uses an optimized PostgreSQL schema with Drizzle ORM, streamlined from 29 to ~20 tables through systematic consolidation. Core tables include users, rides, accommodations, bookings (unified for rides/stays/events), ratings, chat messages, restaurants, and a simplified partnership system. Major optimizations: events system consolidated into main bookings table, partnership system simplified with direct accommodation discount fields, and payments system unified. Type safety is ensured across the stack via shared TypeScript types from Drizzle.
 
 ### Authentication & Session Management
 A mandatory, comprehensive authentication system supports email and Mozambique phone number login. It includes `LoginModal`, `ProtectedRoute`, and `AuthRequiredMessage` components, with authentication state managed via a `useAuth` hook and localStorage. Session persistence is managed using a PostgreSQL session store. Service offerings are restricted to verified users, integrating with a document verification system.
@@ -39,8 +39,8 @@ Provides an admin panel for user management (blocking, penalizing, removing user
 ### Payment System
 Features an integrated payment processor with a 10% transaction fee. Supports multiple payment methods (credit cards, M-Pesa, bank transfers), dynamic pricing with partnership discounts, and detailed transaction history tracking. Dedicated API endpoints handle payment processing and refunds.
 
-### Partnership System (Optional for Accommodations)
-Allows hosts to opt-in to driver partnerships, offering discounts via a 4-tier system (Bronze, Silver, Gold, Platinum). Qualification is based on driver performance, and hosts can configure discount rates and minimum ride requirements. Partnership badges are visually integrated when enabled by hosts.
+### Partnership System (Simplified)
+Streamlined system where accommodations can offer driver discounts through simple fields: `offerDriverDiscounts`, `driverDiscountRate`, and `minimumDriverLevel`. Driver qualifications tracked in `driverStats` table with bronze/silver/gold/platinum levels based on performance. Partnership badges shown when enabled by hosts for visual recognition.
 
 ### Notifications System
 Includes a comprehensive `NotificationCenter` component supporting multiple notification types (rides, stays, events, payments, loyalty, system) with priority levels and visual indicators.
@@ -48,8 +48,8 @@ Includes a comprehensive `NotificationCenter` component supporting multiple noti
 ### Loyalty Program System
 Features a `LoyaltyProgram` component with a 4-tier membership system, a point earning system based on platform activities, a rewards catalog with tier-based restrictions, and points history tracking.
 
-### Events & Fairs Management System
-A dedicated events section includes search, filtering, booking, and partnership integration. It supports creating both free and paid events with integrated payment processing and ticket management, including QR codes and validation. An approval workflow is in place for all created events.
+### Events & Fairs Management System (Optimized)
+Events management integrated into main booking system for streamlined operations. Supports creating free and paid events with ticket management through unified bookings table. Event booking includes QR codes, ticket numbers, and partnership discounts. All event bookings processed through the main bookings table with event-specific fields (eventId, ticketQuantity, ticketNumbers array).
 
 ## External Dependencies
 

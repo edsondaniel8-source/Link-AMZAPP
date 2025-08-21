@@ -84,8 +84,11 @@ export const accommodations = pgTable("accommodations", {
   description: text("description"),
   distanceFromCenter: decimal("distance_from_center", { precision: 4, scale: 1 }),
   isAvailable: boolean("is_available").default(true),
-  // Partnership visibility - only show to drivers if enabled
-  hasPartnershipProgram: boolean("has_partnership_program").default(false),
+  
+  // SIMPLIFIED: Driver partnership discounts (merged from accommodationPartnershipPrograms)
+  offerDriverDiscounts: boolean("offer_driver_discounts").default(false),
+  driverDiscountRate: decimal("driver_discount_rate", { precision: 5, scale: 2 }).default("10.00"), // 10% default
+  minimumDriverLevel: text("minimum_driver_level").default("bronze"), // bronze, silver, gold, platinum
   partnershipBadgeVisible: boolean("partnership_badge_visible").default(false), // Show "Motoristas VIP" badge
 });
 
@@ -193,41 +196,38 @@ export const pickupRequests = pgTable("pickup_requests", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Transactions table for payment processing
-export const transactions = pgTable("transactions", {
+// CONSOLIDATED: Payments table - merged transactions and paymentMethods
+export const payments = pgTable("payments", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   bookingId: varchar("booking_id").references(() => bookings.id),
   userId: varchar("user_id").references(() => users.id),
-  serviceType: text("service_type").notNull(), // 'ride', 'accommodation', 'restaurant'
+  serviceType: text("service_type").notNull(), // 'ride', 'accommodation', 'restaurant', 'event'
+  
+  // Payment amounts
   subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
   platformFee: decimal("platform_fee", { precision: 10, scale: 2 }).notNull(), // 10% of subtotal
-  total: decimal("total", { precision: 10, scale: 2 }).notNull(), // subtotal + platformFee
+  discountAmount: decimal("discount_amount", { precision: 10, scale: 2 }).default("0.00"),
+  total: decimal("total", { precision: 10, scale: 2 }).notNull(), // subtotal + platformFee - discount
+  
+  // Payment method details (merged from paymentMethods)
   paymentMethod: text("payment_method"), // 'card', 'mpesa', 'bank_transfer'
-  paymentStatus: text("payment_status").default("pending"), // 'pending', 'completed', 'failed', 'refunded'
-  paymentReference: text("payment_reference"), // External payment processor reference
-  paidAt: timestamp("paid_at"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-// Payment methods table
-export const paymentMethods = pgTable("payment_methods", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id),
-  type: text("type").notNull(), // 'card', 'mpesa', 'bank_account'
-  isDefault: boolean("is_default").default(false),
   cardLast4: text("card_last4"), // For cards
   cardBrand: text("card_brand"), // visa, mastercard, etc
   mpesaNumber: text("mpesa_number"), // For M-Pesa
-  bankAccount: text("bank_account"), // For bank transfers
-  isActive: boolean("is_active").default(true),
+  
+  // Payment processing
+  paymentStatus: text("payment_status").default("pending"), // 'pending', 'completed', 'failed', 'refunded'
+  paymentReference: text("payment_reference"), // External payment processor reference
+  paidAt: timestamp("paid_at"),
+  
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const bookings = pgTable("bookings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id),
-  type: text("type").notNull(), // "ride" or "stay"
+  type: text("type").notNull(), // "ride", "stay", "event"
   status: text("status").notNull().default("pending"), // pending, confirmed, completed, cancelled
   
   // Ride booking fields
@@ -241,55 +241,24 @@ export const bookings = pgTable("bookings", {
   guests: integer("guests"),
   nights: integer("nights"),
   
+  // Event booking fields (merged from eventBookings)
+  eventId: varchar("event_id").references(() => events.id),
+  ticketQuantity: integer("ticket_quantity").default(1),
+  ticketNumbers: text("ticket_numbers").array(), // Array of ticket numbers
+  qrCodes: text("qr_codes").array(), // Array of QR codes
+  
+  // Pricing with discounts
+  originalPrice: decimal("original_price", { precision: 10, scale: 2 }).notNull(),
+  discountApplied: decimal("discount_applied", { precision: 10, scale: 2 }).default("0.00"),
   totalPrice: decimal("total_price", { precision: 10, scale: 2 }).notNull(),
+  
   paymentMethod: text("payment_method"), // visa_4242, mastercard_5555, etc
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Driver-Hotel Partnership System - OPTIONAL for accommodations to offer
-export const accommodationPartnershipPrograms = pgTable("accommodation_partnership_programs", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  accommodationId: varchar("accommodation_id").references(() => accommodations.id),
-  hostId: varchar("host_id").references(() => users.id), // The accommodation owner/manager
-  isEnabled: boolean("is_enabled").default(false), // Host must opt-in to offer partnerships
-  programName: text("program_name").notNull(), // e.g., "Programa VIP Motoristas"
-  description: text("description"), // Host's description of their program
-  // Partnership levels the accommodation wants to offer
-  bronzeEnabled: boolean("bronze_enabled").default(false),
-  bronzeDiscount: decimal("bronze_discount", { precision: 5, scale: 2 }).default("0.00"),
-  bronzeMinRides: integer("bronze_min_rides").default(10),
-  silverEnabled: boolean("silver_enabled").default(false),
-  silverDiscount: decimal("silver_discount", { precision: 5, scale: 2 }).default("0.00"),
-  silverMinRides: integer("silver_min_rides").default(25),
-  goldEnabled: boolean("gold_enabled").default(false),
-  goldDiscount: decimal("gold_discount", { precision: 5, scale: 2 }).default("0.00"),
-  goldMinRides: integer("gold_min_rides").default(50),
-  platinumEnabled: boolean("platinum_enabled").default(false),
-  platinumDiscount: decimal("platinum_discount", { precision: 5, scale: 2 }).default("0.00"),
-  platinumMinRides: integer("platinum_min_rides").default(100),
-  // Additional benefits the host wants to offer
-  extraBenefits: text("extra_benefits").array(), // ["priority_checkin", "free_breakfast", "spa_access"]
-  termsAndConditions: text("terms_and_conditions"),
-  validUntil: timestamp("valid_until"), // Optional program expiry
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-// Active partnerships between qualified drivers and participating accommodations
-export const driverHotelPartnerships = pgTable("driver_hotel_partnerships", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  driverId: varchar("driver_id").references(() => users.id),
-  accommodationId: varchar("accommodation_id").references(() => accommodations.id),
-  programId: varchar("program_id").references(() => accommodationPartnershipPrograms.id),
-  qualifiedLevel: text("qualified_level").notNull(), // "bronze", "silver", "gold", "platinum"
-  discountPercentage: decimal("discount_percentage", { precision: 5, scale: 2 }).notNull(),
-  isActive: boolean("is_active").default(true),
-  qualifiedAt: timestamp("qualified_at").defaultNow(),
-  expiresAt: timestamp("expires_at"), // When driver needs to re-qualify
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
+// REMOVED: accommodationPartnershipPrograms, driverHotelPartnerships
+// SIMPLIFIED: Partnership info integrated into accommodations table and driverStats
 
 // Driver statistics to track eligibility for partnership levels
 export const driverStats = pgTable("driver_stats", {
@@ -307,32 +276,8 @@ export const driverStats = pgTable("driver_stats", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Partnership benefits and rewards
-export const partnershipBenefits = pgTable("partnership_benefits", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  level: text("level").notNull(), // bronze, silver, gold, platinum
-  benefitType: text("benefit_type").notNull(), // "accommodation_discount", "priority_booking", "free_meal"
-  benefitValue: decimal("benefit_value", { precision: 8, scale: 2 }), // percentage or monetary value
-  description: text("description").notNull(),
-  minimumRidesRequired: integer("minimum_rides_required").default(0),
-  minimumRatingRequired: decimal("minimum_rating_required", { precision: 3, scale: 2 }).default("0.00"),
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-// Discount usage tracking
-export const discountUsageLog = pgTable("discount_usage_log", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  partnershipId: varchar("partnership_id").references(() => driverHotelPartnerships.id),
-  driverId: varchar("driver_id").references(() => users.id),
-  accommodationId: varchar("accommodation_id").references(() => accommodations.id),
-  bookingId: varchar("booking_id").references(() => bookings.id),
-  originalPrice: decimal("original_price", { precision: 10, scale: 2 }).notNull(),
-  discountAmount: decimal("discount_amount", { precision: 10, scale: 2 }).notNull(),
-  finalPrice: decimal("final_price", { precision: 10, scale: 2 }).notNull(),
-  discountPercentage: decimal("discount_percentage", { precision: 5, scale: 2 }).notNull(),
-  usedAt: timestamp("used_at").defaultNow(),
-});
+// REMOVED: partnershipBenefits, discountUsageLog
+// SIMPLIFIED: Benefits calculated based on driver level, discounts tracked in bookings table
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -424,62 +369,8 @@ export const events = pgTable("events", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Event tickets for paid events
-export const eventTickets = pgTable("event_tickets", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  eventId: varchar("event_id").references(() => events.id).notNull(),
-  buyerId: varchar("buyer_id").references(() => users.id).notNull(),
-  ticketNumber: text("ticket_number").notNull(), // Unique ticket identifier
-  purchasePrice: decimal("purchase_price", { precision: 8, scale: 2 }).notNull(),
-  paymentStatus: text("payment_status").default("pending"), // "pending", "paid", "refunded", "cancelled"
-  transactionId: varchar("transaction_id").references(() => transactions.id),
-  
-  // Ticket details
-  holderName: text("holder_name").notNull(), // Name on the ticket
-  holderEmail: text("holder_email"), 
-  holderContact: text("holder_contact"),
-  
-  // Ticket status
-  isUsed: boolean("is_used").default(false), // If ticket has been redeemed at event
-  usedAt: timestamp("used_at"), // When ticket was used
-  qrCode: text("qr_code"), // QR code for ticket validation
-  
-  // Metadata
-  notes: text("notes"), // Special requirements or notes
-  purchasedAt: timestamp("purchased_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-export const eventPartnerships = pgTable("event_partnerships", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  eventId: varchar("event_id").references(() => events.id),
-  partnerType: text("partner_type").notNull(), // "hotel", "driver", "restaurant"
-  partnerId: varchar("partner_id").notNull(), // ID of hotel/driver/restaurant
-  partnerName: text("partner_name").notNull(),
-  discountPercentage: decimal("discount_percentage", { precision: 5, scale: 2 }).notNull(),
-  specialOffer: text("special_offer"), // Description of special offer
-  minEventTickets: integer("min_event_tickets").default(1), // Minimum tickets to qualify
-  isActive: boolean("is_active").default(true),
-  validFrom: timestamp("valid_from").defaultNow(),
-  validUntil: timestamp("valid_until"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-export const eventBookings = pgTable("event_bookings", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  eventId: varchar("event_id").references(() => events.id),
-  userId: varchar("user_id").references(() => users.id),
-  ticketQuantity: integer("ticket_quantity").notNull().default(1),
-  totalPrice: decimal("total_price", { precision: 8, scale: 2 }).notNull(),
-  partnershipUsed: varchar("partnership_used"), // ID of partnership used
-  discountApplied: decimal("discount_applied", { precision: 8, scale: 2 }).default("0.00"),
-  bookingStatus: text("booking_status").notNull().default("confirmed"), // "confirmed", "cancelled", "attended"
-  paymentStatus: text("payment_status").notNull().default("pending"), // "pending", "paid", "refunded"
-  specialRequests: text("special_requests"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
+// REMOVED: eventTickets, eventPartnerships, eventBookings tables
+// CONSOLIDATED: All event booking functionality integrated into main bookings table
 
 // Loyalty System - Points and Rewards
 export const loyaltyProgram = pgTable("loyalty_program", {
@@ -579,8 +470,8 @@ export type Booking = typeof bookings.$inferSelect;
 export type Rating = typeof ratings.$inferSelect;
 export type Event = typeof events.$inferSelect;
 export type EventManager = typeof eventManagers.$inferSelect;
-export type EventPartnership = typeof eventPartnerships.$inferSelect;
-export type EventBooking = typeof eventBookings.$inferSelect;
+// REMOVED: EventPartnership type - data integrated into events table
+// REMOVED: EventBooking type - functionality integrated into Booking type
 export type LoyaltyProgram = typeof loyaltyProgram.$inferSelect;
 export type PointsHistory = typeof pointsHistory.$inferSelect;
 export type Notification = typeof notifications.$inferSelect;
@@ -588,16 +479,14 @@ export type ChatMessage = typeof chatMessages.$inferSelect;
 export type Restaurant = typeof restaurants.$inferSelect;
 export type AdminAction = typeof adminActions.$inferSelect;
 export type PriceRegulation = typeof priceRegulations.$inferSelect;
-export type Transaction = typeof transactions.$inferSelect;
-export type PaymentMethod = typeof paymentMethods.$inferSelect;
+export type Payment = typeof payments.$inferSelect;
+// REMOVED: Transaction, PaymentMethod types - consolidated into Payment
 export type DriverDocument = typeof driverDocuments.$inferSelect;
-export type EventTicket = typeof eventTickets.$inferSelect;
+// REMOVED: EventTicket type - data integrated into eventBookings table
 
-// Partnership system types
-export type DriverHotelPartnership = typeof driverHotelPartnerships.$inferSelect;
+// Partnership system types (simplified)
 export type DriverStats = typeof driverStats.$inferSelect;
-export type PartnershipBenefit = typeof partnershipBenefits.$inferSelect;
-export type DiscountUsageLog = typeof discountUsageLog.$inferSelect;
+// REMOVED: DriverHotelPartnership, PartnershipBenefit, DiscountUsageLog types
 
 // Price negotiation types
 export const insertPriceNegotiationSchema = createInsertSchema(priceNegotiations);
@@ -616,22 +505,7 @@ export const insertDriverStatsSchema = createInsertSchema(driverStats).omit({
   updatedAt: true,
 });
 
-export const insertDriverHotelPartnershipSchema = createInsertSchema(driverHotelPartnerships).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
 export type InsertDriverStats = z.infer<typeof insertDriverStatsSchema>;
-export type InsertDriverHotelPartnership = z.infer<typeof insertDriverHotelPartnershipSchema>;
+// REMOVED: InsertDriverHotelPartnership schema and type
 
-// Event and ticket schemas
-export const insertEventTicketSchema = createInsertSchema(eventTickets).omit({
-  id: true,
-  ticketNumber: true,
-  qrCode: true,
-  purchasedAt: true,
-  updatedAt: true,
-});
-
-export type InsertEventTicket = z.infer<typeof insertEventTicketSchema>;
+// REMOVED: Event ticket schemas - functionality integrated into eventBookings
