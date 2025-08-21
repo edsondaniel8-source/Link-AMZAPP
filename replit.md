@@ -1,11 +1,9 @@
 # Link-A Mz - Transportation & Accommodations Platform
 
 ## Overview
-
-Link-A Mz is a comprehensive travel booking platform designed specifically for the Mozambique market that combines ride-sharing, accommodation services, and restaurant meal stops in a unified interface. The application allows users to search for transportation options (similar to Uber), lodging accommodations (similar to Airbnb), and dining experiences through a single platform. Built with a React frontend and Express backend, it provides a seamless booking experience with real-time search capabilities, interactive maps focused on Mozambique territory, comprehensive booking management, promotional "Deal of the Day" packages, pre-booking chat functionality, user rating system, and restaurant meal stop ordering with advance chat capabilities.
+Link-A Mz is a comprehensive travel booking platform for the Mozambique market, unifying ride-sharing, accommodation, and restaurant meal services. It provides a seamless booking experience with real-time search, interactive maps focused on Mozambique, booking management, "Deal of the Day" promotions, pre-booking chat, user rating, and advance ordering for restaurant meal stops. The platform aims to be a unified solution for travel and dining needs within Mozambique.
 
 ## User Preferences
-
 - Preferred communication style: Simple, everyday language
 - Target market: Mozambique with Portuguese as main language
 - Currency: Mozambique Metical (MZN) for all pricing
@@ -21,195 +19,58 @@ Link-A Mz is a comprehensive travel booking platform designed specifically for t
   - Logo updated to "Link-A" (removed "Mz") with larger size
   - Date-only selection for ride searches (time shown only in driver offers)
 
-## Recent Changes (August 2025)
-
-**Comprehensive Authentication & Security System Implementation (August 21, 2025)**
-- Implemented mandatory login system for ALL users (clients and service providers) for security compliance
-- Created complete `LoginModal` component supporting both email and Mozambique phone number authentication
-- Phone number validation for Mozambique format: +258 8X XXX XXXX or 8XXXXXXXX
-- Added `ProtectedRoute` component for route-level authentication and verification protection
-- Created `AuthRequiredMessage` component for standardized authentication prompts
-- Enhanced `useAuth` hook with complete authentication state management
-- Integrated authentication system with document verification requirements
-- All services now require login before access: rides, accommodations, events, partnerships
-- Mock authentication system with localStorage for development phase
-- Updated Header component with proper login/logout functionality and user menu display
-
-**Real-Time Notifications System Implementation**
-- Added comprehensive `NotificationCenter` component with real-time notifications
-- Support for multiple notification types: rides, stays, events, payments, partnerships, loyalty, system
-- Priority-based notifications (normal, high, urgent) with visual indicators
-- Integrated notification count badge in header with popover interface
-- Mock data structure with proper TypeScript types for development
-
-**Loyalty Program System Complete**
-- Full `LoyaltyProgram` component with 4-tier membership system (Bronze, Silver, Gold, Platinum)
-- Point earning system based on rides, stays, and events with multipliers per tier
-- Comprehensive rewards catalog with tier-based restrictions
-- Points history tracking with detailed activity logging  
-- Dedicated `/loyalty` page with full program overview and rules
-- Compact loyalty widget integrated into dashboard for quick access
-
-**Events & Fairs Management System**
-- Complete events section with dedicated `/events` page and navigation
-- Event search, filtering, and results display with partnership integration
-- Featured events component integrated into homepage
-- Event booking system with special partnership pricing
-- Statistics dashboard showing events, partnerships, participants, and average discounts
-- Event categories: culture, business, entertainment, gastronomy with tab-based navigation
-
-**Navigation & UI Enhancements**
-- Added events navigation link in header (desktop and mobile menu)
-- Loyalty program access via user menu navigation
-- NotificationCenter integrated into header with real-time count display
-- Featured events section added to homepage when no search is active
-- Enhanced dashboard with loyalty program widget and personalized tips
-
-**Security & Document Verification System**
-- Moved "Offer Ride" and "Become Host" options to optional services menu for cleaner client-focused UI
-- Implemented mandatory document verification system for all users
-- Added `DocumentVerification` component with comprehensive document upload functionality
-- Created `/profile/verification` page for complete verification process
-- Enhanced user schema with verification fields: status, documents, badges, and service permissions
-- Added `driverDocuments` table for vehicle-specific document verification
-- Restricted service offerings to verified users only with automatic redirects to verification page
-- Added verification badges and seals for authenticated users
-- Implemented security notices and verification requirements in UI
-
-**Events System Restructure & Enhancement**
-- Moved "Event Manager" option to services menu with verification requirement
-- Added `FeaturedEvents` component displaying events on homepage like restaurants
-- Created comprehensive `/events/create` page for free and paid event creation
-- Enhanced events table schema with ticket purchasing functionality and partnership settings
-- Added `eventTickets` table for complete ticket management with QR codes and validation
-- Implemented event-accommodation-transport partnership system with configurable discounts
-- Support for both free and paid events with integrated payment processing
-- Event approval workflow with admin oversight for all created events
-
-**Complete Event Search System (August 21, 2025)**
-- Implemented `EventSearchModal` in header for city/month-based event searches
-- Created `EventSearchResults` component with filtered event listings
-- Added URL parameter integration for direct event search navigation
-- Fixed SelectItem errors in event creation forms
-- Mandatory city and month selection with optional year and category filters
-- Complete event display with pricing, partnerships, discounts, venue, and date information
-- Mock event data for development testing (Maputo, August 2025)
-- Partnership discount integration showing 5-30% accommodation and 5-25% transport discounts
-
-**Key Architecture Changes:**
-- New table: `accommodation_partnership_programs` (host-controlled settings)
-- Modified: `accommodations` table (added partnership flags)  
-- Updated: `driver_hotel_partnerships` (now references host programs)
-- Added: Complete notification, loyalty, and events database schemas
-- Enhanced: App.tsx routing with new pages for events and loyalty
-- Integration: NotificationCenter and loyalty widgets in existing pages
-
-**Security Architecture Changes:**
-- Enhanced `users` table with comprehensive verification fields
-- New table: `driverDocuments` for vehicle-specific verification documents
-- Added `canOfferServices` boolean field to restrict unverified users
-- Implemented verification status tracking: pending, in_review, verified, rejected
-- Added verification badge system with bronze, silver, gold, platinum levels
-- Created document verification workflow with file upload capabilities
-- Integrated verification requirements into service offering flows
-
-**Authentication System Architecture Changes (August 21, 2025):**
-- Mandatory authentication system for ALL platform users (clients and service providers)
-- Multi-format login support: email addresses and Mozambique phone numbers (+258 8X XXX XXXX)
-- Complete authentication components: LoginModal, ProtectedRoute, AuthRequiredMessage
-- Authentication state management with useAuth hook and localStorage persistence
-- Security-first approach: all services require login before access
-- Integration with existing document verification system for service providers
-- Mock authentication system for development with realistic user data simulation
-- Enhanced security messaging and user experience for authentication requirements
-
-**Events System Architecture Changes:**
-- Enhanced `events` table with comprehensive ticketing and partnership fields
-- New table: `eventTickets` for paid event ticket management and validation
-- Added event approval workflow with pending/approved status tracking
-- Integrated partnership discounts for accommodations and transport
-- Event creation restricted to verified users with admin approval requirement
-- Full ticket purchase and validation system with QR code generation
-- Partnership system integration allowing events to offer transport/accommodation discounts
-
 ## System Architecture
 
 ### Frontend Architecture
-The client-side is built using React with TypeScript, utilizing modern development patterns:
-- **Component Architecture**: Modular React components with separation of concerns between search, results, and booking functionality
-- **State Management**: React Query (TanStack Query) for server state management and caching, with local React state for UI interactions
-- **UI Framework**: Tailwind CSS for styling with shadcn/ui component library providing consistent design system
-- **Routing**: Wouter for lightweight client-side routing
-- **Form Handling**: React Hook Form with Zod validation for type-safe form management
+Built with React and TypeScript, featuring a modular component architecture, state management using React Query, styling with Tailwind CSS and shadcn/ui, and Wouter for routing. Forms are handled with React Hook Form and Zod for validation.
 
 ### Backend Architecture
-The server follows a REST API pattern with Express.js:
-- **API Layer**: RESTful endpoints for rides, accommodations, and bookings with standardized request/response patterns
-- **Storage Pattern**: Interface-based storage abstraction (IStorage) with in-memory implementation for development and easy database integration
-- **Error Handling**: Centralized error handling middleware with consistent error response format
-- **Development Setup**: Vite integration for hot module replacement in development mode
+An Express.js REST API layer handles requests. It uses an interface-based storage abstraction with Drizzle ORM for PostgreSQL and includes centralized error handling. Development is supported by Vite for hot module replacement.
 
 ### Data Architecture
-The application uses a PostgreSQL-compatible schema with Drizzle ORM:
-- **Database Schema**: 15+ tables including users, rides, accommodations, bookings, ratings, chat messages, restaurants, and partnership system
-- **User Management**: Enhanced user system with ratings, verification status, and user types (user, driver, host, restaurant)
-- **Rating System**: Comprehensive rating and review system for all service providers
-- **Chat System**: Pre-booking and post-booking chat functionality between users and service providers
-- **Restaurant Integration**: Full restaurant database with menus, daily specials, and ordering capabilities
-- **Partnership System**: Optional driver-accommodation partnerships with host-controlled programs and 4-tier qualification levels
-- **Type Safety**: Shared TypeScript types generated from Drizzle schema ensuring consistency across frontend and backend
-- **Validation**: Zod schemas for runtime validation derived from database schema
+The application uses a PostgreSQL-compatible schema with Drizzle ORM, encompassing over 15 tables for users, rides, accommodations, bookings, ratings, chat messages, restaurants, and a comprehensive partnership system. It includes enhanced user management with verification and types, a comprehensive rating system, chat functionality, and full restaurant integration. Type safety is ensured across the stack via shared TypeScript types from Drizzle.
 
 ### Authentication & Session Management
-- **Session Storage**: PostgreSQL session store with connect-pg-simple for persistent sessions
-- **User Management**: Complete user authentication system with secure password handling
+A mandatory, comprehensive authentication system supports email and Mozambique phone number login. It includes `LoginModal`, `ProtectedRoute`, and `AuthRequiredMessage` components, with authentication state managed via a `useAuth` hook and localStorage. Session persistence is managed using a PostgreSQL session store. Service offerings are restricted to verified users, integrating with a document verification system.
 
 ### Admin System
-- **User Management**: Comprehensive admin panel for blocking, penalizing, and removing users, drivers, and accommodations
-- **Price Regulation**: System for setting minimum and maximum price limits per kilometer for different ride types
-- **Penalty System**: Warning, suspension, banning, and account removal capabilities with reason tracking
-- **Admin Dashboard**: Statistics, reports, and platform configuration management
-- **Database Integration**: Admin actions tracking with PostgreSQL storage for audit trails
+Provides an admin panel for user management (blocking, penalizing, removing users, drivers, accommodations), price regulation, and a penalty system. An admin dashboard offers statistics, reports, and platform configuration, with all actions tracked in PostgreSQL for audit.
 
 ### Payment System
-- **Integrated Payment Processing**: 10% transaction fee applied to all platform services (rides, accommodations, restaurants)
-- **Multiple Payment Methods**: Support for credit cards, M-Pesa, and bank transfers
-- **Payment Modal**: Comprehensive payment interface with real-time fee calculation
-- **Partnership Discounts**: Dynamic pricing with driver partnership discounts (10-25% off accommodations)
-- **Transaction History**: Complete transaction tracking with detailed payment records
-- **Payment Routes**: Dedicated API endpoints for payment processing, transaction history, and refunds
-- **Database Schema**: Full transaction and payment method tracking with PostgreSQL integration
+Features an integrated payment processor with a 10% transaction fee. Supports multiple payment methods (credit cards, M-Pesa, bank transfers), dynamic pricing with partnership discounts, and detailed transaction history tracking. Dedicated API endpoints handle payment processing and refunds.
 
 ### Partnership System (Optional for Accommodations)
-- **Host-Controlled**: Accommodations choose whether to participate in driver partnerships
-- **4-Tier System**: Bronze (10%), Silver (15%), Gold (20%), Platinum (25%) discount levels
-- **Qualification-Based**: Driver performance metrics determine partnership eligibility
-- **Flexible Configuration**: Hosts set their own discount rates and minimum ride requirements
-- **Visual Integration**: Partnership badges only appear when hosts enable visibility
-- **Database Integration**: 4 dedicated tables for partnerships, benefits, stats, and discount tracking
+Allows hosts to opt-in to driver partnerships, offering discounts via a 4-tier system (Bronze, Silver, Gold, Platinum). Qualification is based on driver performance, and hosts can configure discount rates and minimum ride requirements. Partnership badges are visually integrated when enabled by hosts.
+
+### Notifications System
+Includes a comprehensive `NotificationCenter` component supporting multiple notification types (rides, stays, events, payments, loyalty, system) with priority levels and visual indicators.
+
+### Loyalty Program System
+Features a `LoyaltyProgram` component with a 4-tier membership system, a point earning system based on platform activities, a rewards catalog with tier-based restrictions, and points history tracking.
+
+### Events & Fairs Management System
+A dedicated events section includes search, filtering, booking, and partnership integration. It supports creating both free and paid events with integrated payment processing and ticket management, including QR codes and validation. An approval workflow is in place for all created events.
 
 ## External Dependencies
 
 ### Core Technologies
-- **React**: Frontend framework with TypeScript support
+- **React**: Frontend framework
 - **Express.js**: Node.js web server framework
-- **Drizzle ORM**: TypeScript-first ORM for PostgreSQL with migration support
+- **Drizzle ORM**: TypeScript ORM for PostgreSQL
 - **PostgreSQL**: Primary database (Neon Database for cloud hosting)
 
 ### UI & Styling
 - **Tailwind CSS**: Utility-first CSS framework
-- **Radix UI**: Headless UI components for accessibility and functionality
-- **shadcn/ui**: Pre-built component library built on Radix UI
+- **Radix UI**: Headless UI components
+- **shadcn/ui**: Component library
 - **Lucide React**: Icon library
 
 ### Development Tools
-- **Vite**: Build tool and development server with React plugin
-- **TypeScript**: Static type checking across the entire stack
-- **ESBuild**: Production bundling for server-side code
+- **Vite**: Build tool and development server
+- **TypeScript**: Static type checking
+- **ESBuild**: Production bundling
 
 ### Third-party Services
 - **Neon Database**: Serverless PostgreSQL hosting
-- **Font APIs**: Google Fonts integration for typography
-- **Replit Integration**: Development environment specific tooling and error overlays
-
-The architecture supports easy scaling from development to production, with the storage layer designed to seamlessly transition from in-memory mock data to full PostgreSQL integration.
+- **Google Fonts**: Font APIs
+- **Replit Integration**: Development environment tooling
