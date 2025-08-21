@@ -15,6 +15,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/partnerships" component={Partnerships} />
+      <Route path="/host/partnerships" component={() => import("@/pages/host-partnerships")} />
       <Route path="/admin" component={AdminPanel} />
       <Route component={NotFound} />
     </Switch>

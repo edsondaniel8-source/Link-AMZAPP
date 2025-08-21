@@ -7,6 +7,7 @@ import UserRatings from "./UserRatings";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { formatPriceStringAsMzn } from "@/lib/currency";
 import type { Accommodation } from "@shared/schema";
@@ -123,6 +124,17 @@ export default function StayResults({ searchParams }: StayResultsProps) {
                         <p className="text-xs text-gray-medium">por noite</p>
                       </div>
                     </div>
+                    
+                    {/* Partnership Badge - only show if accommodation has active program */}
+                    {accommodation.hasPartnershipProgram && accommodation.partnershipBadgeVisible && (
+                      <div className="flex items-center space-x-2 pb-2 border-b">
+                        <Badge className="bg-blue-600 text-white text-xs">
+                          <i className="fas fa-handshake mr-1"></i>
+                          Motoristas VIP
+                        </Badge>
+                        <span className="text-xs text-gray-500">Descontos para motoristas</span>
+                      </div>
+                    )}
                     
                     <div className="flex gap-2 pt-2 border-t">
                       <PreBookingChat

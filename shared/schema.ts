@@ -64,6 +64,9 @@ export const accommodations = pgTable("accommodations", {
   description: text("description"),
   distanceFromCenter: decimal("distance_from_center", { precision: 4, scale: 1 }),
   isAvailable: boolean("is_available").default(true),
+  // Partnership visibility - only show to drivers if enabled
+  hasPartnershipProgram: boolean("has_partnership_program").default(false),
+  partnershipBadgeVisible: boolean("partnership_badge_visible").default(false), // Show "Motoristas VIP" badge
 });
 
 // Ratings table for all user types
@@ -224,17 +227,46 @@ export const bookings = pgTable("bookings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Driver-Hotel Partnership System for Special Discounts
+// Driver-Hotel Partnership System - OPTIONAL for accommodations to offer
+export const accommodationPartnershipPrograms = pgTable("accommodation_partnership_programs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  accommodationId: varchar("accommodation_id").references(() => accommodations.id),
+  hostId: varchar("host_id").references(() => users.id), // The accommodation owner/manager
+  isEnabled: boolean("is_enabled").default(false), // Host must opt-in to offer partnerships
+  programName: text("program_name").notNull(), // e.g., "Programa VIP Motoristas"
+  description: text("description"), // Host's description of their program
+  // Partnership levels the accommodation wants to offer
+  bronzeEnabled: boolean("bronze_enabled").default(false),
+  bronzeDiscount: decimal("bronze_discount", { precision: 5, scale: 2 }).default("0.00"),
+  bronzeMinRides: integer("bronze_min_rides").default(10),
+  silverEnabled: boolean("silver_enabled").default(false),
+  silverDiscount: decimal("silver_discount", { precision: 5, scale: 2 }).default("0.00"),
+  silverMinRides: integer("silver_min_rides").default(25),
+  goldEnabled: boolean("gold_enabled").default(false),
+  goldDiscount: decimal("gold_discount", { precision: 5, scale: 2 }).default("0.00"),
+  goldMinRides: integer("gold_min_rides").default(50),
+  platinumEnabled: boolean("platinum_enabled").default(false),
+  platinumDiscount: decimal("platinum_discount", { precision: 5, scale: 2 }).default("0.00"),
+  platinumMinRides: integer("platinum_min_rides").default(100),
+  // Additional benefits the host wants to offer
+  extraBenefits: text("extra_benefits").array(), // ["priority_checkin", "free_breakfast", "spa_access"]
+  termsAndConditions: text("terms_and_conditions"),
+  validUntil: timestamp("valid_until"), // Optional program expiry
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Active partnerships between qualified drivers and participating accommodations
 export const driverHotelPartnerships = pgTable("driver_hotel_partnerships", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   driverId: varchar("driver_id").references(() => users.id),
   accommodationId: varchar("accommodation_id").references(() => accommodations.id),
-  partnershipType: text("partnership_type").notNull(), // "bronze", "silver", "gold", "platinum"
-  discountPercentage: decimal("discount_percentage", { precision: 5, scale: 2 }).notNull(), // e.g., 15.00 for 15%
-  minimumRides: integer("minimum_rides").default(0), // Minimum rides to qualify
+  programId: varchar("program_id").references(() => accommodationPartnershipPrograms.id),
+  qualifiedLevel: text("qualified_level").notNull(), // "bronze", "silver", "gold", "platinum"
+  discountPercentage: decimal("discount_percentage", { precision: 5, scale: 2 }).notNull(),
   isActive: boolean("is_active").default(true),
-  validFrom: timestamp("valid_from").defaultNow(),
-  validUntil: timestamp("valid_until"), // Optional expiry date
+  qualifiedAt: timestamp("qualified_at").defaultNow(),
+  expiresAt: timestamp("expires_at"), // When driver needs to re-qualify
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

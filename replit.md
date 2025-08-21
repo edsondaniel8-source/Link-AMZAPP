@@ -21,6 +21,24 @@ Link-A Mz is a comprehensive travel booking platform designed specifically for t
   - Logo updated to "Link-A" (removed "Mz") with larger size
   - Date-only selection for ride searches (time shown only in driver offers)
 
+## Recent Changes (August 2025)
+
+**Partnership System Redesign - Made Optional for Accommodations**
+- Partnership system is now **optional** and controlled by accommodation hosts
+- Only accommodations that opt-in will offer driver discounts
+- Added `HostPartnershipSetup` component for hosts to configure their programs
+- Updated database schema with `accommodation_partnership_programs` table
+- Partnership badges only appear when hosts enable `partnershipBadgeVisible`
+- Drivers only see partnerships from participating accommodations
+- System respects host autonomy - no automatic enrollment in partnership programs
+
+**Key Architecture Changes:**
+- New table: `accommodation_partnership_programs` (host-controlled settings)
+- Modified: `accommodations` table (added partnership flags)  
+- Updated: `driver_hotel_partnerships` (now references host programs)
+- Partnership visibility controlled at accommodation level
+- Badge system only shows "Motoristas VIP" when hosts opt-in
+
 ## System Architecture
 
 ### Frontend Architecture
@@ -40,11 +58,12 @@ The server follows a REST API pattern with Express.js:
 
 ### Data Architecture
 The application uses a PostgreSQL-compatible schema with Drizzle ORM:
-- **Database Schema**: Well-defined tables for users, rides, accommodations, bookings, ratings, chat messages, and restaurants with proper relationships
+- **Database Schema**: 15+ tables including users, rides, accommodations, bookings, ratings, chat messages, restaurants, and partnership system
 - **User Management**: Enhanced user system with ratings, verification status, and user types (user, driver, host, restaurant)
 - **Rating System**: Comprehensive rating and review system for all service providers
 - **Chat System**: Pre-booking and post-booking chat functionality between users and service providers
 - **Restaurant Integration**: Full restaurant database with menus, daily specials, and ordering capabilities
+- **Partnership System**: Optional driver-accommodation partnerships with host-controlled programs and 4-tier qualification levels
 - **Type Safety**: Shared TypeScript types generated from Drizzle schema ensuring consistency across frontend and backend
 - **Validation**: Zod schemas for runtime validation derived from database schema
 
@@ -63,9 +82,18 @@ The application uses a PostgreSQL-compatible schema with Drizzle ORM:
 - **Integrated Payment Processing**: 10% transaction fee applied to all platform services (rides, accommodations, restaurants)
 - **Multiple Payment Methods**: Support for credit cards, M-Pesa, and bank transfers
 - **Payment Modal**: Comprehensive payment interface with real-time fee calculation
+- **Partnership Discounts**: Dynamic pricing with driver partnership discounts (10-25% off accommodations)
 - **Transaction History**: Complete transaction tracking with detailed payment records
 - **Payment Routes**: Dedicated API endpoints for payment processing, transaction history, and refunds
 - **Database Schema**: Full transaction and payment method tracking with PostgreSQL integration
+
+### Partnership System (Optional for Accommodations)
+- **Host-Controlled**: Accommodations choose whether to participate in driver partnerships
+- **4-Tier System**: Bronze (10%), Silver (15%), Gold (20%), Platinum (25%) discount levels
+- **Qualification-Based**: Driver performance metrics determine partnership eligibility
+- **Flexible Configuration**: Hosts set their own discount rates and minimum ride requirements
+- **Visual Integration**: Partnership badges only appear when hosts enable visibility
+- **Database Integration**: 4 dedicated tables for partnerships, benefits, stats, and discount tracking
 
 ## External Dependencies
 
