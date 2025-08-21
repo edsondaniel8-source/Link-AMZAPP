@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatMzn } from "@/lib/currency";
 import logoPath from "@assets/link-a-logo.png";
-import type { Booking, Transaction } from "@shared/schema";
+import type { Booking, Payment } from "@shared/schema";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("bookings");
@@ -20,7 +20,7 @@ export default function Dashboard() {
   });
 
   const { data: transactionsData, isLoading: transactionsLoading } = useQuery<{
-    transactions: Transaction[];
+    transactions: Payment[];
     total: number;
   }>({
     queryKey: ["/api/payments/transactions", transactionFilter],
@@ -197,7 +197,6 @@ export default function Dashboard() {
                   <SelectItem value="all">Todos os Serviços</SelectItem>
                   <SelectItem value="ride">Viagens</SelectItem>
                   <SelectItem value="accommodation">Hospedagem</SelectItem>
-                  <SelectItem value="restaurant">Restaurante</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -6,7 +6,7 @@ import StaySearch from "@/components/StaySearch";
 import RideResults from "@/components/RideResults";
 import StayResults from "@/components/StayResults";
 import DealsOfTheDay from "@/components/DealsOfTheDay";
-import RestaurantStops from "@/components/RestaurantStops";
+// RestaurantStops component removed - restaurant functionality eliminated
 import DriverPartnerships from "@/components/DriverPartnerships";
 import FeaturedEvents from "@/components/FeaturedEvents";
 
@@ -46,12 +46,8 @@ export default function Home() {
         </section>
       )}
 
-      {/* Restaurant Stops Section */}
-      {!searchParams && (
-        <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <RestaurantStops />
-        </section>
-      )}
+      {/* Restaurant functionality removed from platform */}
+
 
       {/* Featured Events Section */}
       {!searchParams && (
