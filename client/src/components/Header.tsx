@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import NotificationCenter from "./NotificationCenter";
+import EventSearchModal, { type EventSearchParams } from "./EventSearchModal";
 import logoPath from "@assets/link-a-logo.png";
 
 interface HeaderProps {
@@ -12,6 +13,7 @@ interface HeaderProps {
 export default function Header({ activeService, onServiceChange, onOfferRide }: HeaderProps) {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showServicesMenu, setShowServicesMenu] = useState(false);
+  const [showEventSearch, setShowEventSearch] = useState(false);
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
@@ -57,12 +59,14 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
           </div>
 
           <div className="flex items-center space-x-4">
-            <Link href="/events">
-              <button className="hidden md:flex items-center text-gray-medium hover:text-dark font-medium transition-colors">
-                <i className="fas fa-calendar-star mr-2"></i>
-                Eventos
-              </button>
-            </Link>
+            <button 
+              onClick={() => setShowEventSearch(true)}
+              className="hidden md:flex items-center text-gray-medium hover:text-dark font-medium transition-colors"
+              data-testid="button-event-search"
+            >
+              <i className="fas fa-calendar-search mr-2"></i>
+              Eventos
+            </button>
             
             {/* Services Menu Button */}
             <div className="relative">
@@ -245,6 +249,15 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
           </div>
         </div>
       </div>
+      
+      {/* Event Search Modal */}
+      <EventSearchModal
+        isOpen={showEventSearch}
+        onClose={() => setShowEventSearch(false)}
+        onSearch={(params: EventSearchParams) => {
+          console.log('Searching events:', params);
+        }}
+      />
     </header>
   );
 }

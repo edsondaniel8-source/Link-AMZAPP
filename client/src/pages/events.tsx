@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import EventSearch from "@/components/EventSearch";
 import EventResults from "@/components/EventResults";
+import EventSearchResults from "@/components/EventSearchResults";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 
 export default function EventsPage() {
+  const [, setLocation] = useLocation();
   const [searchParams, setSearchParams] = useState({
     location: "",
     category: "",
@@ -13,7 +16,28 @@ export default function EventsPage() {
     endDate: "",
   });
 
+  const [urlSearchParams, setUrlSearchParams] = useState<{
+    city?: string;
+    month?: string;
+    year?: string;
+    category?: string;
+  }>({});
+
   const [hasSearched, setHasSearched] = useState(false);
+
+  // Parse URL parameters on component mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const city = params.get('city');
+    const month = params.get('month');
+    const year = params.get('year');
+    const category = params.get('category');
+    
+    if (city && month && year) {
+      setUrlSearchParams({ city, month, year, category: category || undefined });
+      setHasSearched(true);
+    }
+  }, []);
 
   const handleSearch = (params: typeof searchParams) => {
     setSearchParams(params);
@@ -53,16 +77,26 @@ export default function EventsPage() {
           </div>
         </div>
 
-        {/* Search Section */}
-        <div className="mb-8">
-          <EventSearch onSearch={handleSearch} />
-        </div>
+        {/* URL-based search results (from header search) */}
+        {urlSearchParams.city && urlSearchParams.month && urlSearchParams.year ? (
+          <EventSearchResults 
+            city={urlSearchParams.city}
+            month={urlSearchParams.month}
+            year={urlSearchParams.year}
+            category={urlSearchParams.category}
+          />
+        ) : (
+          <>
+            {/* Search Section */}
+            <div className="mb-8">
+              <EventSearch onSearch={handleSearch} />
+            </div>
 
-        {/* Results or Categories */}
-        <div className="space-y-8">
-          {hasSearched ? (
-            <EventResults searchParams={searchParams} />
-          ) : (
+            {/* Results or Categories */}
+            <div className="space-y-8">
+              {hasSearched ? (
+                <EventResults searchParams={searchParams} />
+              ) : (
             <Tabs defaultValue="upcoming" className="w-full">
               <TabsList className="grid w-full grid-cols-5 mb-6">
                 <TabsTrigger value="upcoming" data-testid="upcoming-events-tab">
@@ -147,8 +181,10 @@ export default function EventsPage() {
                 />
               </TabsContent>
             </Tabs>
-          )}
-        </div>
+              )}
+            </div>
+          </>
+        )}
 
         {/* Quick Stats */}
         <div className="mt-12 grid grid-cols-1 md:grid-cols-4 gap-6">

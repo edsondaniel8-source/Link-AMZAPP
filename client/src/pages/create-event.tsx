@@ -192,7 +192,7 @@ export default function CreateEvent() {
                   <Label htmlFor="category">Categoria *</Label>
                   <Select value={eventData.category} onValueChange={(value) => handleInputChange("category", value)}>
                     <SelectTrigger data-testid="select-event-category">
-                      <SelectValue />
+                      <SelectValue placeholder="Seleccione uma categoria" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="culture">Cultura</SelectItem>
