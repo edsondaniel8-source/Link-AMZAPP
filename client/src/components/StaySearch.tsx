@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import LocationAutocomplete from "@/components/LocationAutocomplete";
+import { getTodayHTML, formatDateToHTML } from "@/lib/dateUtils";
 
 const staySearchSchema = z.object({
   location: z.string().min(1, "Local é obrigatório"),
@@ -34,8 +36,8 @@ export default function StaySearch({ onSearch }: StaySearchProps) {
     resolver: zodResolver(staySearchSchema),
     defaultValues: {
       location: "",
-      checkIn: "",
-      checkOut: "",
+      checkIn: getTodayHTML(),
+      checkOut: formatDateToHTML(new Date(Date.now() + 24 * 60 * 60 * 1000)), // Tomorrow
       guests: 2,
     },
   });
@@ -54,16 +56,14 @@ export default function StaySearch({ onSearch }: StaySearchProps) {
             <Label htmlFor="location" className="block text-sm font-medium text-gray-medium mb-2">
               Onde
             </Label>
-            <div className="relative">
-              <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-              <Input
-                id="location"
-                data-testid="input-search-location"
-                placeholder="Pesquisar destinos"
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                {...form.register("location")}
-              />
-            </div>
+            <LocationAutocomplete
+              id="location"
+              placeholder="Pesquisar destinos"
+              value={form.watch("location")}
+              onChange={(value) => form.setValue("location", value)}
+              className="w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              data-testid="input-search-location"
+            />
             {form.formState.errors.location && (
               <p className="text-sm text-destructive mt-1">{form.formState.errors.location.message}</p>
             )}

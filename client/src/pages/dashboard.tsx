@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatMzn } from "@/lib/currency";
+import { formatDateToDDMMYYYY, formatDepartureTime } from "@/lib/dateUtils";
 import logoPath from "@assets/link-a-logo.png";
 import type { Booking, Payment } from "@shared/schema";
 
@@ -154,7 +155,7 @@ export default function Dashboard() {
                           <Badge variant={booking.status === 'confirmed' ? 'default' : 'secondary'}>
                             {booking.status === 'confirmed' ? 'Confirmado' : 'Pendente'}
                           </Badge>
-                          <p className="text-sm text-gray-medium mt-1">{booking.pickupTime ? new Date(booking.pickupTime).toLocaleDateString() : new Date(booking.createdAt || '').toLocaleDateString()}</p>
+                          <p className="text-sm text-gray-medium mt-1">{booking.pickupTime ? formatDateToDDMMYYYY(new Date(booking.pickupTime)) : formatDateToDDMMYYYY(new Date(booking.createdAt || ''))}</p>
                         </div>
                       </div>
                     </CardContent>
@@ -174,7 +175,7 @@ export default function Dashboard() {
                             </div>
                             <div className="text-right">
                               <Badge variant="outline">Completo</Badge>
-                              <p className="text-sm text-gray-medium mt-1">{booking.pickupTime ? new Date(booking.pickupTime).toLocaleDateString() : new Date(booking.createdAt || '').toLocaleDateString()}</p>
+                              <p className="text-sm text-gray-medium mt-1">{booking.pickupTime ? formatDateToDDMMYYYY(new Date(booking.pickupTime)) : formatDateToDDMMYYYY(new Date(booking.createdAt || ''))}</p>
                             </div>
                           </div>
                         </CardContent>
@@ -243,11 +244,7 @@ export default function Dashboard() {
                           <div>
                             <h4 className="font-semibold text-dark">{transaction.serviceName}</h4>
                             <p className="text-sm text-gray-medium">
-                              {new Date(transaction.createdAt).toLocaleDateString('pt-BR', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric'
-                              })}
+                              {formatDateToDDMMYYYY(new Date(transaction.createdAt))}
                             </p>
                           </div>
                         </div>

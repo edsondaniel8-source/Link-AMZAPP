@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle, Shield, CheckCircle, XCircle, Upload, FileText, Camera, Car } from "lucide-react";
+import { getTodayHTML } from "@/lib/dateUtils";
 
 interface DocumentVerificationProps {
   userId: string;
@@ -33,7 +34,7 @@ export default function DocumentVerification({
     profilePhoto: null as File | null,
     fullName: "",
     documentNumber: "",
-    dateOfBirth: "",
+    dateOfBirth: getTodayHTML(),
     
     // Driver-specific documents
     drivingLicense: null as File | null,

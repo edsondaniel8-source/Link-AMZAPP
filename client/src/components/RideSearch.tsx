@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import LocationAutocomplete from "@/components/LocationAutocomplete";
+import { getTodayHTML } from "@/lib/dateUtils";
 
 const rideSearchSchema = z.object({
   from: z.string().min(1, "Local de recolha é obrigatório"),
@@ -28,7 +30,7 @@ export default function RideSearch({ onSearch }: RideSearchProps) {
     defaultValues: {
       from: "",
       to: "",
-      when: "",
+      when: getTodayHTML(),
       passengers: 1,
     },
   });
@@ -47,16 +49,14 @@ export default function RideSearch({ onSearch }: RideSearchProps) {
             <Label htmlFor="from" className="block text-sm font-medium text-gray-medium mb-2">
               Saindo de
             </Label>
-            <div className="relative">
-              <i className="fas fa-map-marker-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-              <Input
-                id="from"
-                data-testid="input-pickup-location"
-                placeholder="Local de recolha"
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                {...form.register("from")}
-              />
-            </div>
+            <LocationAutocomplete
+              id="from"
+              placeholder="Local de recolha"
+              value={form.watch("from")}
+              onChange={(value) => form.setValue("from", value)}
+              className="w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              data-testid="input-pickup-location"
+            />
             {form.formState.errors.from && (
               <p className="text-sm text-destructive mt-1">{form.formState.errors.from.message}</p>
             )}
@@ -66,16 +66,14 @@ export default function RideSearch({ onSearch }: RideSearchProps) {
             <Label htmlFor="to" className="block text-sm font-medium text-gray-medium mb-2">
               Indo para
             </Label>
-            <div className="relative">
-              <i className="fas fa-map-marker-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-              <Input
-                id="to"
-                data-testid="input-destination"
-                placeholder="Destino"
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                {...form.register("to")}
-              />
-            </div>
+            <LocationAutocomplete
+              id="to"
+              placeholder="Destino"
+              value={form.watch("to")}
+              onChange={(value) => form.setValue("to", value)}
+              className="w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              data-testid="input-destination"
+            />
             {form.formState.errors.to && (
               <p className="text-sm text-destructive mt-1">{form.formState.errors.to.message}</p>
             )}
