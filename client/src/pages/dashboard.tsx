@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
+import logoPath from "@assets/link-a-logo.png";
 import type { Booking } from "@shared/schema";
 
 export default function Dashboard() {
@@ -35,7 +36,14 @@ export default function Dashboard() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <Link href="/">
-                <h1 className="text-2xl font-bold text-primary cursor-pointer">TravelShare</h1>
+                <div className="flex items-center cursor-pointer">
+                  <img 
+                    src={logoPath} 
+                    alt="Link-A" 
+                    className="h-10 w-10 mr-3"
+                  />
+                  <h1 className="text-2xl font-bold text-primary">Link-A</h1>
+                </div>
               </Link>
             </div>
             <div className="flex items-center space-x-4">

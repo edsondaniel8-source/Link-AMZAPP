@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
+import logoPath from "@assets/link-a-logo.png";
 
 interface HeaderProps {
   activeService: "rides" | "stays";
@@ -15,7 +16,14 @@ export default function Header({ activeService, onServiceChange }: HeaderProps) 
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <Link href="/">
-              <h1 className="text-2xl font-bold text-primary cursor-pointer">TravelShare</h1>
+              <div className="flex items-center cursor-pointer">
+                <img 
+                  src={logoPath} 
+                  alt="Link-A" 
+                  className="h-10 w-10 mr-3"
+                />
+                <h1 className="text-2xl font-bold text-primary">Link-A</h1>
+              </div>
             </Link>
           </div>
           

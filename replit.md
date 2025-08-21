@@ -1,8 +1,8 @@
-# TravelShare - Travel Booking Platform
+# Link-A - Transportation & Accommodations Platform
 
 ## Overview
 
-TravelShare is a full-stack travel booking platform that combines ride-sharing and accommodation services in a unified interface. The application allows users to search for transportation options (similar to Uber) and lodging accommodations (similar to Airbnb) through a single platform. Built with a React frontend and Express backend, it provides a seamless booking experience with real-time search capabilities, interactive maps, and comprehensive booking management.
+Link-A is a full-stack travel booking platform that combines ride-sharing and accommodation services in a unified interface. The application allows users to search for transportation options (similar to Uber) and lodging accommodations (similar to Airbnb) through a single platform. Built with a React frontend and Express backend, it provides a seamless booking experience with real-time search capabilities, interactive maps, and comprehensive booking management.
 
 ## User Preferences
 
