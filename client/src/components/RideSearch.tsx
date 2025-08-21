@@ -21,7 +21,7 @@ interface RideSearchProps {
 }
 
 export default function RideSearch({ onSearch }: RideSearchProps) {
-  const [selectedTransportType, setSelectedTransportType] = useState("carros");
+  const [selectedTransportType, setSelectedTransportType] = useState("todos");
   
   const form = useForm<RideSearchForm>({
     resolver: zodResolver(rideSearchSchema),
@@ -139,7 +139,29 @@ export default function RideSearch({ onSearch }: RideSearchProps) {
         {/* Transportation Categories */}
         <div className="mt-6">
           <h3 className="text-lg font-semibold text-dark mb-4 text-center">Tipo de Transporte</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div 
+              onClick={() => setSelectedTransportType("todos")}
+              className={`cursor-pointer rounded-xl p-6 transition-all duration-200 ${
+                selectedTransportType === "todos" 
+                  ? "bg-primary text-white shadow-lg transform scale-105" 
+                  : "bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-primary/30"
+              }`}
+              data-testid="transport-todos"
+            >
+              <div className="text-center">
+                <i className={`fas fa-list text-3xl mb-3 ${
+                  selectedTransportType === "todos" ? "text-white" : "text-primary"
+                }`}></i>
+                <h4 className={`font-semibold text-lg ${
+                  selectedTransportType === "todos" ? "text-white" : "text-dark"
+                }`}>Todos</h4>
+                <p className={`text-sm mt-2 ${
+                  selectedTransportType === "todos" ? "text-white/80" : "text-gray-medium"
+                }`}>Todas as opções</p>
+              </div>
+            </div>
+
             <div 
               onClick={() => setSelectedTransportType("aereo")}
               className={`cursor-pointer rounded-xl p-6 transition-all duration-200 ${
@@ -158,7 +180,7 @@ export default function RideSearch({ onSearch }: RideSearchProps) {
                 }`}>Transporte Aéreo</h4>
                 <p className={`text-sm mt-2 ${
                   selectedTransportType === "aereo" ? "text-white/80" : "text-gray-medium"
-                }`}>Voos domésticos e charters</p>
+                }`}>Voos domésticos</p>
               </div>
             </div>
 
@@ -180,7 +202,7 @@ export default function RideSearch({ onSearch }: RideSearchProps) {
                 }`}>Transporte Ferroviário</h4>
                 <p className={`text-sm mt-2 ${
                   selectedTransportType === "ferroviario" ? "text-white/80" : "text-gray-medium"
-                }`}>Comboios e metros</p>
+                }`}>Comboios</p>
               </div>
             </div>
 
@@ -199,10 +221,10 @@ export default function RideSearch({ onSearch }: RideSearchProps) {
                 }`}></i>
                 <h4 className={`font-semibold text-lg ${
                   selectedTransportType === "carros" ? "text-white" : "text-dark"
-                }`}>Carros</h4>
+                }`}>Carros Particulares</h4>
                 <p className={`text-sm mt-2 ${
                   selectedTransportType === "carros" ? "text-white/80" : "text-gray-medium"
-                }`}>Carros particulares e táxis</p>
+                }`}>Carros particulares</p>
               </div>
             </div>
           </div>

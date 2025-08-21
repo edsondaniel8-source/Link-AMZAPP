@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -23,10 +24,12 @@ const staySearchSchema = z.object({
 type StaySearchForm = z.infer<typeof staySearchSchema>;
 
 interface StaySearchProps {
-  onSearch: (params: StaySearchForm) => void;
+  onSearch: (params: StaySearchForm & { accommodationType?: string }) => void;
 }
 
 export default function StaySearch({ onSearch }: StaySearchProps) {
+  const [selectedAccommodationType, setSelectedAccommodationType] = useState("todos");
+  
   const form = useForm<StaySearchForm>({
     resolver: zodResolver(staySearchSchema),
     defaultValues: {
@@ -38,7 +41,7 @@ export default function StaySearch({ onSearch }: StaySearchProps) {
   });
 
   const handleSubmit = (data: StaySearchForm) => {
-    onSearch(data);
+    onSearch({ ...data, accommodationType: selectedAccommodationType });
   };
 
   return (
@@ -133,6 +136,78 @@ export default function StaySearch({ onSearch }: StaySearchProps) {
             </Button>
           </div>
         </form>
+
+        {/* Accommodation Categories */}
+        <div className="mt-6">
+          <h3 className="text-lg font-semibold text-dark mb-4 text-center">Tipo de Hospedagem</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div 
+              onClick={() => setSelectedAccommodationType("todos")}
+              className={`cursor-pointer rounded-xl p-6 transition-all duration-200 ${
+                selectedAccommodationType === "todos" 
+                  ? "bg-primary text-white shadow-lg transform scale-105" 
+                  : "bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-primary/30"
+              }`}
+              data-testid="accommodation-todos"
+            >
+              <div className="text-center">
+                <i className={`fas fa-list text-3xl mb-3 ${
+                  selectedAccommodationType === "todos" ? "text-white" : "text-primary"
+                }`}></i>
+                <h4 className={`font-semibold text-lg ${
+                  selectedAccommodationType === "todos" ? "text-white" : "text-dark"
+                }`}>Todos</h4>
+                <p className={`text-sm mt-2 ${
+                  selectedAccommodationType === "todos" ? "text-white/80" : "text-gray-medium"
+                }`}>Todas as opções</p>
+              </div>
+            </div>
+
+            <div 
+              onClick={() => setSelectedAccommodationType("hoteis")}
+              className={`cursor-pointer rounded-xl p-6 transition-all duration-200 ${
+                selectedAccommodationType === "hoteis" 
+                  ? "bg-primary text-white shadow-lg transform scale-105" 
+                  : "bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-primary/30"
+              }`}
+              data-testid="accommodation-hoteis"
+            >
+              <div className="text-center">
+                <i className={`fas fa-hotel text-3xl mb-3 ${
+                  selectedAccommodationType === "hoteis" ? "text-white" : "text-primary"
+                }`}></i>
+                <h4 className={`font-semibold text-lg ${
+                  selectedAccommodationType === "hoteis" ? "text-white" : "text-dark"
+                }`}>Hotéis</h4>
+                <p className={`text-sm mt-2 ${
+                  selectedAccommodationType === "hoteis" ? "text-white/80" : "text-gray-medium"
+                }`}>Hotéis e resorts</p>
+              </div>
+            </div>
+
+            <div 
+              onClick={() => setSelectedAccommodationType("particulares")}
+              className={`cursor-pointer rounded-xl p-6 transition-all duration-200 ${
+                selectedAccommodationType === "particulares" 
+                  ? "bg-primary text-white shadow-lg transform scale-105" 
+                  : "bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-primary/30"
+              }`}
+              data-testid="accommodation-particulares"
+            >
+              <div className="text-center">
+                <i className={`fas fa-home text-3xl mb-3 ${
+                  selectedAccommodationType === "particulares" ? "text-white" : "text-primary"
+                }`}></i>
+                <h4 className={`font-semibold text-lg ${
+                  selectedAccommodationType === "particulares" ? "text-white" : "text-dark"
+                }`}>Acomodações Particulares</h4>
+                <p className={`text-sm mt-2 ${
+                  selectedAccommodationType === "particulares" ? "text-white/80" : "text-gray-medium"
+                }`}>Casas e apartamentos</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
