@@ -37,6 +37,16 @@ export const rides = pgTable("rides", {
   maxPassengers: integer("max_passengers").default(4), // Maximum seats in vehicle
   availableSeats: integer("available_seats").default(4), // Currently available seats
   isActive: boolean("is_active").default(true),
+  // New advanced features
+  route: text("route").array(), // Array of intermediate stops/cities along the route
+  allowPickupEnRoute: boolean("allow_pickup_en_route").default(false),
+  allowNegotiation: boolean("allow_negotiation").default(false),
+  isRoundTrip: boolean("is_round_trip").default(false),
+  returnDate: timestamp("return_date"), // For round trips
+  returnDepartureTime: timestamp("return_departure_time"), // For round trips
+  minPrice: decimal("min_price", { precision: 8, scale: 2 }), // Minimum acceptable price for negotiation
+  maxPrice: decimal("max_price", { precision: 8, scale: 2 }), // Maximum price for negotiation
+  departureDate: timestamp("departure_date"), // Date of departure
 });
 
 export const accommodations = pgTable("accommodations", {
@@ -119,6 +129,43 @@ export const priceRegulations = pgTable("price_regulations", {
   maxPricePerKm: decimal("max_price_per_km", { precision: 8, scale: 2 }).notNull(),
   baseFare: decimal("base_fare", { precision: 8, scale: 2 }).notNull(),
   isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Price negotiation requests
+export const priceNegotiations = pgTable("price_negotiations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  rideId: varchar("ride_id").references(() => rides.id),
+  passengerId: varchar("passenger_id").references(() => users.id),
+  driverId: varchar("driver_id").references(() => users.id),
+  originalPrice: decimal("original_price", { precision: 8, scale: 2 }).notNull(),
+  proposedPrice: decimal("proposed_price", { precision: 8, scale: 2 }).notNull(),
+  counterPrice: decimal("counter_price", { precision: 8, scale: 2 }),
+  status: text("status").default("pending"), // pending, accepted, rejected, countered
+  message: text("message"), // Optional message with the negotiation
+  expiresAt: timestamp("expires_at"), // Negotiation expiry time
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Pickup requests for en-route pickups
+export const pickupRequests = pgTable("pickup_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  rideId: varchar("ride_id").references(() => rides.id),
+  passengerId: varchar("passenger_id").references(() => users.id),
+  driverId: varchar("driver_id").references(() => users.id),
+  pickupLocation: text("pickup_location").notNull(),
+  pickupLat: decimal("pickup_lat", { precision: 10, scale: 7 }),
+  pickupLng: decimal("pickup_lng", { precision: 10, scale: 7 }),
+  destinationLocation: text("destination_location").notNull(),
+  destinationLat: decimal("destination_lat", { precision: 10, scale: 7 }),
+  destinationLng: decimal("destination_lng", { precision: 10, scale: 7 }),
+  requestedSeats: integer("requested_seats").default(1),
+  proposedPrice: decimal("proposed_price", { precision: 8, scale: 2 }),
+  status: text("status").default("pending"), // pending, accepted, rejected
+  message: text("message"),
+  estimatedDetour: integer("estimated_detour"), // Additional minutes for detour
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -212,3 +259,13 @@ export type AdminAction = typeof adminActions.$inferSelect;
 export type PriceRegulation = typeof priceRegulations.$inferSelect;
 export type Transaction = typeof transactions.$inferSelect;
 export type PaymentMethod = typeof paymentMethods.$inferSelect;
+
+// Price negotiation types
+export const insertPriceNegotiationSchema = createInsertSchema(priceNegotiations);
+export type PriceNegotiation = typeof priceNegotiations.$inferSelect;
+export type InsertPriceNegotiation = z.infer<typeof insertPriceNegotiationSchema>;
+
+// Pickup request types
+export const insertPickupRequestSchema = createInsertSchema(pickupRequests);
+export type PickupRequest = typeof pickupRequests.$inferSelect;
+export type InsertPickupRequest = z.infer<typeof insertPickupRequestSchema>;

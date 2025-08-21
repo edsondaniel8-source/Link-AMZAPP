@@ -5,6 +5,8 @@ import BookingModal from "./BookingModal";
 import PreBookingChat from "./PreBookingChat";
 import UserRatings from "./UserRatings";
 import PaymentModal from "./PaymentModal";
+import PriceNegotiationModal from "./PriceNegotiationModal";
+import EnRoutePickupModal from "./EnRoutePickupModal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -24,6 +26,10 @@ export default function RideResults({ searchParams }: RideResultsProps) {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentBooking, setPaymentBooking] = useState<any>(null);
+  const [showNegotiationModal, setShowNegotiationModal] = useState(false);
+  const [showPickupModal, setShowPickupModal] = useState(false);
+  const [negotiationRide, setNegotiationRide] = useState<Ride | null>(null);
+  const [pickupRide, setPickupRide] = useState<Ride | null>(null);
 
   const { data: rides = [], isLoading } = useQuery<Ride[]>({
     queryKey: ["/api/rides/search", searchParams.from, searchParams.to],
@@ -33,6 +39,26 @@ export default function RideResults({ searchParams }: RideResultsProps) {
   const handleBookRide = (ride: Ride) => {
     setSelectedRide(ride);
     setShowBookingModal(true);
+  };
+
+  const handleNegotiatePrice = (ride: Ride) => {
+    setNegotiationRide(ride);
+    setShowNegotiationModal(true);
+  };
+
+  const handleEnRoutePickup = (ride: Ride) => {
+    setPickupRide(ride);
+    setShowPickupModal(true);
+  };
+
+  const submitNegotiation = (negotiationData: any) => {
+    console.log('Price negotiation submitted:', negotiationData);
+    // TODO: Implement API call to submit negotiation
+  };
+
+  const submitPickupRequest = (pickupData: any) => {
+    console.log('Pickup request submitted:', pickupData);
+    // TODO: Implement API call to submit pickup request
   };
 
   if (isLoading) {
@@ -129,6 +155,53 @@ export default function RideResults({ searchParams }: RideResultsProps) {
                     </div>
                   </div>
                   
+                  {/* Advanced Features Badges */}
+                  <div className="flex gap-2 mb-3">
+                    {ride.allowNegotiation && (
+                      <Badge variant="secondary" className="text-xs">
+                        <i className="fas fa-handshake mr-1"></i>
+                        Aceita negociação
+                      </Badge>
+                    )}
+                    {ride.allowPickupEnRoute && (
+                      <Badge variant="secondary" className="text-xs">
+                        <i className="fas fa-route mr-1"></i>
+                        Apanha na rota
+                      </Badge>
+                    )}
+                    {ride.isRoundTrip && (
+                      <Badge variant="secondary" className="text-xs">
+                        <i className="fas fa-exchange-alt mr-1"></i>
+                        Ida e volta
+                      </Badge>
+                    )}
+                  </div>
+
+                  {/* Route Information */}
+                  {ride.route && ride.route.length > 0 && (
+                    <div className="mb-3">
+                      <p className="text-xs text-gray-medium mb-1">Rota:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {ride.route.map((stop, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {stop}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Round Trip Information */}
+                  {ride.isRoundTrip && ride.returnDate && (
+                    <div className="mb-3 p-2 bg-blue-50 rounded-lg">
+                      <p className="text-xs font-semibold text-blue-800 mb-1">Retorno:</p>
+                      <p className="text-xs text-blue-600">
+                        {new Date(ride.returnDate).toLocaleDateString('pt-MZ')}
+                        {ride.returnDepartureTime && ` às ${new Date(ride.returnDepartureTime).toLocaleTimeString('pt-MZ', { hour: '2-digit', minute: '2-digit' })}`}
+                      </p>
+                    </div>
+                  )}
+
                   <div className="flex gap-2 pt-2 border-t">
                     <PreBookingChat
                       recipientId={ride.id}
@@ -146,6 +219,31 @@ export default function RideResults({ searchParams }: RideResultsProps) {
                         price: formatPriceStringAsMzn(ride.price)
                       }}
                     />
+
+                    {/* New Advanced Feature Buttons */}
+                    {ride.allowNegotiation && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleNegotiatePrice(ride)}
+                        data-testid={`negotiate-price-${ride.id}`}
+                      >
+                        <i className="fas fa-handshake mr-1"></i>
+                        Negociar
+                      </Button>
+                    )}
+
+                    {ride.allowPickupEnRoute && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleEnRoutePickup(ride)}
+                        data-testid={`pickup-enroute-${ride.id}`}
+                      >
+                        <i className="fas fa-route mr-1"></i>
+                        Apanhar
+                      </Button>
+                    )}
                     
                     <Dialog>
                       <DialogTrigger asChild>
@@ -175,7 +273,7 @@ export default function RideResults({ searchParams }: RideResultsProps) {
                           serviceType: 'ride',
                           serviceName: `${searchParams.from} → ${searchParams.to}`,
                           subtotal,
-                          details: `${ride.driverName} - ${ride.vehicleType} - ${ride.departureTime}`,
+                          details: `${ride.driverName} - ${ride.vehicleInfo} - ${ride.departureDate ? new Date(ride.departureDate).toLocaleString() : 'Disponível'}`,
                         });
                         setShowPaymentModal(true);
                       }}
@@ -218,6 +316,32 @@ export default function RideResults({ searchParams }: RideResultsProps) {
             // Redirect to dashboard or show success message
             console.log('Payment successful for booking:', paymentBooking.id);
           }}
+        />
+      )}
+
+      {/* Price Negotiation Modal */}
+      {negotiationRide && (
+        <PriceNegotiationModal
+          isOpen={showNegotiationModal}
+          onClose={() => {
+            setShowNegotiationModal(false);
+            setNegotiationRide(null);
+          }}
+          ride={negotiationRide}
+          onSubmit={submitNegotiation}
+        />
+      )}
+
+      {/* En-Route Pickup Modal */}
+      {pickupRide && (
+        <EnRoutePickupModal
+          isOpen={showPickupModal}
+          onClose={() => {
+            setShowPickupModal(false);
+            setPickupRide(null);
+          }}
+          ride={pickupRide}
+          onSubmit={submitPickupRequest}
         />
       )}
     </>

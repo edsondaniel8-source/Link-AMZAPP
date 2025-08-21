@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Header from "@/components/Header";
 import RideSearch from "@/components/RideSearch";
+import RideOfferModal from "@/components/RideOfferModal";
 import StaySearch from "@/components/StaySearch";
 import RideResults from "@/components/RideResults";
 import StayResults from "@/components/StayResults";
@@ -10,10 +11,20 @@ import RestaurantStops from "@/components/RestaurantStops";
 export default function Home() {
   const [activeService, setActiveService] = useState<"rides" | "stays">("rides");
   const [searchParams, setSearchParams] = useState<any>(null);
+  const [showOfferModal, setShowOfferModal] = useState(false);
+
+  const handleSubmitOffer = (offerData: any) => {
+    console.log('Ride offer submitted:', offerData);
+    // TODO: Implement API call to submit ride offer
+  };
 
   return (
     <div className="min-h-screen bg-white">
-      <Header activeService={activeService} onServiceChange={setActiveService} />
+      <Header 
+        activeService={activeService} 
+        onServiceChange={setActiveService} 
+        onOfferRide={() => setShowOfferModal(true)}
+      />
       
       {/* Search Section */}
       <section className="bg-gray-light py-8">
@@ -112,6 +123,13 @@ export default function Home() {
           </button>
         </div>
       </div>
+
+      {/* Ride Offer Modal */}
+      <RideOfferModal
+        isOpen={showOfferModal}
+        onClose={() => setShowOfferModal(false)}
+        onSubmit={handleSubmitOffer}
+      />
     </div>
   );
 }

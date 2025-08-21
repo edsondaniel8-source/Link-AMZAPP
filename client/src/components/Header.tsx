@@ -5,9 +5,10 @@ import logoPath from "@assets/link-a-logo.png";
 interface HeaderProps {
   activeService: "rides" | "stays";
   onServiceChange: (service: "rides" | "stays") => void;
+  onOfferRide?: () => void;
 }
 
-export default function Header({ activeService, onServiceChange }: HeaderProps) {
+export default function Header({ activeService, onServiceChange, onOfferRide }: HeaderProps) {
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   return (
@@ -54,6 +55,16 @@ export default function Header({ activeService, onServiceChange }: HeaderProps) 
           </div>
 
           <div className="flex items-center space-x-4">
+            {onOfferRide && (
+              <button 
+                onClick={onOfferRide}
+                className="hidden md:block bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 font-medium transition-colors"
+                data-testid="offer-ride-button"
+              >
+                <i className="fas fa-plus mr-2"></i>
+                Oferecer Viagem
+              </button>
+            )}
             <button className="hidden md:block text-gray-medium hover:text-dark font-medium">
               Torne-se anfitrião
             </button>
