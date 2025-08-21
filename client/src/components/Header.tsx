@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import NotificationCenter from "./NotificationCenter";
-import EventSearchModal, { type EventSearchParams } from "./EventSearchModal";
 import LoginModal from "./LoginModal";
 import { Button } from "@/components/ui/button";
 import { User, LogOut } from "lucide-react";
@@ -17,7 +16,6 @@ interface HeaderProps {
 export default function Header({ activeService, onServiceChange, onOfferRide }: HeaderProps) {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showServicesMenu, setShowServicesMenu] = useState(false);
-  const [showEventSearch, setShowEventSearch] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   
   // Mock authentication state - replace with actual auth logic
@@ -72,14 +70,6 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
           </div>
 
           <div className="flex items-center space-x-4">
-            <button 
-              onClick={() => setShowEventSearch(true)}
-              className="hidden md:flex items-center text-gray-medium hover:text-dark font-medium transition-colors"
-              data-testid="button-event-search"
-            >
-              <i className="fas fa-calendar-search mr-2"></i>
-              Eventos
-            </button>
             
             {/* Services Menu Button */}
             <div className="relative">
@@ -291,14 +281,7 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
         </div>
       </div>
       
-      {/* Event Search Modal */}
-      <EventSearchModal
-        isOpen={showEventSearch}
-        onClose={() => setShowEventSearch(false)}
-        onSearch={(params: EventSearchParams) => {
-          console.log('Searching events:', params);
-        }}
-      />
+
       
       {/* Login Modal */}
       <LoginModal
