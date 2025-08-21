@@ -224,6 +224,64 @@ export const bookings = pgTable("bookings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Driver-Hotel Partnership System for Special Discounts
+export const driverHotelPartnerships = pgTable("driver_hotel_partnerships", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  driverId: varchar("driver_id").references(() => users.id),
+  accommodationId: varchar("accommodation_id").references(() => accommodations.id),
+  partnershipType: text("partnership_type").notNull(), // "bronze", "silver", "gold", "platinum"
+  discountPercentage: decimal("discount_percentage", { precision: 5, scale: 2 }).notNull(), // e.g., 15.00 for 15%
+  minimumRides: integer("minimum_rides").default(0), // Minimum rides to qualify
+  isActive: boolean("is_active").default(true),
+  validFrom: timestamp("valid_from").defaultNow(),
+  validUntil: timestamp("valid_until"), // Optional expiry date
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Driver statistics to track eligibility for partnership levels
+export const driverStats = pgTable("driver_stats", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  driverId: varchar("driver_id").references(() => users.id).unique(),
+  totalRides: integer("total_rides").default(0),
+  totalDistance: decimal("total_distance", { precision: 10, scale: 2 }).default("0.00"), // in km
+  totalEarnings: decimal("total_earnings", { precision: 12, scale: 2 }).default("0.00"), // in MZN
+  averageRating: decimal("average_rating", { precision: 3, scale: 2 }).default("0.00"),
+  completedRidesThisMonth: integer("completed_rides_this_month").default(0),
+  completedRidesThisYear: integer("completed_rides_this_year").default(0),
+  partnershipLevel: text("partnership_level").default("bronze"), // bronze, silver, gold, platinum
+  lastRideDate: timestamp("last_ride_date"),
+  joinedAt: timestamp("joined_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Partnership benefits and rewards
+export const partnershipBenefits = pgTable("partnership_benefits", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  level: text("level").notNull(), // bronze, silver, gold, platinum
+  benefitType: text("benefit_type").notNull(), // "accommodation_discount", "priority_booking", "free_meal"
+  benefitValue: decimal("benefit_value", { precision: 8, scale: 2 }), // percentage or monetary value
+  description: text("description").notNull(),
+  minimumRidesRequired: integer("minimum_rides_required").default(0),
+  minimumRatingRequired: decimal("minimum_rating_required", { precision: 3, scale: 2 }).default("0.00"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Discount usage tracking
+export const discountUsageLog = pgTable("discount_usage_log", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  partnershipId: varchar("partnership_id").references(() => driverHotelPartnerships.id),
+  driverId: varchar("driver_id").references(() => users.id),
+  accommodationId: varchar("accommodation_id").references(() => accommodations.id),
+  bookingId: varchar("booking_id").references(() => bookings.id),
+  originalPrice: decimal("original_price", { precision: 10, scale: 2 }).notNull(),
+  discountAmount: decimal("discount_amount", { precision: 10, scale: 2 }).notNull(),
+  finalPrice: decimal("final_price", { precision: 10, scale: 2 }).notNull(),
+  discountPercentage: decimal("discount_percentage", { precision: 5, scale: 2 }).notNull(),
+  usedAt: timestamp("used_at").defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
@@ -260,6 +318,12 @@ export type PriceRegulation = typeof priceRegulations.$inferSelect;
 export type Transaction = typeof transactions.$inferSelect;
 export type PaymentMethod = typeof paymentMethods.$inferSelect;
 
+// Partnership system types
+export type DriverHotelPartnership = typeof driverHotelPartnerships.$inferSelect;
+export type DriverStats = typeof driverStats.$inferSelect;
+export type PartnershipBenefit = typeof partnershipBenefits.$inferSelect;
+export type DiscountUsageLog = typeof discountUsageLog.$inferSelect;
+
 // Price negotiation types
 export const insertPriceNegotiationSchema = createInsertSchema(priceNegotiations);
 export type PriceNegotiation = typeof priceNegotiations.$inferSelect;
@@ -269,3 +333,19 @@ export type InsertPriceNegotiation = z.infer<typeof insertPriceNegotiationSchema
 export const insertPickupRequestSchema = createInsertSchema(pickupRequests);
 export type PickupRequest = typeof pickupRequests.$inferSelect;
 export type InsertPickupRequest = z.infer<typeof insertPickupRequestSchema>;
+
+// Partnership system schemas
+export const insertDriverStatsSchema = createInsertSchema(driverStats).omit({
+  id: true,
+  joinedAt: true,
+  updatedAt: true,
+});
+
+export const insertDriverHotelPartnershipSchema = createInsertSchema(driverHotelPartnerships).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertDriverStats = z.infer<typeof insertDriverStatsSchema>;
+export type InsertDriverHotelPartnership = z.infer<typeof insertDriverHotelPartnershipSchema>;

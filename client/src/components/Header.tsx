@@ -91,6 +91,15 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
                       <i className="fas fa-calendar-alt mr-2"></i>Minhas Reservas
                     </button>
                   </Link>
+                  <Link href="/partnerships">
+                    <button
+                      data-testid="nav-partnerships"
+                      className="w-full text-left px-4 py-2 text-sm text-dark hover:bg-gray-50"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      <i className="fas fa-handshake mr-2"></i>Parcerias
+                    </button>
+                  </Link>
                   <Link href="/admin">
                     <button
                       data-testid="nav-admin"

@@ -7,6 +7,7 @@ import RideResults from "@/components/RideResults";
 import StayResults from "@/components/StayResults";
 import DealsOfTheDay from "@/components/DealsOfTheDay";
 import RestaurantStops from "@/components/RestaurantStops";
+import DriverPartnerships from "@/components/DriverPartnerships";
 
 export default function Home() {
   const [activeService, setActiveService] = useState<"rides" | "stays">("rides");
