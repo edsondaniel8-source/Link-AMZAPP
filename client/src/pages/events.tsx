@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import EventSearch from "@/components/EventSearch";
 import EventResults from "@/components/EventResults";
 import EventSearchResults from "@/components/EventSearchResults";
+import MobileNavigation from "@/components/MobileNavigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 
@@ -221,6 +222,9 @@ export default function EventsPage() {
           </div>
         </div>
       </div>
+      
+      {/* Mobile Navigation */}
+      <MobileNavigation />
     </div>
   );
 }

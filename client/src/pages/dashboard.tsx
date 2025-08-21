@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { formatMzn } from "@/lib/currency";
 import { formatDateToDDMMYYYY, formatDepartureTime } from "@/lib/dateUtils";
 import logoPath from "@assets/link-a-logo.png";
+import MobileNavigation from "@/components/MobileNavigation";
 import type { Booking, Payment } from "@shared/schema";
 
 export default function Dashboard() {
@@ -291,6 +292,9 @@ export default function Dashboard() {
           </TabsContent>
         </Tabs>
       </div>
+      
+      {/* Mobile Navigation */}
+      <MobileNavigation />
     </div>
   );
 }

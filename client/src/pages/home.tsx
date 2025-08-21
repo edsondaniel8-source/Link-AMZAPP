@@ -6,6 +6,7 @@ import StaySearch from "@/components/StaySearch";
 import RideResults from "@/components/RideResults";
 import StayResults from "@/components/StayResults";
 import DealsOfTheDay from "@/components/DealsOfTheDay";
+import MobileNavigation from "@/components/MobileNavigation";
 // RestaurantStops component removed - restaurant functionality eliminated
 import DriverPartnerships from "@/components/DriverPartnerships";
 import FeaturedEvents from "@/components/FeaturedEvents";
@@ -103,9 +104,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Mobile Navigation */}
+      {/* Mobile Navigation - Home specific with service toggle */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
-        <div className="grid grid-cols-2 h-16">
+        <div className="grid grid-cols-5 h-16">
           <button
             data-testid="mobile-nav-rides"
             onClick={() => setActiveService("rides")}
@@ -114,7 +115,7 @@ export default function Home() {
             }`}
           >
             <i className="fas fa-car text-lg mb-1"></i>
-            <span className="text-xs">Rides</span>
+            <span className="text-xs">Viagens</span>
           </button>
           <button
             data-testid="mobile-nav-stays"
@@ -124,7 +125,31 @@ export default function Home() {
             }`}
           >
             <i className="fas fa-bed text-lg mb-1"></i>
-            <span className="text-xs">Stays</span>
+            <span className="text-xs">Hospedagem</span>
+          </button>
+          <button
+            data-testid="mobile-nav-offer-ride"
+            onClick={() => setShowOfferModal(true)}
+            className="flex flex-col items-center justify-center text-gray-medium active:text-primary"
+          >
+            <i className="fas fa-plus-circle text-lg mb-1"></i>
+            <span className="text-xs">Oferecer</span>
+          </button>
+          <button
+            data-testid="mobile-nav-events"
+            onClick={() => window.location.href = "/events"}
+            className="flex flex-col items-center justify-center text-gray-medium active:text-primary"
+          >
+            <i className="fas fa-calendar text-lg mb-1"></i>
+            <span className="text-xs">Eventos</span>
+          </button>
+          <button
+            data-testid="mobile-nav-bookings"
+            onClick={() => window.location.href = "/dashboard"}
+            className="flex flex-col items-center justify-center text-gray-medium active:text-primary"
+          >
+            <i className="fas fa-user text-lg mb-1"></i>
+            <span className="text-xs">Perfil</span>
           </button>
         </div>
       </div>
