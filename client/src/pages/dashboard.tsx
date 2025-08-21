@@ -1,15 +1,34 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { formatMzn } from "@/lib/currency";
 import logoPath from "@assets/link-a-logo.png";
-import type { Booking } from "@shared/schema";
+import type { Booking, Transaction } from "@shared/schema";
 
 export default function Dashboard() {
-  const { data: bookings = [], isLoading } = useQuery<Booking[]>({
+  const [activeTab, setActiveTab] = useState("bookings");
+  const [transactionFilter, setTransactionFilter] = useState("all");
+
+  const { data: bookings = [], isLoading: bookingsLoading } = useQuery<Booking[]>({
     queryKey: ["/api/bookings/user/mock-user-id"],
   });
 
-  if (isLoading) {
+  const { data: transactionsData, isLoading: transactionsLoading } = useQuery<{
+    transactions: Transaction[];
+    total: number;
+  }>({
+    queryKey: ["/api/payments/transactions", transactionFilter],
+    enabled: activeTab === "transactions",
+  });
+
+  const transactions = transactionsData?.transactions || [];
+
+  if (bookingsLoading) {
     return (
       <div className="min-h-screen bg-gray-light p-6">
         <div className="max-w-4xl mx-auto">
@@ -40,16 +59,16 @@ export default function Dashboard() {
                   <img 
                     src={logoPath} 
                     alt="Link-A" 
-                    className="h-10 w-10 mr-3"
+                    className="h-12 w-12 mr-3"
                   />
-                  <h1 className="text-2xl font-bold text-primary">Link-A Mz</h1>
+                  <h1 className="text-2xl font-bold text-primary">Link-A</h1>
                 </div>
               </Link>
             </div>
             <div className="flex items-center space-x-4">
               <Link href="/">
                 <button className="text-gray-medium hover:text-dark font-medium">
-                  Back to Search
+                  Voltar à Pesquisa
                 </button>
               </Link>
             </div>
@@ -57,143 +76,196 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-6xl mx-auto p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-dark">My Bookings</h2>
+          <h2 className="text-2xl font-bold text-dark">Minha Conta</h2>
         </div>
 
-        {bookings.length === 0 ? (
-          <Card>
-            <CardContent className="p-8 text-center">
-              <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i className="fas fa-calendar-alt text-gray-400 text-2xl"></i>
-              </div>
-              <h3 className="text-lg font-semibold text-dark mb-2">No bookings yet</h3>
-              <p className="text-gray-medium mb-4">
-                Start planning your trip by searching for rides or accommodations
-              </p>
-              <Link href="/">
-                <button className="bg-primary text-white px-6 py-2 rounded-lg font-medium hover:bg-red-600 transition-colors">
-                  Start Booking
-                </button>
-              </Link>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-8">
-            {/* Current Bookings */}
-            {currentBookings.length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold text-dark mb-4">Current & Upcoming</h3>
-                <div className="space-y-4">
-                  {currentBookings.map((booking) => (
-                    <Card key={booking.id} data-testid={`booking-card-${booking.id}`}>
-                      <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-4">
-                            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                              booking.type === "ride" ? "bg-primary bg-opacity-10" : "bg-secondary bg-opacity-10"
-                            }`}>
-                              <i className={`fas ${
-                                booking.type === "ride" ? "fa-car text-primary" : "fa-bed text-secondary"
-                              } text-xl`}></i>
-                            </div>
-                            <div>
-                              <div className="flex items-center space-x-2">
-                                <span className={`text-sm font-medium px-2 py-1 rounded ${
-                                  booking.type === "ride" ? "bg-primary text-white" : "bg-secondary text-white"
-                                }`}>
-                                  {booking.type === "ride" ? "Ride" : "Stay"}
-                                </span>
-                                <span className={`text-xs px-2 py-1 rounded ${
-                                  booking.status === "confirmed" 
-                                    ? "bg-success bg-opacity-10 text-success" 
-                                    : "bg-yellow-100 text-yellow-800"
-                                }`}>
-                                  {booking.status}
-                                </span>
-                              </div>
-                              <p className="text-dark font-medium mt-1">
-                                {booking.type === "ride" ? "Ride Booking" : "Accommodation Booking"}
-                              </p>
-                              <p className="text-sm text-gray-medium">
-                                ${booking.totalPrice}
-                                {booking.checkInDate && booking.checkOutDate && (
-                                  <> • {booking.nights} nights</>
-                                )}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <button
-                              data-testid={`modify-booking-${booking.id}`}
-                              className="text-primary text-sm font-medium hover:underline"
-                            >
-                              Modify
-                            </button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="bookings" className="flex items-center gap-2">
+              <i className="fas fa-calendar-alt"></i>
+              Minhas Reservas
+            </TabsTrigger>
+            <TabsTrigger value="transactions" className="flex items-center gap-2">
+              <i className="fas fa-credit-card"></i>
+              Transações & Pagamentos
+            </TabsTrigger>
+          </TabsList>
 
-            {/* Past Bookings */}
-            {pastBookings.length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold text-dark mb-4">Trip History</h3>
-                <div className="space-y-4">
-                  {pastBookings.map((booking) => (
-                    <Card key={booking.id} data-testid={`past-booking-card-${booking.id}`}>
-                      <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-4">
-                            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                              booking.type === "ride" ? "bg-gray-100" : "bg-gray-100"
-                            }`}>
-                              <i className={`fas ${
-                                booking.type === "ride" ? "fa-car" : "fa-bed"
-                              } text-gray-400 text-xl`}></i>
-                            </div>
-                            <div>
-                              <p className="text-dark font-medium">
-                                {booking.type === "ride" ? "Ride" : "Stay"} • Completed
-                              </p>
-                              <p className="text-sm text-gray-medium">
-                                ${booking.totalPrice}
-                                {booking.createdAt && (
-                                  <> • {new Date(booking.createdAt).toLocaleDateString()}</>
-                                )}
-                              </p>
-                              <div className="flex items-center mt-1">
-                                <div className="flex text-yellow-400 text-xs">
-                                  {[1, 2, 3, 4, 5].map((star) => (
-                                    <i key={star} className="fas fa-star"></i>
-                                  ))}
-                                </div>
-                                <span className="text-xs text-gray-medium ml-1">Rated</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <button
-                              data-testid={`rebook-${booking.id}`}
-                              className="text-primary text-sm font-medium hover:underline"
-                            >
-                              Book Again
-                            </button>
-                          </div>
+          <TabsContent value="bookings" className="space-y-6">
+            {bookings.length === 0 ? (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i className="fas fa-calendar-alt text-gray-400 text-2xl"></i>
+                  </div>
+                  <h3 className="text-lg font-semibold text-dark mb-2">Nenhuma reserva ainda</h3>
+                  <p className="text-gray-medium mb-4">
+                    Comece a planear a sua viagem procurando viagens ou hospedagens
+                  </p>
+                  <Link href="/">
+                    <button className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors">
+                      Pesquisar Agora
+                    </button>
+                  </Link>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                <h3 className="text-xl font-semibold text-dark">Reservas Actuais</h3>
+                {currentBookings.map((booking) => (
+                  <Card key={booking.id}>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-semibold text-dark">{booking.type}</h4>
+                          <p className="text-gray-medium">{booking.details}</p>
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                        <div className="text-right">
+                          <Badge variant={booking.status === 'confirmed' ? 'default' : 'secondary'}>
+                            {booking.status === 'confirmed' ? 'Confirmado' : 'Pendente'}
+                          </Badge>
+                          <p className="text-sm text-gray-medium mt-1">{booking.date}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                
+                {pastBookings.length > 0 && (
+                  <>
+                    <h3 className="text-xl font-semibold text-dark mt-8">Reservas Anteriores</h3>
+                    {pastBookings.map((booking) => (
+                      <Card key={booking.id} className="opacity-75">
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="font-semibold text-dark">{booking.type}</h4>
+                              <p className="text-gray-medium">{booking.details}</p>
+                            </div>
+                            <div className="text-right">
+                              <Badge variant="outline">Completo</Badge>
+                              <p className="text-sm text-gray-medium mt-1">{booking.date}</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </>
+                )}
               </div>
             )}
-          </div>
-        )}
+          </TabsContent>
+
+          <TabsContent value="transactions" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-semibold text-dark">Histórico de Transações</h3>
+              <Select value={transactionFilter} onValueChange={setTransactionFilter}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Filtrar por serviço" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Serviços</SelectItem>
+                  <SelectItem value="ride">Viagens</SelectItem>
+                  <SelectItem value="accommodation">Hospedagem</SelectItem>
+                  <SelectItem value="restaurant">Restaurante</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {transactionsLoading ? (
+              <div className="space-y-4">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Card key={i}>
+                    <CardContent className="p-6">
+                      <div className="animate-pulse space-y-3">
+                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : transactions.length === 0 ? (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i className="fas fa-credit-card text-gray-400 text-2xl"></i>
+                  </div>
+                  <h3 className="text-lg font-semibold text-dark mb-2">Nenhuma transação ainda</h3>
+                  <p className="text-gray-medium">
+                    As suas transações aparecerão aqui após fazer uma reserva
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {transactions.map((transaction: any) => (
+                  <Card key={transaction.id}>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                            <i className={`fas ${
+                              transaction.serviceType === 'ride' ? 'fa-car' :
+                              transaction.serviceType === 'accommodation' ? 'fa-bed' :
+                              transaction.serviceType === 'restaurant' ? 'fa-utensils' : 'fa-receipt'
+                            } text-primary`}></i>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-dark">{transaction.serviceName}</h4>
+                            <p className="text-sm text-gray-medium">
+                              {new Date(transaction.createdAt).toLocaleDateString('pt-BR', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <Badge variant={
+                            transaction.paymentStatus === 'completed' ? 'default' :
+                            transaction.paymentStatus === 'pending' ? 'secondary' :
+                            transaction.paymentStatus === 'failed' ? 'destructive' : 'outline'
+                          }>
+                            {transaction.paymentStatus === 'completed' ? 'Pago' :
+                             transaction.paymentStatus === 'pending' ? 'Pendente' :
+                             transaction.paymentStatus === 'failed' ? 'Falhado' : 'Desconhecido'}
+                          </Badge>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-medium">Subtotal:</span>
+                          <span>{formatMzn(transaction.subtotal)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-medium">Taxa da Plataforma (10%):</span>
+                          <span>{formatMzn(transaction.platformFee)}</span>
+                        </div>
+                        <div className="flex justify-between border-t pt-2">
+                          <span className="font-semibold">Total:</span>
+                          <span className="font-semibold">{formatMzn(transaction.total)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-medium">Método:</span>
+                          <span className="capitalize">
+                            {transaction.paymentMethod === 'card' ? 'Cartão' :
+                             transaction.paymentMethod === 'mpesa' ? 'M-Pesa' :
+                             transaction.paymentMethod === 'bank' ? 'Transferência' : transaction.paymentMethod}
+                          </span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

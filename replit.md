@@ -17,6 +17,9 @@ Link-A Mz is a comprehensive travel booking platform designed specifically for t
   - Comprehensive user rating system for drivers, hosts, and restaurants
   - Seat selection for rides with available seat display
   - Multi-person booking capability for accommodations
+  - Integrated payment system with 10% platform fee for all transactions
+  - Logo updated to "Link-A" (removed "Mz") with larger size
+  - Date-only selection for ride searches (time shown only in driver offers)
 
 ## System Architecture
 
@@ -55,6 +58,14 @@ The application uses a PostgreSQL-compatible schema with Drizzle ORM:
 - **Penalty System**: Warning, suspension, banning, and account removal capabilities with reason tracking
 - **Admin Dashboard**: Statistics, reports, and platform configuration management
 - **Database Integration**: Admin actions tracking with PostgreSQL storage for audit trails
+
+### Payment System
+- **Integrated Payment Processing**: 10% transaction fee applied to all platform services (rides, accommodations, restaurants)
+- **Multiple Payment Methods**: Support for credit cards, M-Pesa, and bank transfers
+- **Payment Modal**: Comprehensive payment interface with real-time fee calculation
+- **Transaction History**: Complete transaction tracking with detailed payment records
+- **Payment Routes**: Dedicated API endpoints for payment processing, transaction history, and refunds
+- **Database Schema**: Full transaction and payment method tracking with PostgreSQL integration
 
 ## External Dependencies
 

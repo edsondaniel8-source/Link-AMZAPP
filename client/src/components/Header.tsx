@@ -20,9 +20,9 @@ export default function Header({ activeService, onServiceChange }: HeaderProps) 
                 <img 
                   src={logoPath} 
                   alt="Link-A" 
-                  className="h-10 w-10 mr-3"
+                  className="h-12 w-12 mr-3"
                 />
-                <h1 className="text-2xl font-bold text-primary">Link-A Mz</h1>
+                <h1 className="text-2xl font-bold text-primary">Link-A</h1>
               </div>
             </Link>
           </div>

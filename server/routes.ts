@@ -111,6 +111,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const adminRoutes = await import("./adminRoutes");
   app.use("/api/admin", adminRoutes.default);
 
+  // Payment routes
+  const paymentRoutes = await import("./paymentRoutes");
+  app.use("/api/payments", paymentRoutes.default);
+
   const httpServer = createServer(app);
   return httpServer;
 }

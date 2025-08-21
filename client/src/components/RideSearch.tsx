@@ -87,8 +87,8 @@ export default function RideSearch({ onSearch }: RideSearchProps) {
               <i className="fas fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
               <Input
                 id="when"
-                data-testid="input-pickup-time"
-                type="datetime-local"
+                data-testid="input-pickup-date"
+                type="date"
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 {...form.register("when")}
               />

@@ -123,6 +123,37 @@ export const priceRegulations = pgTable("price_regulations", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Transactions table for payment processing
+export const transactions = pgTable("transactions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  bookingId: varchar("booking_id").references(() => bookings.id),
+  userId: varchar("user_id").references(() => users.id),
+  serviceType: text("service_type").notNull(), // 'ride', 'accommodation', 'restaurant'
+  subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
+  platformFee: decimal("platform_fee", { precision: 10, scale: 2 }).notNull(), // 10% of subtotal
+  total: decimal("total", { precision: 10, scale: 2 }).notNull(), // subtotal + platformFee
+  paymentMethod: text("payment_method"), // 'card', 'mpesa', 'bank_transfer'
+  paymentStatus: text("payment_status").default("pending"), // 'pending', 'completed', 'failed', 'refunded'
+  paymentReference: text("payment_reference"), // External payment processor reference
+  paidAt: timestamp("paid_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Payment methods table
+export const paymentMethods = pgTable("payment_methods", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
+  type: text("type").notNull(), // 'card', 'mpesa', 'bank_account'
+  isDefault: boolean("is_default").default(false),
+  cardLast4: text("card_last4"), // For cards
+  cardBrand: text("card_brand"), // visa, mastercard, etc
+  mpesaNumber: text("mpesa_number"), // For M-Pesa
+  bankAccount: text("bank_account"), // For bank transfers
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const bookings = pgTable("bookings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id),
@@ -179,3 +210,5 @@ export type ChatMessage = typeof chatMessages.$inferSelect;
 export type Restaurant = typeof restaurants.$inferSelect;
 export type AdminAction = typeof adminActions.$inferSelect;
 export type PriceRegulation = typeof priceRegulations.$inferSelect;
+export type Transaction = typeof transactions.$inferSelect;
+export type PaymentMethod = typeof paymentMethods.$inferSelect;

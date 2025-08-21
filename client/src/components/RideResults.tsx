@@ -4,6 +4,7 @@ import Map from "./Map";
 import BookingModal from "./BookingModal";
 import PreBookingChat from "./PreBookingChat";
 import UserRatings from "./UserRatings";
+import PaymentModal from "./PaymentModal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -21,6 +22,8 @@ interface RideResultsProps {
 export default function RideResults({ searchParams }: RideResultsProps) {
   const [selectedRide, setSelectedRide] = useState<Ride | null>(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentBooking, setPaymentBooking] = useState<any>(null);
 
   const { data: rides = [], isLoading } = useQuery<Ride[]>({
     queryKey: ["/api/rides/search", searchParams.from, searchParams.to],
@@ -164,7 +167,18 @@ export default function RideResults({ searchParams }: RideResultsProps) {
                     
                     <Button 
                       size="sm" 
-                      onClick={() => handleBookRide(ride)}
+                      onClick={() => {
+                        // Show payment modal directly with 10% platform fee
+                        const subtotal = parseInt(ride.price.replace(/[^\d]/g, ''));
+                        setPaymentBooking({
+                          id: ride.id,
+                          serviceType: 'ride',
+                          serviceName: `${searchParams.from} → ${searchParams.to}`,
+                          subtotal,
+                          details: `${ride.driverName} - ${ride.vehicleType} - ${ride.departureTime}`,
+                        });
+                        setShowPaymentModal(true);
+                      }}
                       className="ml-auto"
                       data-testid={`book-ride-${ride.id}`}
                     >
@@ -188,6 +202,21 @@ export default function RideResults({ searchParams }: RideResultsProps) {
           onClose={() => {
             setShowBookingModal(false);
             setSelectedRide(null);
+          }}
+        />
+      )}
+
+      {paymentBooking && (
+        <PaymentModal
+          isOpen={showPaymentModal}
+          onClose={() => {
+            setShowPaymentModal(false);
+            setPaymentBooking(null);
+          }}
+          booking={paymentBooking}
+          onPaymentSuccess={() => {
+            // Redirect to dashboard or show success message
+            console.log('Payment successful for booking:', paymentBooking.id);
           }}
         />
       )}
