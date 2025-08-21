@@ -99,7 +99,7 @@ export const ratings = pgTable("ratings", {
   toUserId: varchar("to_user_id").references(() => users.id),
   rating: integer("rating").notNull(), // 1-5 stars
   comment: text("comment"),
-  serviceType: text("service_type").notNull(), // ride, stay, restaurant
+  serviceType: text("service_type").notNull(), // ride, stay
   bookingId: varchar("booking_id"),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -116,23 +116,7 @@ export const chatMessages = pgTable("chat_messages", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Restaurant table
-export const restaurants = pgTable("restaurants", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull(),
-  location: text("location").notNull(),
-  cuisine: text("cuisine").notNull(),
-  rating: decimal("rating", { precision: 3, scale: 2 }).default("0.00"),
-  priceRange: text("price_range"), // $, $$, $$$
-  image: text("image"),
-  lat: decimal("lat", { precision: 10, scale: 7 }),
-  lng: decimal("lng", { precision: 10, scale: 7 }),
-  isOpen: boolean("is_open").default(true),
-  specialties: text("specialties").array(),
-  menu: jsonb("menu"), // Store menu items as JSON
-  dailySpecials: jsonb("daily_specials"), // Store daily specials as JSON
-  createdAt: timestamp("created_at").defaultNow(),
-});
+// REMOVED: restaurants table - restaurant/meal functionality eliminated from platform
 
 // Admin actions table
 export const adminActions = pgTable("admin_actions", {
@@ -201,7 +185,7 @@ export const payments = pgTable("payments", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   bookingId: varchar("booking_id").references(() => bookings.id),
   userId: varchar("user_id").references(() => users.id),
-  serviceType: text("service_type").notNull(), // 'ride', 'accommodation', 'restaurant', 'event'
+  serviceType: text("service_type").notNull(), // 'ride', 'accommodation', 'event'
   
   // Payment amounts
   subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
@@ -476,7 +460,7 @@ export type LoyaltyProgram = typeof loyaltyProgram.$inferSelect;
 export type PointsHistory = typeof pointsHistory.$inferSelect;
 export type Notification = typeof notifications.$inferSelect;
 export type ChatMessage = typeof chatMessages.$inferSelect;
-export type Restaurant = typeof restaurants.$inferSelect;
+// REMOVED: Restaurant type - restaurant functionality eliminated
 export type AdminAction = typeof adminActions.$inferSelect;
 export type PriceRegulation = typeof priceRegulations.$inferSelect;
 export type Payment = typeof payments.$inferSelect;

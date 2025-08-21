@@ -1,7 +1,7 @@
 # Link-A Mz - Transportation & Accommodations Platform
 
 ## Overview
-Link-A Mz is a comprehensive travel booking platform for the Mozambique market, unifying ride-sharing, accommodation, and restaurant meal services. It provides a seamless booking experience with real-time search, interactive maps focused on Mozambique, booking management, "Deal of the Day" promotions, pre-booking chat, user rating, and advance ordering for restaurant meal stops. The platform aims to be a unified solution for travel and dining needs within Mozambique.
+Link-A is a streamlined travel booking platform for the Mozambique market, focusing on ride-sharing and accommodation services. It provides a seamless booking experience with real-time search, interactive maps focused on Mozambique, booking management, "Deal of the Day" promotions, pre-booking chat, user ratings, and event management. The platform aims to be a unified solution for transportation and accommodation needs within Mozambique, with optimized mobile experience.
 
 ## User Preferences
 - Preferred communication style: Simple, everyday language
@@ -10,14 +10,15 @@ Link-A Mz is a comprehensive travel booking platform for the Mozambique market, 
 - Map restriction: Limited to Mozambique territory only with Portuguese labels
 - Features: 
   - "Deal of the Day" promotional offers combining rides and accommodations
-  - Restaurant/meal stops with advance ordering and chat capabilities
   - Pre-booking chat system between users, drivers, and hosts
-  - Comprehensive user rating system for drivers, hosts, and restaurants
+  - Comprehensive user rating system for drivers and hosts
+  - Event management with ticket booking and QR codes
   - Seat selection for rides with available seat display
   - Multi-person booking capability for accommodations
   - Integrated payment system with 10% platform fee for all transactions
   - Logo updated to "Link-A" (removed "Mz") with larger size
   - Date-only selection for ride searches (time shown only in driver offers)
+  - Mobile-optimized responsive design
 
 ## System Architecture
 
@@ -28,7 +29,7 @@ Built with React and TypeScript, featuring a modular component architecture, sta
 An Express.js REST API layer handles requests. It uses an interface-based storage abstraction with Drizzle ORM for PostgreSQL and includes centralized error handling. Development is supported by Vite for hot module replacement.
 
 ### Data Architecture
-The application uses an optimized PostgreSQL schema with Drizzle ORM, streamlined from 29 to ~20 tables through systematic consolidation. Core tables include users, rides, accommodations, bookings (unified for rides/stays/events), ratings, chat messages, restaurants, and a simplified partnership system. Major optimizations: events system consolidated into main bookings table, partnership system simplified with direct accommodation discount fields, and payments system unified. Type safety is ensured across the stack via shared TypeScript types from Drizzle.
+The application uses an optimized PostgreSQL schema with Drizzle ORM, streamlined from 29 to 19 tables through systematic consolidation. Core tables include users, rides, accommodations, bookings (unified for rides/stays/events), ratings, chat messages, and a simplified partnership system. Restaurant functionality has been eliminated to focus on transportation and accommodation. Major optimizations: events system consolidated into main bookings table, partnership system simplified with direct accommodation discount fields, and payments system unified. Type safety is ensured across the stack via shared TypeScript types from Drizzle.
 
 ### Authentication & Session Management
 A mandatory, comprehensive authentication system supports email and Mozambique phone number login. It includes `LoginModal`, `ProtectedRoute`, and `AuthRequiredMessage` components, with authentication state managed via a `useAuth` hook and localStorage. Session persistence is managed using a PostgreSQL session store. Service offerings are restricted to verified users, integrating with a document verification system.
