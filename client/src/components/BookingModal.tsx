@@ -112,7 +112,7 @@ export default function BookingModal({ type, item, searchParams, isOpen, onClose
       <DialogContent className="max-w-md w-full mx-4">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-dark">
-            Confirm Booking
+            Confirmar Reserva
           </DialogTitle>
         </DialogHeader>
 
@@ -138,13 +138,13 @@ export default function BookingModal({ type, item, searchParams, isOpen, onClose
             
             {isRide && (
               <div className="text-sm text-gray-medium space-y-1">
-                <p>From: <span className="text-dark">{searchParams.from}</span></p>
-                <p>To: <span className="text-dark">{searchParams.to}</span></p>
-                <p>When: <span className="text-dark">
+                <p>De: <span className="text-dark">{searchParams.from}</span></p>
+                <p>Para: <span className="text-dark">{searchParams.to}</span></p>
+                <p>Quando: <span className="text-dark">
                   {new Date(searchParams.when).toLocaleString()}
                 </span></p>
                 {ride?.estimatedDistance && (
-                  <p>Distance: <span className="text-dark">{ride.estimatedDistance} miles</span></p>
+                  <p>Distância: <span className="text-dark">{ride.estimatedDistance} km</span></p>
                 )}
               </div>
             )}
@@ -157,9 +157,9 @@ export default function BookingModal({ type, item, searchParams, isOpen, onClose
                 <p>Check-out: <span className="text-dark">
                   {new Date(searchParams.checkOut).toLocaleDateString()}
                 </span></p>
-                <p>Guests: <span className="text-dark">1 adult</span></p>
+                <p>Hóspedes: <span className="text-dark">1 adulto</span></p>
                 {pricing && (
-                  <p>Duration: <span className="text-dark">{pricing.nights} nights</span></p>
+                  <p>Duração: <span className="text-dark">{pricing.nights} noites</span></p>
                 )}
               </div>
             )}
@@ -168,45 +168,45 @@ export default function BookingModal({ type, item, searchParams, isOpen, onClose
           {/* Price Breakdown */}
           {pricing && (
             <div className="border border-gray-200 rounded-lg p-4">
-              <h4 className="font-medium text-dark mb-2">Price Details</h4>
+              <h4 className="font-medium text-dark mb-2">Detalhes do Preço</h4>
               <div className="space-y-2 text-sm">
                 {isRide ? (
                   <>
                     <div className="flex justify-between">
-                      <span className="text-gray-medium">Base fare</span>
-                      <span>${pricing.baseFare}</span>
+                      <span className="text-gray-medium">Tarifa base</span>
+                      <span>{pricing.baseFare} MZN</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-medium">Distance</span>
-                      <span>${pricing.distance}</span>
+                      <span className="text-gray-medium">Distância</span>
+                      <span>{pricing.distance} MZN</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-medium">Time</span>
-                      <span>${pricing.time}</span>
+                      <span className="text-gray-medium">Tempo</span>
+                      <span>{pricing.time} MZN</span>
                     </div>
                   </>
                 ) : (
                   <>
                     <div className="flex justify-between">
                       <span className="text-gray-medium">
-                        ${pricing.pricePerNight} x {pricing.nights} nights
+                        {pricing.pricePerNight} MZN x {pricing.nights} noites
                       </span>
-                      <span>${pricing.subtotal}</span>
+                      <span>{pricing.subtotal} MZN</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-medium">Taxes</span>
-                      <span>${pricing.taxes}</span>
+                      <span className="text-gray-medium">Impostos</span>
+                      <span>{pricing.taxes} MZN</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-medium">Service fees</span>
-                      <span>${pricing.fees}</span>
+                      <span className="text-gray-medium">Taxas de serviço</span>
+                      <span>{pricing.fees} MZN</span>
                     </div>
                   </>
                 )}
                 <hr className="my-2" />
                 <div className="flex justify-between font-semibold">
                   <span>Total</span>
-                  <span>${pricing.total}</span>
+                  <span>{pricing.total} MZN</span>
                 </div>
               </div>
             </div>
@@ -214,12 +214,12 @@ export default function BookingModal({ type, item, searchParams, isOpen, onClose
 
           {/* Payment Method */}
           <div className="border border-gray-200 rounded-lg p-4">
-            <h4 className="font-medium text-dark mb-2">Payment Method</h4>
+            <h4 className="font-medium text-dark mb-2">Método de Pagamento</h4>
             <div className="flex items-center space-x-3">
               <i className="fab fa-cc-visa text-2xl text-blue-600"></i>
               <div>
                 <p className="text-sm text-dark">{paymentMethod}</p>
-                <p className="text-xs text-gray-medium">Expires 12/25</p>
+                <p className="text-xs text-gray-medium">Expira 12/25</p>
               </div>
             </div>
           </div>
@@ -234,10 +234,10 @@ export default function BookingModal({ type, item, searchParams, isOpen, onClose
             {bookingMutation.isPending ? (
               <span className="flex items-center">
                 <i className="fas fa-spinner fa-spin mr-2"></i>
-                Processing...
+                Processando...
               </span>
             ) : (
-              "Confirm Booking"
+              "Confirmar Reserva"
             )}
           </Button>
         </div>

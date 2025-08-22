@@ -24,6 +24,8 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
     name: string;
     email: string;
     isVerified: boolean;
+    profileImage?: string;
+    loginMethod?: string;
   } | null>(null);
 
   return (

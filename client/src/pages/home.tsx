@@ -76,7 +76,7 @@ export default function Home() {
             <p className="text-gray-medium mt-2">Combine viagens e hospedagens para uma experiência perfeita</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="bg-white rounded-xl p-6 text-center shadow-md">
               <div className="w-16 h-16 bg-primary bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i className="fas fa-route text-primary text-2xl"></i>

@@ -135,7 +135,7 @@ export default function PaymentModal({ isOpen, onClose, booking, onPaymentSucces
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md w-full mx-4 sm:mx-0">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <i className={`${getServiceIcon(booking.serviceType)} text-primary`}></i>

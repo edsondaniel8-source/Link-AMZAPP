@@ -235,7 +235,7 @@ export default function LoginModal({ isOpen, onClose, onSuccess }: LoginModalPro
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="w-full max-w-md mx-4 sm:mx-0">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Shield className="w-5 h-5 text-primary" />

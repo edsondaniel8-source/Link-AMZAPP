@@ -44,8 +44,8 @@ export default function RideSearch({ onSearch }: RideSearchProps) {
       <h2 className="text-3xl font-bold text-dark mb-8 text-center">Para onde você quer ir?</h2>
       
       <div className="bg-white rounded-2xl shadow-lg p-6">
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="md:col-span-1">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="lg:col-span-1">
             <Label htmlFor="from" className="block text-sm font-medium text-gray-medium mb-2">
               Saindo de
             </Label>
@@ -62,7 +62,7 @@ export default function RideSearch({ onSearch }: RideSearchProps) {
             )}
           </div>
           
-          <div className="md:col-span-1">
+          <div className="lg:col-span-1">
             <Label htmlFor="to" className="block text-sm font-medium text-gray-medium mb-2">
               Indo para
             </Label>
@@ -79,7 +79,7 @@ export default function RideSearch({ onSearch }: RideSearchProps) {
             )}
           </div>
           
-          <div className="md:col-span-1">
+          <div className="lg:col-span-1">
             <Label htmlFor="when" className="block text-sm font-medium text-gray-medium mb-2">
               Quando
             </Label>
@@ -98,7 +98,7 @@ export default function RideSearch({ onSearch }: RideSearchProps) {
             )}
           </div>
           
-          <div className="md:col-span-1">
+          <div className="lg:col-span-1">
             <Label htmlFor="passengers" className="block text-sm font-medium text-gray-medium mb-2">
               Passageiros
             </Label>
@@ -122,7 +122,7 @@ export default function RideSearch({ onSearch }: RideSearchProps) {
             )}
           </div>
           
-          <div className="md:col-span-1 flex items-end">
+          <div className="lg:col-span-1 flex items-end">
             <Button
               type="submit"
               data-testid="button-search-rides"

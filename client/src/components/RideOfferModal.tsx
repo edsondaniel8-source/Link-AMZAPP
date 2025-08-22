@@ -96,7 +96,7 @@ export default function RideOfferModal({ isOpen, onClose, onSubmit }: RideOfferM
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl w-full mx-4 sm:mx-0 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-dark">
             Oferecer Viagem
