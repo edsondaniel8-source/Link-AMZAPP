@@ -52,6 +52,7 @@ export const rides = pgTable("rides", {
   estimatedDuration: integer("estimated_duration"), // minutes
   estimatedDistance: decimal("estimated_distance", { precision: 5, scale: 2 }), // miles
   availableIn: integer("available_in"), // minutes until pickup
+  driverId: varchar("driver_id").references(() => users.id),
   driverName: text("driver_name"),
   vehicleInfo: text("vehicle_info"),
   maxPassengers: integer("max_passengers").default(4), // Maximum seats in vehicle
@@ -73,6 +74,7 @@ export const accommodations = pgTable("accommodations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   type: text("type").notNull(), // Hotel, Apartment, House
+  hostId: varchar("host_id").references(() => users.id),
   address: text("address").notNull(),
   lat: decimal("lat", { precision: 10, scale: 7 }),
   lng: decimal("lng", { precision: 10, scale: 7 }),
@@ -212,7 +214,19 @@ export const bookings = pgTable("bookings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id),
   type: text("type").notNull(), // "ride", "stay", "event"
-  status: text("status").notNull().default("pending"), // pending, confirmed, completed, cancelled
+  status: text("status").notNull().default("pending_approval"), // pending_approval, approved, confirmed, completed, cancelled, rejected
+  
+  // Provider approval tracking
+  providerId: varchar("provider_id").references(() => users.id), // Driver, host, or event manager
+  requestedAt: timestamp("requested_at").defaultNow(),
+  approvedAt: timestamp("approved_at"),
+  rejectedAt: timestamp("rejected_at"),
+  confirmedAt: timestamp("confirmed_at"),
+  rejectionReason: text("rejection_reason"),
+  
+  // Approval notifications
+  customerNotified: boolean("customer_notified").default(false),
+  providerNotified: boolean("provider_notified").default(false),
   
   // Ride booking fields
   rideId: varchar("ride_id").references(() => rides.id),
@@ -305,6 +319,7 @@ export const eventManagers = pgTable("event_managers", {
 
 export const events = pgTable("events", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizerId: varchar("organizer_id").references(() => users.id), // Direct user reference for confirmation system
   managerId: varchar("manager_id").references(() => eventManagers.id),
   title: text("title").notNull(),
   description: text("description").notNull(),

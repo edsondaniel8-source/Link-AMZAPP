@@ -21,8 +21,11 @@ export interface IStorage {
   // Booking operations
   getBooking(id: string): Promise<Booking | undefined>;
   getUserBookings(userId: string): Promise<Booking[]>;
+  getProviderBookings(providerId: string): Promise<Booking[]>; // For drivers/hosts/organizers
   createBooking(booking: InsertBooking): Promise<Booking>;
-  updateBookingStatus(id: string, status: string): Promise<Booking | undefined>;
+  updateBookingStatus(id: string, status: string, details?: any): Promise<Booking | undefined>;
+  approveBooking(bookingId: string, providerId: string): Promise<Booking | undefined>;
+  rejectBooking(bookingId: string, providerId: string, reason: string): Promise<Booking | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -36,6 +39,9 @@ export class MemStorage implements IStorage {
     this.rides = new Map();
     this.accommodations = new Map();
     this.bookings = new Map();
+    
+    // Initialize with mock data
+    this.initializeMockData();
     this.initializeMockData();
   }
 
@@ -565,9 +571,29 @@ export class MemStorage implements IStorage {
 
   async createBooking(insertBooking: InsertBooking): Promise<Booking> {
     const id = randomUUID();
+    
+    // Determine provider based on booking type
+    let providerId = null;
+    if (insertBooking.type === "ride" && insertBooking.rideId) {
+      const ride = this.rides.get(insertBooking.rideId);
+      providerId = ride?.driverId || null;
+    } else if (insertBooking.type === "stay" && insertBooking.accommodationId) {
+      const accommodation = this.accommodations.get(insertBooking.accommodationId);
+      providerId = accommodation?.hostId || null;
+    } else if (insertBooking.type === "event" && insertBooking.eventId) {
+      // For events, we'll need to look up the event organizer
+      // For now, we'll set a placeholder
+      providerId = "event-organizer-" + insertBooking.eventId;
+    }
+    
     const booking: Booking = { 
       ...insertBooking, 
       id, 
+      providerId,
+      status: "pending_approval",
+      requestedAt: new Date(),
+      customerNotified: false,
+      providerNotified: false,
       createdAt: new Date(), 
       updatedAt: new Date() 
     };
@@ -575,15 +601,144 @@ export class MemStorage implements IStorage {
     return booking;
   }
 
-  async updateBookingStatus(id: string, status: string): Promise<Booking | undefined> {
+  async updateBookingStatus(id: string, status: string, details?: any): Promise<Booking | undefined> {
     const booking = this.bookings.get(id);
     if (booking) {
       booking.status = status;
       booking.updatedAt = new Date();
+      if (details) {
+        Object.assign(booking, details);
+      }
       this.bookings.set(id, booking);
       return booking;
     }
     return undefined;
+  }
+
+  async getProviderBookings(providerId: string): Promise<Booking[]> {
+    const providerBookings = Array.from(this.bookings.values()).filter(
+      booking => booking.providerId === providerId
+    );
+    return providerBookings;
+  }
+
+  async approveBooking(bookingId: string, providerId: string): Promise<Booking | undefined> {
+    const booking = this.bookings.get(bookingId);
+    if (booking && booking.providerId === providerId) {
+      booking.status = "approved";
+      booking.approvedAt = new Date();
+      booking.providerNotified = true;
+      booking.updatedAt = new Date();
+      this.bookings.set(bookingId, booking);
+      return booking;
+    }
+    return undefined;
+  }
+
+  async rejectBooking(bookingId: string, providerId: string, reason: string): Promise<Booking | undefined> {
+    const booking = this.bookings.get(bookingId);
+    if (booking && booking.providerId === providerId) {
+      booking.status = "rejected";
+      booking.rejectedAt = new Date();
+      booking.rejectionReason = reason;
+      booking.providerNotified = true;
+      booking.updatedAt = new Date();
+      this.bookings.set(bookingId, booking);
+      return booking;
+    }
+    return undefined;
+  }
+
+  private initializeMockData() {
+    // Add mock bookings for testing the confirmation system
+    const mockBookings = [
+      {
+        id: "booking-1",
+        userId: "user-1",
+        providerId: "driver-1",
+        type: "ride",
+        status: "pending_approval",
+        rideId: "ride-1",
+        pickupTime: new Date("2025-08-30T14:00:00"),
+        originalPrice: "450.00",
+        discountApplied: "0.00",
+        totalPrice: "450.00",
+        paymentMethod: "visa_4242",
+        requestedAt: new Date("2025-08-25T10:30:00"),
+        customerNotified: false,
+        providerNotified: false,
+        createdAt: new Date("2025-08-25T10:30:00"),
+        updatedAt: new Date("2025-08-25T10:30:00"),
+      },
+      {
+        id: "booking-2",
+        userId: "user-1",
+        providerId: "host-1", 
+        type: "stay",
+        status: "approved",
+        accommodationId: "acc-1",
+        checkInDate: new Date("2025-09-01T15:00:00"),
+        checkOutDate: new Date("2025-09-03T11:00:00"),
+        guests: 2,
+        nights: 2,
+        originalPrice: "17000.00",
+        discountApplied: "1700.00",
+        totalPrice: "15300.00",
+        paymentMethod: "mastercard_5555",
+        requestedAt: new Date("2025-08-22T16:45:00"),
+        approvedAt: new Date("2025-08-23T09:15:00"),
+        customerNotified: true,
+        providerNotified: true,
+        createdAt: new Date("2025-08-22T16:45:00"),
+        updatedAt: new Date("2025-08-23T09:15:00"),
+      },
+      {
+        id: "booking-3",
+        userId: "user-1",
+        providerId: "organizer-1",
+        type: "event",
+        status: "confirmed",
+        eventId: "event-1",
+        ticketQuantity: 2,
+        ticketNumbers: ["T001234", "T001235"],
+        qrCodes: ["QR001234", "QR001235"],
+        originalPrice: "400.00",
+        discountApplied: "0.00",
+        totalPrice: "400.00",
+        paymentMethod: "mpesa_843123456",
+        requestedAt: new Date("2025-08-20T14:20:00"),
+        approvedAt: new Date("2025-08-20T15:30:00"),
+        confirmedAt: new Date("2025-08-20T16:00:00"),
+        customerNotified: true,
+        providerNotified: true,
+        createdAt: new Date("2025-08-20T14:20:00"),
+        updatedAt: new Date("2025-08-20T16:00:00"),
+      },
+      {
+        id: "booking-4",
+        userId: "user-1",
+        providerId: "driver-2",
+        type: "ride",
+        status: "rejected",
+        rideId: "ride-5",
+        pickupTime: new Date("2025-08-28T08:00:00"),
+        originalPrice: "1200.00",
+        discountApplied: "0.00",
+        totalPrice: "1200.00",
+        paymentMethod: "bank_transfer",
+        requestedAt: new Date("2025-08-24T12:00:00"),
+        rejectedAt: new Date("2025-08-24T14:30:00"),
+        rejectionReason: "Veículo em manutenção nesta data. Desculpe pelo inconveniente.",
+        customerNotified: true,
+        providerNotified: true,
+        createdAt: new Date("2025-08-24T12:00:00"),
+        updatedAt: new Date("2025-08-24T14:30:00"),
+      },
+    ];
+
+    mockBookings.forEach(booking => {
+      this.bookings.set(booking.id, booking as any);
+    });
   }
 }
 

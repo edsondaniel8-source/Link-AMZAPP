@@ -11,6 +11,7 @@ import Events from "@/pages/events";
 import Loyalty from "@/pages/loyalty";
 import ProfileVerification from "@/pages/profile-verification";
 import CreateEvent from "@/pages/create-event";
+import BookingsPage from "@/pages/bookings";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -18,6 +19,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/bookings" component={BookingsPage} />
       <Route path="/partnerships" component={Partnerships} />
       <Route path="/events" component={Events} />
       <Route path="/events/create" component={CreateEvent} />

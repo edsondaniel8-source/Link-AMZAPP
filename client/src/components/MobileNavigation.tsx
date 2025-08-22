@@ -49,12 +49,12 @@ export default function MobileNavigation({ onOfferRide }: MobileNavigationProps)
         
         <button
           data-testid="mobile-nav-bookings"
-          onClick={() => window.location.href = "/dashboard"}
+          onClick={() => window.location.href = "/bookings"}
           className={`flex flex-col items-center justify-center ${
-            isActive("/dashboard") ? "text-primary" : "text-gray-medium"
+            isActive("/bookings") ? "text-primary" : "text-gray-medium"
           }`}
         >
-          <i className="fas fa-receipt text-lg mb-1"></i>
+          <i className="fas fa-clipboard-list text-lg mb-1"></i>
           <span className="text-xs">Reservas</span>
         </button>
         

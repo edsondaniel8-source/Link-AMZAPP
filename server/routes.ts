@@ -88,6 +88,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get provider bookings (for drivers, hosts, event organizers)
+  app.get("/api/bookings/provider/:providerId", async (req, res) => {
+    try {
+      const bookings = await storage.getProviderBookings(req.params.providerId);
+      res.json(bookings);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get provider bookings" });
+    }
+  });
+
+  // Approve booking (provider accepts booking request)
+  app.post("/api/bookings/:bookingId/approve", async (req, res) => {
+    try {
+      const { providerId } = req.body;
+      if (!providerId) {
+        return res.status(400).json({ message: "Provider ID is required" });
+      }
+
+      const booking = await storage.approveBooking(req.params.bookingId, providerId);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found or unauthorized" });
+      }
+
+      res.json({ 
+        message: "Reserva aprovada com sucesso", 
+        booking,
+        status: "approved" 
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to approve booking" });
+    }
+  });
+
+  // Reject booking (provider rejects booking request)
+  app.post("/api/bookings/:bookingId/reject", async (req, res) => {
+    try {
+      const { providerId, reason } = req.body;
+      if (!providerId || !reason) {
+        return res.status(400).json({ message: "Provider ID and rejection reason are required" });
+      }
+
+      const booking = await storage.rejectBooking(req.params.bookingId, providerId, reason);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found or unauthorized" });
+      }
+
+      res.json({ 
+        message: "Reserva rejeitada", 
+        booking,
+        status: "rejected",
+        reason 
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to reject booking" });
+    }
+  });
+
+  // Confirm booking (customer confirms after provider approval)
+  app.post("/api/bookings/:bookingId/confirm", async (req, res) => {
+    try {
+      const { userId } = req.body;
+      const booking = await storage.getBooking(req.params.bookingId);
+      
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+
+      if (booking.userId !== userId) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      if (booking.status !== "approved") {
+        return res.status(400).json({ message: "Booking must be approved before confirmation" });
+      }
+
+      const confirmedBooking = await storage.updateBookingStatus(booking.id, "confirmed", {
+        confirmedAt: new Date(),
+        customerNotified: true
+      });
+
+      res.json({ 
+        message: "Reserva confirmada com sucesso", 
+        booking: confirmedBooking,
+        status: "confirmed" 
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to confirm booking" });
+    }
+  });
+
   // Update booking status
   app.patch("/api/bookings/:id/status", async (req, res) => {
     try {
