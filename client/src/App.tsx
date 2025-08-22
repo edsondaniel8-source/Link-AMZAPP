@@ -18,9 +18,9 @@ import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/login";
 
 function Landing() {
-  const handleGoogleLogin = () => {
-    // Always redirect to login page - let it handle Firebase or manual login
-    window.location.href = '/login';
+  const handleLogin = () => {
+    // Redirect to Replit Auth login
+    window.location.href = '/api/login';
   };
 
   return (
@@ -35,9 +35,9 @@ function Landing() {
           </p>
           <div className="space-y-4 max-w-md mx-auto">
             <button
-              onClick={handleGoogleLogin}
+              onClick={handleLogin}
               className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
-              data-testid="button-login-google"
+              data-testid="button-login"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -60,21 +60,10 @@ function Landing() {
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
-      </div>
-    );
-  }
-
   return (
     <Switch>
-      {!isAuthenticated ? (
-        <>
-          <Route path="/" component={Landing} />
-          <Route path="/login" component={LoginPage} />
-        </>
+      {isLoading || !isAuthenticated ? (
+        <Route path="/" component={Landing} />
       ) : (
         <>
           <Route path="/" component={Home} />

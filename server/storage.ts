@@ -1,9 +1,26 @@
-import { type User, type InsertUser, type Ride, type InsertRide, type Accommodation, type InsertAccommodation, type Booking, type InsertBooking } from "@shared/schema";
+import {
+  users,
+  rides,
+  accommodations,
+  bookings,
+  type User,
+  type UpsertUser,
+  type InsertUser,
+  type Ride,
+  type InsertRide,
+  type Accommodation,
+  type InsertAccommodation,
+  type Booking,
+  type InsertBooking
+} from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
-  // User operations
+  // User operations (IMPORTANT: these user operations are mandatory for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
+  upsertUser(user: UpsertUser): Promise<User>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
@@ -28,6 +45,149 @@ export interface IStorage {
   rejectBooking(bookingId: string, providerId: string, reason: string): Promise<Booking | undefined>;
 }
 
+export class DatabaseStorage implements IStorage {
+  // User operations (IMPORTANT: these user operations are mandatory for Replit Auth)
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    // Note: Current schema doesn't have username field, might need to search by email
+    const [user] = await db.select().from(users).where(eq(users.email, username));
+    return user;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  // Other operations for backward compatibility
+  async searchRides(from: string, to: string): Promise<Ride[]> {
+    return await db.select().from(rides);
+  }
+
+  async getRide(id: string): Promise<Ride | undefined> {
+    const [ride] = await db.select().from(rides).where(eq(rides.id, id));
+    return ride;
+  }
+
+  async createRide(insertRide: InsertRide): Promise<Ride> {
+    const [ride] = await db
+      .insert(rides)
+      .values(insertRide)
+      .returning();
+    return ride;
+  }
+
+  async searchAccommodations(location: string, checkIn?: Date, checkOut?: Date): Promise<Accommodation[]> {
+    return await db.select().from(accommodations);
+  }
+
+  async getAccommodation(id: string): Promise<Accommodation | undefined> {
+    const [accommodation] = await db.select().from(accommodations).where(eq(accommodations.id, id));
+    return accommodation;
+  }
+
+  async createAccommodation(insertAccommodation: InsertAccommodation): Promise<Accommodation> {
+    const [accommodation] = await db
+      .insert(accommodations)
+      .values(insertAccommodation)
+      .returning();
+    return accommodation;
+  }
+
+  async getBooking(id: string): Promise<Booking | undefined> {
+    const [booking] = await db.select().from(bookings).where(eq(bookings.id, id));
+    return booking;
+  }
+
+  async getUserBookings(userId: string): Promise<Booking[]> {
+    return await db.select().from(bookings).where(eq(bookings.userId, userId));
+  }
+
+  async getProviderBookings(providerId: string): Promise<Booking[]> {
+    return await db.select().from(bookings).where(eq(bookings.providerId, providerId));
+  }
+
+  async createBooking(insertBooking: InsertBooking): Promise<Booking> {
+    const [booking] = await db
+      .insert(bookings)
+      .values({
+        ...insertBooking,
+        status: "pending_approval",
+        requestedAt: new Date(),
+        customerNotified: false,
+        providerNotified: false,
+      })
+      .returning();
+    return booking;
+  }
+
+  async updateBookingStatus(id: string, status: string, details?: any): Promise<Booking | undefined> {
+    const [booking] = await db
+      .update(bookings)
+      .set({ status, updatedAt: new Date(), ...details })
+      .where(eq(bookings.id, id))
+      .returning();
+    return booking;
+  }
+
+  async approveBooking(bookingId: string, providerId: string): Promise<Booking | undefined> {
+    const [booking] = await db
+      .update(bookings)
+      .set({
+        status: "approved",
+        approvedAt: new Date(),
+        providerNotified: true,
+        updatedAt: new Date(),
+      })
+      .where(eq(bookings.id, bookingId))
+      .returning();
+    return booking;
+  }
+
+  async rejectBooking(bookingId: string, providerId: string, reason: string): Promise<Booking | undefined> {
+    const [booking] = await db
+      .update(bookings)
+      .set({
+        status: "rejected",
+        rejectedAt: new Date(),
+        rejectionReason: reason,
+        providerNotified: true,
+        updatedAt: new Date(),
+      })
+      .where(eq(bookings.id, bookingId))
+      .returning();
+    return booking;
+  }
+}
+
+// Keep MemStorage for backward compatibility if needed
 export class MemStorage implements IStorage {
   private users: Map<string, User>;
   private rides: Map<string, Ride>;
@@ -788,4 +948,4 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
