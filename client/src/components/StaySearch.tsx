@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import LocationAutocomplete from "@/components/LocationAutocomplete";
+import DateInput from "@/components/DateInput";
 import { getTodayHTML, formatDateToHTML } from "@/lib/dateUtils";
 
 const staySearchSchema = z.object({
@@ -73,12 +74,12 @@ export default function StaySearch({ onSearch }: StaySearchProps) {
             <Label htmlFor="checkIn" className="block text-sm font-medium text-gray-medium mb-2">
               Entrada
             </Label>
-            <Input
+            <DateInput
               id="checkIn"
               data-testid="input-checkin-date"
-              type="date"
+              value={form.watch("checkIn")}
+              onChange={(value) => form.setValue("checkIn", value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-              {...form.register("checkIn")}
             />
             {form.formState.errors.checkIn && (
               <p className="text-sm text-destructive mt-1">{form.formState.errors.checkIn.message}</p>
@@ -89,12 +90,12 @@ export default function StaySearch({ onSearch }: StaySearchProps) {
             <Label htmlFor="checkOut" className="block text-sm font-medium text-gray-medium mb-2">
               Saída
             </Label>
-            <Input
+            <DateInput
               id="checkOut"
               data-testid="input-checkout-date"
-              type="date"
+              value={form.watch("checkOut")}
+              onChange={(value) => form.setValue("checkOut", value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-              {...form.register("checkOut")}
             />
             {form.formState.errors.checkOut && (
               <p className="text-sm text-destructive mt-1">{form.formState.errors.checkOut.message}</p>

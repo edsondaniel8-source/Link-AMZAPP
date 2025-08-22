@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import DateInput from "@/components/DateInput";
 import { CalendarDays, MapPin, DollarSign, Users, Ticket, Image, Shield } from "lucide-react";
 
 export default function CreateEvent() {
@@ -272,21 +273,20 @@ export default function CreateEvent() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="startDate">Data de Início *</Label>
-                  <Input
+                  <DateInput
                     id="startDate"
-                    type="date"
                     value={eventData.startDate}
-                    onChange={(e) => handleInputChange("startDate", e.target.value)}
+                    onChange={(value) => handleInputChange("startDate", value)}
                     data-testid="input-start-date"
+                    required
                   />
                 </div>
                 <div>
                   <Label htmlFor="endDate">Data de Fim</Label>
-                  <Input
+                  <DateInput
                     id="endDate"
-                    type="date"
                     value={eventData.endDate}
-                    onChange={(e) => handleInputChange("endDate", e.target.value)}
+                    onChange={(value) => handleInputChange("endDate", value)}
                     data-testid="input-end-date"
                   />
                 </div>

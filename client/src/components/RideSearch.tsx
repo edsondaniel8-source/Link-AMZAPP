@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import LocationAutocomplete from "@/components/LocationAutocomplete";
+import DateInput from "@/components/DateInput";
 import { getTodayHTML } from "@/lib/dateUtils";
 
 const rideSearchSchema = z.object({
@@ -85,12 +86,12 @@ export default function RideSearch({ onSearch }: RideSearchProps) {
             </Label>
             <div className="relative">
               <i className="fas fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-              <Input
+              <DateInput
                 id="when"
                 data-testid="input-pickup-date"
-                type="date"
+                value={form.watch("when")}
+                onChange={(value) => form.setValue("when", value)}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                {...form.register("when")}
               />
             </div>
             {form.formState.errors.when && (

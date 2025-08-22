@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { formatMzn } from "@/lib/currency";
+import DateInput from "@/components/DateInput";
 
 interface RideOfferModalProps {
   isOpen: boolean;
@@ -136,12 +137,12 @@ export default function RideOfferModal({ isOpen, onClose, onSubmit }: RideOfferM
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="departureDate">Data de Partida *</Label>
-                  <Input
+                  <DateInput
                     id="departureDate"
-                    type="date"
                     value={formData.departureDate}
-                    onChange={(e) => setFormData(prev => ({ ...prev, departureDate: e.target.value }))}
+                    onChange={(value) => setFormData(prev => ({ ...prev, departureDate: value }))}
                     data-testid="input-departure-date"
+                    required
                   />
                 </div>
                 
