@@ -17,13 +17,14 @@ Link-A is a streamlined travel booking platform for the Mozambique market, focus
   - Multi-person booking capability for accommodations
   - Integrated payment system with 10% platform fee for all transactions
   - Logo updated to "Link-A" (removed "Mz") with larger size
-  - Date-only selection for ride searches (time shown only in driver offers)
+  - Date format standardized to dd/mm/yyyy throughout application with custom DateInput component
+  - Enhanced location search with 200+ Mozambican locations including neighborhoods, beaches, landmarks, transport hubs
   - Mobile-optimized responsive design
 
 ## System Architecture
 
 ### Frontend Architecture
-Built with React and TypeScript, featuring a modular component architecture, state management using React Query, styling with Tailwind CSS and shadcn/ui, and Wouter for routing. Forms are handled with React Hook Form and Zod for validation. Comprehensive booking confirmation system with two-way approval workflow implemented with real-time status tracking and Portuguese language support.
+Built with React and TypeScript, featuring a modular component architecture, state management using React Query, styling with Tailwind CSS and shadcn/ui, and Wouter for routing. Forms are handled with React Hook Form and Zod for validation. Comprehensive booking confirmation system with two-way approval workflow implemented with real-time status tracking and Portuguese language support. Enhanced location search with comprehensive Mozambican database including 200+ locations covering neighborhoods, transport hubs, landmarks, beaches across all provinces with intelligent search ranking and Portuguese localization.
 
 ### Backend Architecture
 An Express.js REST API layer handles requests. It uses an interface-based storage abstraction with Drizzle ORM for PostgreSQL and includes centralized error handling. Development is supported by Vite for hot module replacement.
