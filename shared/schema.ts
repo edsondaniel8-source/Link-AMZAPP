@@ -292,9 +292,6 @@ export const driverStats = pgTable("driver_stats", {
 // SIMPLIFIED: Benefits calculated based on driver level, discounts tracked in bookings table
 
 // Removed duplicate schema definitions - keeping only final ones at end of file
-export type InsertRide = z.infer<typeof insertRideSchema>;
-export type InsertAccommodation = z.infer<typeof insertAccommodationSchema>;
-export type InsertBooking = z.infer<typeof insertBookingSchema>;
 
 // Events and Fairs System - Comprehensive event management
 export const eventManagers = pgTable("event_managers", {
