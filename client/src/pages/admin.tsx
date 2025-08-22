@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import Header from "@/components/Header";
+import PageHeader from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -209,13 +209,12 @@ export default function AdminPanel() {
   });
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header activeService="rides" onServiceChange={() => {}} />
+    <div className="min-h-screen bg-background dark:bg-gray-900">
+      <PageHeader title="Painel Administrativo" />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-dark mb-2">Painel Administrativo</h1>
-          <p className="text-gray-medium">Gerir utilizadores, preços e configurações da plataforma</p>
+          <p className="text-gray-medium dark:text-gray-400">Gerir utilizadores, preços e configurações da plataforma</p>
         </div>
 
         <Tabs defaultValue="users" className="space-y-6">

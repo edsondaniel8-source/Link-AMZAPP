@@ -3,17 +3,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import LoyaltyProgram from "@/components/LoyaltyProgram";
-import Header from "@/components/Header";
+import PageHeader from "@/components/PageHeader";
 
 export default function LoyaltyPage() {
   const [activeService] = useState<"rides" | "stays">("rides");
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header
-        activeService={activeService}
-        onServiceChange={() => {}}
-      />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <PageHeader title="Programa de Fidelidade" />
       
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Page Header */}
@@ -23,8 +20,7 @@ export default function LoyaltyPage() {
               <i className="fas fa-crown text-white text-3xl"></i>
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Programa de Fidelidade Link-A</h1>
-              <p className="text-gray-600 mt-1">
+              <p className="text-gray-600 dark:text-gray-400 mt-1">
                 Ganhe pontos em cada viagem e estadia, troque por recompensas incríveis
               </p>
             </div>

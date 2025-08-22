@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import Header from "@/components/Header";
+import PageHeader from "@/components/PageHeader";
 import DocumentVerification from "@/components/DocumentVerification";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -47,11 +47,8 @@ export default function ProfileVerification() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header
-        activeService={activeService}
-        onServiceChange={() => {}}
-      />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <PageHeader title="Verificação de Perfil" />
       
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Page Header */}

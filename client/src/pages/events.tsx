@@ -4,6 +4,7 @@ import EventSearch from "@/components/EventSearch";
 import EventResults from "@/components/EventResults";
 import EventSearchResults from "@/components/EventSearchResults";
 import MobileNavigation from "@/components/MobileNavigation";
+import PageHeader from "@/components/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 
@@ -46,8 +47,10 @@ export default function EventsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6">
-      <div className="container mx-auto px-4 max-w-7xl">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <PageHeader title="Eventos e Feiras" />
+      
+      <div className="container mx-auto px-4 max-w-7xl py-6">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-3 mb-4">
@@ -55,8 +58,7 @@ export default function EventsPage() {
               <span className="text-white text-3xl">🎪</span>
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Eventos e Feiras</h1>
-              <p className="text-gray-600 mt-1">
+              <p className="text-gray-600 dark:text-gray-400 mt-1">
                 Descubra eventos incríveis com ofertas especiais em alojamentos e transporte
               </p>
             </div>

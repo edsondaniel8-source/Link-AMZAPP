@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import BookingStatusCard from "@/components/BookingStatusCard";
+import PageHeader from "@/components/PageHeader";
 import { Calendar, Clock, User, Car, Bed, CalendarDays } from "lucide-react";
 
 // Mock current user - in real app this would come from auth context
@@ -46,11 +47,12 @@ export default function BookingsPage() {
   const providerStats = getStatusCounts(providerBookingsList);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <PageHeader title="Minhas Reservas" />
+      
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-dark">Minhas Reservas</h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
             Gerencie todas as suas reservas e solicitações
           </p>
         </div>

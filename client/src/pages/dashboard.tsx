@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import LoyaltyProgram from "@/components/LoyaltyProgram";
+import PageHeader from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -51,38 +52,10 @@ export default function Dashboard() {
   const pastBookings = bookings.filter(booking => booking.status === "completed");
 
   return (
-    <div className="min-h-screen bg-gray-light">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <Link href="/">
-                <div className="flex items-center cursor-pointer">
-                  <img 
-                    src={logoPath} 
-                    alt="Link-A" 
-                    className="h-12 w-12 mr-3"
-                  />
-                  <h1 className="text-2xl font-bold text-primary">Link-A</h1>
-                </div>
-              </Link>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link href="/">
-                <button className="text-gray-medium hover:text-dark font-medium">
-                  Voltar à Pesquisa
-                </button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gray-light dark:bg-gray-900">
+      <PageHeader title="Minha Conta" />
 
       <div className="max-w-6xl mx-auto p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-dark">Minha Conta</h2>
-        </div>
 
         {/* Loyalty Program Widget */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
