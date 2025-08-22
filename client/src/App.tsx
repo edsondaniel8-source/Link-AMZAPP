@@ -3,6 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useAuth } from "./hooks/useAuth";
 import Home from "@/pages/home";
 import Dashboard from "@/pages/dashboard";
 import AdminPanel from "@/pages/admin";
@@ -14,18 +15,63 @@ import CreateEvent from "@/pages/create-event";
 import BookingsPage from "@/pages/bookings";
 import NotFound from "@/pages/not-found";
 
+function Landing() {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
+      <div className="container mx-auto px-4 py-16">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-primary mb-6">
+            Bem-vindo ao Link-A
+          </h1>
+          <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
+            A plataforma completa de transporte e acomodações em Moçambique
+          </p>
+          <div className="space-y-4 max-w-md mx-auto">
+            <a
+              href="/api/login"
+              className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-3 px-6 rounded-lg transition-colors inline-block"
+              data-testid="button-login"
+            >
+              Iniciar Sessão
+            </a>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Use sua conta Replit para entrar
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Router() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
+
   return (
     <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/dashboard" component={Dashboard} />
-      <Route path="/bookings" component={BookingsPage} />
-      <Route path="/partnerships" component={Partnerships} />
-      <Route path="/events" component={Events} />
-      <Route path="/events/create" component={CreateEvent} />
-      <Route path="/loyalty" component={Loyalty} />
-      <Route path="/profile/verification" component={ProfileVerification} />
-      <Route path="/admin" component={AdminPanel} />
+      {!isAuthenticated ? (
+        <Route path="/" component={Landing} />
+      ) : (
+        <>
+          <Route path="/" component={Home} />
+          <Route path="/dashboard" component={Dashboard} />
+          <Route path="/bookings" component={BookingsPage} />
+          <Route path="/partnerships" component={Partnerships} />
+          <Route path="/events" component={Events} />
+          <Route path="/events/create" component={CreateEvent} />
+          <Route path="/loyalty" component={Loyalty} />
+          <Route path="/profile/verification" component={ProfileVerification} />
+          <Route path="/admin" component={AdminPanel} />
+        </>
+      )}
       <Route component={NotFound} />
     </Switch>
   );

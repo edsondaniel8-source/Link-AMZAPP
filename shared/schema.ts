@@ -1,15 +1,27 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, decimal, integer, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, decimal, integer, boolean, jsonb, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Session storage table for Replit Auth
+export const sessions = pgTable(
+  "sessions",
+  {
+    sid: varchar("sid").primaryKey(),
+    sess: jsonb("sess").notNull(),
+    expire: timestamp("expire").notNull(),
+  },
+  (table) => [index("IDX_session_expire").on(table.expire)],
+);
+
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  email: text("email").notNull().unique(),
-  password: text("password").notNull(),
-  firstName: text("first_name"),
-  lastName: text("last_name"),
+  email: varchar("email").unique(),
+  firstName: varchar("first_name"),
+  lastName: varchar("last_name"),
+  profileImageUrl: varchar("profile_image_url"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
   phone: text("phone"),
   userType: text("user_type").default("user"), // user, driver, host, restaurant
   canOfferServices: boolean("can_offer_services").default(false), // Only verified users can offer rides/accommodations
@@ -17,7 +29,6 @@ export const users = pgTable("users", {
   rating: decimal("rating", { precision: 3, scale: 2 }).default("0.00"),
   totalReviews: integer("total_reviews").default(0),
   isVerified: boolean("is_verified").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
   
   // Document verification system
   verificationStatus: text("verification_status").default("pending"), // pending, in_review, verified, rejected
@@ -277,26 +288,7 @@ export const driverStats = pgTable("driver_stats", {
 // REMOVED: partnershipBenefits, discountUsageLog
 // SIMPLIFIED: Benefits calculated based on driver level, discounts tracked in bookings table
 
-export const insertUserSchema = createInsertSchema(users).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertRideSchema = createInsertSchema(rides).omit({
-  id: true,
-});
-
-export const insertAccommodationSchema = createInsertSchema(accommodations).omit({
-  id: true,
-});
-
-export const insertBookingSchema = createInsertSchema(bookings).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export type InsertUser = z.infer<typeof insertUserSchema>;
+// Removed duplicate schema definitions - keeping only final ones at end of file
 export type InsertRide = z.infer<typeof insertRideSchema>;
 export type InsertAccommodation = z.infer<typeof insertAccommodationSchema>;
 export type InsertBooking = z.infer<typeof insertBookingSchema>;
@@ -462,6 +454,24 @@ export const driverDocuments = pgTable("driver_documents", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const insertUserSchema = createInsertSchema(users);
+export const upsertUserSchema = createInsertSchema(users).pick({
+  id: true,
+  email: true,
+  firstName: true,
+  lastName: true,
+  profileImageUrl: true,
+});
+
+export const insertBookingSchema = createInsertSchema(bookings);
+export const insertRideSchema = createInsertSchema(rides);
+export const insertAccommodationSchema = createInsertSchema(accommodations);
+
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type UpsertUser = z.infer<typeof upsertUserSchema>;
+export type InsertBooking = z.infer<typeof insertBookingSchema>;
+export type InsertRide = z.infer<typeof insertRideSchema>;
+export type InsertAccommodation = z.infer<typeof insertAccommodationSchema>;
 export type User = typeof users.$inferSelect;
 export type Ride = typeof rides.$inferSelect;
 export type Accommodation = typeof accommodations.$inferSelect;
