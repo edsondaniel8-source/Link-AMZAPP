@@ -23,13 +23,13 @@ Link-A is a streamlined travel booking platform for the Mozambique market, focus
 ## System Architecture
 
 ### Frontend Architecture
-Built with React and TypeScript, featuring a modular component architecture, state management using React Query, styling with Tailwind CSS and shadcn/ui, and Wouter for routing. Forms are handled with React Hook Form and Zod for validation.
+Built with React and TypeScript, featuring a modular component architecture, state management using React Query, styling with Tailwind CSS and shadcn/ui, and Wouter for routing. Forms are handled with React Hook Form and Zod for validation. Comprehensive booking confirmation system with two-way approval workflow implemented with real-time status tracking and Portuguese language support.
 
 ### Backend Architecture
 An Express.js REST API layer handles requests. It uses an interface-based storage abstraction with Drizzle ORM for PostgreSQL and includes centralized error handling. Development is supported by Vite for hot module replacement.
 
 ### Data Architecture
-The application uses an optimized PostgreSQL schema with Drizzle ORM, streamlined from 29 to 19 tables through systematic consolidation. Core tables include users, rides, accommodations, bookings (unified for rides/stays/events), ratings, chat messages, and a simplified partnership system. Restaurant functionality has been eliminated to focus on transportation and accommodation. Major optimizations: events system consolidated into main bookings table, partnership system simplified with direct accommodation discount fields, and payments system unified. Type safety is ensured across the stack via shared TypeScript types from Drizzle.
+The application uses an optimized PostgreSQL schema with Drizzle ORM, streamlined from 29 to 19 tables through systematic consolidation. Core tables include users, rides, accommodations, bookings (unified for rides/stays/events), ratings, chat messages, and a simplified partnership system. Restaurant functionality has been eliminated to focus on transportation and accommodation. Major optimizations: events system consolidated into main bookings table, partnership system simplified with direct accommodation discount fields, and payments system unified. **NEW**: Comprehensive booking confirmation system implemented with enhanced booking status tracking (pending_approval, approved, confirmed, rejected, completed), provider approval workflow, customer confirmation process, and real-time notification system. Type safety is ensured across the stack via shared TypeScript types from Drizzle.
 
 ### Authentication & Session Management
 A mandatory, comprehensive authentication system supports email and Mozambique phone number login. It includes `LoginModal`, `ProtectedRoute`, and `AuthRequiredMessage` components, with authentication state managed via a `useAuth` hook and localStorage. Session persistence is managed using a PostgreSQL session store. Service offerings are restricted to verified users, integrating with a document verification system.

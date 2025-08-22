@@ -179,8 +179,9 @@ export default function BookingStatusCard({ booking, isProvider = false, current
     confirmMutation.mutate();
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("pt-PT", {
+  const formatDate = (dateString: string | Date) => {
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+    return date.toLocaleDateString("pt-PT", {
       year: "numeric",
       month: "long",
       day: "numeric",

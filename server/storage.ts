@@ -40,8 +40,7 @@ export class MemStorage implements IStorage {
     this.accommodations = new Map();
     this.bookings = new Map();
     
-    // Initialize with mock data
-    this.initializeMockData();
+    // Initialize with all mock data including rides and accommodations
     this.initializeMockData();
   }
 
@@ -737,6 +736,53 @@ export class MemStorage implements IStorage {
     ];
 
     mockBookings.forEach(booking => {
+      this.bookings.set(booking.id, booking as any);
+    });
+
+    // Add mock provider bookings for testing
+    const providerBookings = [
+      {
+        id: "booking-provider-1",
+        userId: "customer-1",
+        providerId: "user-1", // Current user as provider
+        type: "ride",
+        status: "pending_approval",
+        rideId: "ride-2",
+        pickupTime: new Date("2025-08-30T16:00:00"),
+        originalPrice: "320.00",
+        discountApplied: "0.00",
+        totalPrice: "320.00",
+        paymentMethod: "visa_4242",
+        requestedAt: new Date("2025-08-25T14:30:00"),
+        customerNotified: false,
+        providerNotified: false,
+        createdAt: new Date("2025-08-25T14:30:00"),
+        updatedAt: new Date("2025-08-25T14:30:00"),
+      },
+      {
+        id: "booking-provider-2",
+        userId: "customer-2",
+        providerId: "user-1", // Current user as provider
+        type: "stay",
+        status: "pending_approval",
+        accommodationId: "acc-2",
+        checkInDate: new Date("2025-09-05T15:00:00"),
+        checkOutDate: new Date("2025-09-07T11:00:00"),
+        guests: 1,
+        nights: 2,
+        originalPrice: "12000.00",
+        discountApplied: "0.00",
+        totalPrice: "12000.00",
+        paymentMethod: "mastercard_5555",
+        requestedAt: new Date("2025-08-24T11:15:00"),
+        customerNotified: false,
+        providerNotified: false,
+        createdAt: new Date("2025-08-24T11:15:00"),
+        updatedAt: new Date("2025-08-24T11:15:00"),
+      },
+    ];
+
+    providerBookings.forEach(booking => {
       this.bookings.set(booking.id, booking as any);
     });
   }

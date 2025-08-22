@@ -9,8 +9,8 @@ import { Calendar, Clock, User, Car, Bed, CalendarDays } from "lucide-react";
 // Mock current user - in real app this would come from auth context
 const mockCurrentUser = {
   id: "user-1",
-  isProvider: false, // Can be driver, host, or event organizer
-  providerTypes: [] // ['driver', 'host', 'organizer']
+  isProvider: true, // Can be driver, host, or event organizer
+  providerTypes: ['driver', 'host', 'organizer'] // ['driver', 'host', 'organizer']
 };
 
 export default function BookingsPage() {
