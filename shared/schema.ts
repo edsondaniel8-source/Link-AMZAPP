@@ -22,7 +22,7 @@ export const users = pgTable("users", {
   profileImageUrl: varchar("profile_image_url"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-  phone: text("phone").notNull().unique(), // Required field
+  phone: text("phone").unique(), // Optional - can be filled later during registration
   userType: text("user_type").default("user"), // user, driver, host, restaurant
   canOfferServices: boolean("can_offer_services").default(false), // Only verified users can offer rides/accommodations
   avatar: text("avatar"),
@@ -37,12 +37,12 @@ export const users = pgTable("users", {
   
   // Required documents
   identityDocumentUrl: text("identity_document_url"), // Required
-  identityDocumentType: text("identity_document_type").notNull(), // Required: bilhete_identidade, passaporte, carta_conducao
+  identityDocumentType: text("identity_document_type"), // Optional: bilhete_identidade, passaporte, carta_conducao
   profilePhotoUrl: text("profile_photo_url"), // Required
   
   // Additional verification fields
   fullName: text("full_name"),
-  documentNumber: text("document_number").notNull(), // Required
+  documentNumber: text("document_number"), // Optional - can be filled during registration
   dateOfBirth: timestamp("date_of_birth"),
   
   // Registration completion status

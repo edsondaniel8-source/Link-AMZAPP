@@ -3,7 +3,6 @@ import { createServer, type Server } from "http";
 import multer from "multer";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { verifyFirebaseToken, type AuthenticatedRequest } from "./firebaseAuth";
 import { insertBookingSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -16,7 +15,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
   });
 
-  // Auth routes - support both Replit Auth and Firebase
+  // Auth routes - Replit Auth only
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -24,30 +23,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
-
-  // Firebase Auth routes
-  app.get('/api/firebase/auth/user', verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
-    try {
-      const user = await storage.getUserByEmail(req.user!.email || '');
-      if (!user) {
-        // Create user if doesn't exist
-        const newUser = await storage.createUser({
-          email: req.user!.email || '',
-          firstName: req.user!.displayName?.split(' ')[0] || '',
-          lastName: req.user!.displayName?.split(' ').slice(1).join(' ') || '',
-          phone: '', // Will be filled during registration
-          identityDocumentType: 'bilhete_identidade',
-          documentNumber: '',
-          registrationCompleted: false
-        });
-        return res.json(newUser);
-      }
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching Firebase user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
     }
   });
@@ -79,10 +54,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const userData = {
         id: req.user.claims.sub,
+        email: email || null,
         firstName,
         lastName,
         phone,
-        email: email || null,
         identityDocumentType: documentType,
         documentNumber,
         profilePhotoUrl,
@@ -91,7 +66,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         verificationStatus: "pending"
       };
 
-      const user = await storage.createUser(userData);
+      const user = await storage.upsertUser(userData);
       res.json({ user, message: "Registro concluído com sucesso!" });
     } catch (error) {
       console.error("Error completing registration:", error);

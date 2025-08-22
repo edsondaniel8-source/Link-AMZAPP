@@ -21,10 +21,6 @@ export interface IStorage {
   // User operations (IMPORTANT: these user operations are mandatory for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  getUserByEmail(email: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
-  updateUser(id: string, updates: Partial<User>): Promise<User>;
   
   // Ride operations
   searchRides(from: string, to: string): Promise<Ride[]>;
@@ -68,33 +64,6 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    // Note: Current schema doesn't have username field, might need to search by email
-    const [user] = await db.select().from(users).where(eq(users.email, username));
-    return user;
-  }
-
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
-    return user;
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(insertUser)
-      .returning();
-    return user;
-  }
-
-  async updateUser(id: string, updates: Partial<User>): Promise<User> {
-    const [user] = await db
-      .update(users)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(eq(users.id, id))
-      .returning();
-    return user;
-  }
 
   // Other operations for backward compatibility
   async searchRides(from: string, to: string): Promise<Ride[]> {
@@ -198,7 +167,9 @@ export class DatabaseStorage implements IStorage {
 }
 
 // Keep MemStorage for backward compatibility if needed
-export class MemStorage implements IStorage {
+// Keep MemStorage for backward compatibility
+export class MemStorage {
+  // Note: MemStorage doesn't implement IStorage for Replit Auth compatibility
   private users: Map<string, User>;
   private rides: Map<string, Ride>;
   private accommodations: Map<string, Accommodation>;
