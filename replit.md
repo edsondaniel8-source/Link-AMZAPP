@@ -1,7 +1,7 @@
 # Link-A Mz - Transportation & Accommodations Platform
 
 ## Overview
-Link-A is a streamlined travel booking platform for the Mozambique market, focusing on ride-sharing and accommodation services. It provides a seamless booking experience with real-time search, interactive maps focused on Mozambique, booking management, "Deal of the Day" promotions, pre-booking chat, user ratings, and event management. The platform aims to be a unified solution for transportation and accommodation needs within Mozambique, with optimized mobile experience.
+Link-A is a streamlined travel booking platform for the Mozambique market, focusing on ride-sharing and accommodation services. Platform slogan: "Trazendo o Futuro do turismo para Moçambique". It provides a seamless booking experience with real-time search, interactive maps focused on Mozambique, booking management, "Deal of the Day" promotions, pre-booking chat, user ratings, and event management. The platform aims to be a unified solution for transportation and accommodation needs within Mozambique, with optimized mobile experience.
 
 ## User Preferences
 - Preferred communication style: Simple, everyday language
@@ -33,7 +33,7 @@ An Express.js REST API layer handles requests. It uses an interface-based storag
 The application uses an optimized PostgreSQL schema with Drizzle ORM, streamlined from 29 to 19 tables through systematic consolidation. Core tables include users, rides, accommodations, bookings (unified for rides/stays/events), ratings, chat messages, and a simplified partnership system. Restaurant functionality has been eliminated to focus on transportation and accommodation. Major optimizations: events system consolidated into main bookings table, partnership system simplified with direct accommodation discount fields, and payments system unified. **NEW**: Comprehensive booking confirmation system implemented with enhanced booking status tracking (pending_approval, approved, confirmed, rejected, completed), provider approval workflow, customer confirmation process, and real-time notification system. Type safety is ensured across the stack via shared TypeScript types from Drizzle.
 
 ### Authentication & Session Management
-A mandatory, comprehensive authentication system supports email and Mozambique phone number login. It includes `LoginModal`, `ProtectedRoute`, and `AuthRequiredMessage` components, with authentication state managed via a `useAuth` hook and localStorage. Session persistence is managed using a PostgreSQL session store. Service offerings are restricted to verified users, integrating with a document verification system.
+A comprehensive authentication system using Firebase Auth with Google login integration. The system includes mandatory user registration with required fields: phone number (unique), full name, document verification (BI/passport/carta de condução), and profile/document photos. Components include `AuthHandler`, `RegistrationForm`, and `AuthRequiredMessage`, with authentication state managed via a `useAuth` hook. User verification status is tracked through the registration completion workflow. Service offerings are restricted to verified users who have completed the full registration process.
 
 ### Admin System
 Provides an admin panel for user management (blocking, penalizing, removing users, drivers, accommodations), price regulation, and a penalty system. An admin dashboard offers statistics, reports, and platform configuration, with all actions tracked in PostgreSQL for audit.

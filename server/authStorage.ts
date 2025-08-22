@@ -9,12 +9,27 @@ import { eq } from "drizzle-orm";
 // Interface for authentication storage operations
 export interface IAuthStorage {
   getUser(id: string): Promise<User | undefined>;
+  getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined>;
+  createUser(userData: any): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
 }
 
 export class DatabaseAuthStorage implements IAuthStorage {
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.firebaseUid, firebaseUid));
+    return user;
+  }
+
+  async createUser(userData: any): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .returning();
     return user;
   }
 

@@ -16,13 +16,14 @@ export const sessions = pgTable(
 
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  email: varchar("email").unique(),
-  firstName: varchar("first_name"),
-  lastName: varchar("last_name"),
+  firebaseUid: varchar("firebase_uid").unique(),
+  email: varchar("email"),
+  firstName: varchar("first_name").notNull(),
+  lastName: varchar("last_name").notNull(),
   profileImageUrl: varchar("profile_image_url"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-  phone: text("phone"),
+  phone: text("phone").notNull().unique(), // Required field
   userType: text("user_type").default("user"), // user, driver, host, restaurant
   canOfferServices: boolean("can_offer_services").default(false), // Only verified users can offer rides/accommodations
   avatar: text("avatar"),
@@ -36,14 +37,17 @@ export const users = pgTable("users", {
   verificationNotes: text("verification_notes"), // Admin notes
   
   // Required documents
-  identityDocumentUrl: text("identity_document_url"),
-  identityDocumentType: text("identity_document_type"), // bilhete_identidade, passaporte, carta_conducao
-  profilePhotoUrl: text("profile_photo_url"),
+  identityDocumentUrl: text("identity_document_url"), // Required
+  identityDocumentType: text("identity_document_type").notNull(), // Required: bilhete_identidade, passaporte, carta_conducao
+  profilePhotoUrl: text("profile_photo_url"), // Required
   
   // Additional verification fields
   fullName: text("full_name"),
-  documentNumber: text("document_number"),
+  documentNumber: text("document_number").notNull(), // Required
   dateOfBirth: timestamp("date_of_birth"),
+  
+  // Registration completion status
+  registrationCompleted: boolean("registration_completed").default(false),
   
   // Verification badge/seal
   verificationBadge: text("verification_badge"), // bronze, silver, gold, platinum

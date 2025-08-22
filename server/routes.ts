@@ -1,23 +1,93 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import multer from "multer";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { verifyFirebaseToken, type AuthenticatedRequest } from "./firebaseAuth";
 import { authStorage } from "./authStorage";
 import { insertBookingSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup authentication middleware
-  await setupAuth(app);
+  // Configure multer for file uploads
+  const upload = multer({ 
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+  });
 
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  // Firebase Auth routes
+  app.get('/api/auth/user', verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await authStorage.getUser(userId);
+      const user = await authStorage.getUserByFirebaseUid(req.user!.uid);
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Registration completion endpoint
+  app.post('/api/auth/complete-registration', upload.fields([
+    { name: 'profilePhoto', maxCount: 1 },
+    { name: 'documentPhoto', maxCount: 1 }
+  ]), verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const {
+        firstName,
+        lastName,
+        phone,
+        email,
+        documentType,
+        documentNumber
+      } = req.body;
+
+      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+      
+      if (!files.profilePhoto || !files.documentPhoto) {
+        return res.status(400).json({ message: "Fotos de perfil e documento são obrigatórias" });
+      }
+
+      // TODO: Upload files to storage service (implement with object storage)
+      const profilePhotoUrl = `uploads/profile_${req.user!.uid}_${Date.now()}.jpg`;
+      const documentPhotoUrl = `uploads/document_${req.user!.uid}_${Date.now()}.jpg`;
+
+      const userData = {
+        firebaseUid: req.user!.uid,
+        firstName,
+        lastName,
+        phone,
+        email: email || null,
+        identityDocumentType: documentType,
+        documentNumber,
+        profilePhotoUrl,
+        identityDocumentUrl: documentPhotoUrl,
+        registrationCompleted: true,
+        verificationStatus: "pending"
+      };
+
+      const user = await authStorage.createUser(userData);
+      res.json({ user, message: "Registro concluído com sucesso!" });
+    } catch (error) {
+      console.error("Error completing registration:", error);
+      res.status(500).json({ message: "Erro ao completar registro" });
+    }
+  });
+
+  // Login endpoint to check if user needs to complete registration
+  app.post('/api/auth/check-registration', verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const user = await authStorage.getUserByFirebaseUid(req.user!.uid);
+      
+      if (!user) {
+        return res.json({ needsRegistration: true });
+      }
+
+      if (!user.registrationCompleted) {
+        return res.json({ needsRegistration: true });
+      }
+
+      res.json({ needsRegistration: false, user });
+    } catch (error) {
+      console.error("Error checking registration:", error);
+      res.status(500).json({ message: "Erro ao verificar registro" });
     }
   });
   // Ride search
