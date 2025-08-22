@@ -181,13 +181,15 @@ export default function BookingStatusCard({ booking, isProvider = false, current
 
   const formatDate = (dateString: string | Date) => {
     const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
-    return date.toLocaleDateString("pt-PT", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit"
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    const time = date.toLocaleTimeString('pt-PT', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: false 
     });
+    return `${day}/${month}/${year} às ${time}`;
   };
 
   return (

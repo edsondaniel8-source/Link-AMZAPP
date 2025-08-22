@@ -196,8 +196,14 @@ export default function RideResults({ searchParams }: RideResultsProps) {
                     <div className="mb-3 p-2 bg-blue-50 rounded-lg">
                       <p className="text-xs font-semibold text-blue-800 mb-1">Retorno:</p>
                       <p className="text-xs text-blue-600">
-                        {new Date(ride.returnDate).toLocaleDateString('pt-MZ')}
-                        {ride.returnDepartureTime && ` às ${new Date(ride.returnDepartureTime).toLocaleTimeString('pt-MZ', { hour: '2-digit', minute: '2-digit' })}`}
+                        {(() => {
+                          const date = new Date(ride.returnDate);
+                          const day = date.getDate().toString().padStart(2, '0');
+                          const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                          const year = date.getFullYear();
+                          return `${day}/${month}/${year}`;
+                        })()}
+                        {ride.returnDepartureTime && ` às ${new Date(ride.returnDepartureTime).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit', hour12: false })}`}
                       </p>
                     </div>
                   )}

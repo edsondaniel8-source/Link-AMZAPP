@@ -140,10 +140,10 @@ export default function EventSearchResults({ city, month, year, category }: Even
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('pt-MZ', { 
-      day: '2-digit', 
-      month: 'long'
-    });
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
   };
 
   const formatPrice = (price: number) => {
