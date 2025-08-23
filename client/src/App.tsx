@@ -46,7 +46,7 @@ function Landing() {
               Entrar com Replit
             </button>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              <p>Entre com sua conta Google para acessar a plataform
+              Entre com sua conta Google para acessar a plataforma
             </p>
           </div>
         </div>
