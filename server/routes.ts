@@ -2,12 +2,12 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { verifyFirebaseToken } from "./firebaseAuth";
 import { insertBookingSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
-  await setupAuth(app);
+
 
   // Configure multer for file uploads
   const upload = multer({ 
@@ -16,7 +16,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Auth routes - Replit Auth only
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.get('/api/auth/user', verifyFirebaseToken, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
@@ -31,7 +31,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/complete-registration', upload.fields([
     { name: 'profilePhoto', maxCount: 1 },
     { name: 'documentPhoto', maxCount: 1 }
-  ]), isAuthenticated, async (req: any, res) => {
+  ]), verifyFirebaseToken, async (req: any, res) => {
     try {
       const {
         firstName,
@@ -75,7 +75,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Login endpoint to check if user needs to complete registration
-  app.post('/api/auth/check-registration', isAuthenticated, async (req: any, res) => {
+  app.post('/api/auth/check-registration', verifyFirebaseToken, async (req: any, res) => {
     try {
       const user = await storage.getUser(req.user.claims.sub);
       

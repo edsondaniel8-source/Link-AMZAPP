@@ -17,9 +17,13 @@ import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/login";
 
 function Landing() {
-  const handleReplitLogin = () => {
-    // Redirect to Replit Auth login
-    window.location.href = '/api/login';
+  const handleFirebaseLogin = async () => {
+    const { loginWithGoogle, isFirebaseConfigured } = await import("./lib/firebaseSafe");
+    if (isFirebaseConfigured) {
+      await loginWithGoogle();
+    } else {
+      alert("Firebase não configurado. Configure as variáveis de ambiente.");
+    }
   };
 
 
@@ -35,14 +39,14 @@ function Landing() {
           </p>
           <div className="space-y-4 max-w-md mx-auto">
             <button
-              onClick={handleReplitLogin}
+              <button onClick={handleFirebaseLogin}>
               className="w-full bg-gray-800 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
               data-testid="button-login-replit"
             >
               Entrar com Replit
             </button>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Entre com sua conta Replit para acessar a plataforma
+              <p>Entre com sua conta Google para acessar a plataforma</p>
             </p>
           </div>
         </div>
