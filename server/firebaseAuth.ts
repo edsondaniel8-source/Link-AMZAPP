@@ -12,6 +12,11 @@ if (!admin.apps.length) {
 export interface AuthenticatedRequest extends Request {
   user?: {
     uid: string;
+    claims: {
+      sub: string;
+      email?: string;
+      name?: string;
+    };
     email?: string;
     displayName?: string;
   };
@@ -30,6 +35,11 @@ export const verifyFirebaseToken = async (req: AuthenticatedRequest, res: Respon
     const decodedToken = await admin.auth().verifyIdToken(token);
     req.user = {
       uid: decodedToken.uid,
+      claims: {
+        sub: decodedToken.uid,
+        email: decodedToken.email,
+        name: decodedToken.name,
+      },
       email: decodedToken.email,
       displayName: decodedToken.name,
     };
