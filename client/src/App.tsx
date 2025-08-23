@@ -38,15 +38,15 @@ function Landing() {
             Trazendo o Futuro do turismo para Moçambique
           </p>
           <div className="space-y-4 max-w-md mx-auto">
-            <button
-              onClick={handleFirebaseLogin}
+                <button
+                  onClick={handleFirebaseLogin}
               className="w-full bg-gray-800 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
               data-testid="button-login-replit"
             >
               Entrar com Replit
             </button>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Entre com sua conta Google para acessar a plataforma
+              <p>Entre com sua conta Google para acessar a plataform
             </p>
           </div>
         </div>

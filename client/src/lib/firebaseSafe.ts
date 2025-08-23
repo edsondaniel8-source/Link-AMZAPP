@@ -1,8 +1,8 @@
 // Safe Firebase wrapper that doesn't import Firebase until needed
 export const isFirebaseConfigured = !!(
-  import.meta.env.VITE_FIREBASE_API_KEY &&
-  import.meta.env.VITE_FIREBASE_PROJECT_ID &&
-  import.meta.env.VITE_FIREBASE_APP_ID
+    import.meta.env.VITE_FIREBASE_API_KEY &&
+    import.meta.env.VITE_FIREBASE_PROJECT_ID &&
+    import.meta.env.VITE_FIREBASE_APP_ID
 );
 
 let firebaseInitialized = false;
