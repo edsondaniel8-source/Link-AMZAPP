@@ -65,20 +65,44 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
 
           <div className="flex items-center space-x-4">
             
-            {/* Services Menu Button */}
+            {/* Community Menu Button */}
             <div className="relative">
               <button
-                data-testid="services-menu-button"
+                data-testid="community-menu-button"
                 onClick={() => setShowServicesMenu(!showServicesMenu)}
                 className="hidden md:flex items-center text-gray-medium hover:text-dark font-medium transition-colors"
               >
-                <i className="fas fa-briefcase mr-2"></i>
-                Serviços
+                <i className="fas fa-users mr-2"></i>
+                Comunidade Link-A
                 <i className="fas fa-chevron-down ml-1 text-xs"></i>
               </button>
               
               {showServicesMenu && (
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
+                  {/* Blog Section */}
+                  <Link href="/blog">
+                    <button 
+                      className="w-full text-left px-4 py-3 text-sm text-dark hover:bg-gray-50 flex items-center"
+                      onClick={() => setShowServicesMenu(false)}
+                      data-testid="blog-button"
+                    >
+                      <i className="fas fa-newspaper mr-3 text-primary"></i>
+                      <div>
+                        <div className="font-medium">Blog Link-A</div>
+                        <div className="text-xs text-gray-500">Notícias, dicas e guias de viagem</div>
+                      </div>
+                    </button>
+                  </Link>
+                  
+                  <hr className="my-2" />
+                  
+                  {/* Services Section */}
+                  <div className="px-4 py-2">
+                    <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                      Oferecer Serviços
+                    </div>
+                  </div>
+                  
                   {onOfferRide && (
                     <button 
                       onClick={() => {
@@ -125,7 +149,6 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
                       </div>
                     </div>
                   </button>
-                  <hr className="my-2" />
                   <button 
                     className="w-full text-left px-4 py-3 text-sm text-dark hover:bg-gray-50 flex items-center"
                     onClick={() => {

@@ -10,6 +10,7 @@ import Dashboard from "@/pages/dashboard";
 import AdminPanel from "@/pages/admin";
 import Partnerships from "@/pages/partnerships";
 import Events from "@/pages/events";
+import Blog from "@/pages/blog";
 import Loyalty from "@/pages/loyalty";
 import ProfileVerification from "@/pages/profile-verification";
 import CreateEvent from "@/pages/create-event";
@@ -34,6 +35,8 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/events" component={Events} />
       <Route path="/partnerships" component={Partnerships} />
+      <Route path="/blog" component={Blog} />
+      <Route path="/blog/:id" component={() => import("@/pages/blog-post").then(m => ({ default: m.default }))} />
       <Route path="/login" component={LoginPage} />
       
       {/* Protected Routes - require authentication */}
