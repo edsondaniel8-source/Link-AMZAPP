@@ -1,22 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import LoginModal from "./LoginModal";
 import { Card, CardContent } from "@/components/ui/card";
 import { Shield, User, FileCheck } from "lucide-react";
+import { useAuth } from "../hooks/useAuth";
+import { useLocation } from "wouter";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requireAuth?: boolean;
   requireVerification?: boolean;
   redirectTo?: string;
-}
-
-interface MockUser {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  isVerified: boolean;
-  verificationStatus: "pending" | "in_review" | "verified" | "rejected";
 }
 
 export default function ProtectedRoute({ 
@@ -26,49 +19,11 @@ export default function ProtectedRoute({
   redirectTo = "/"
 }: ProtectedRouteProps) {
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  
-  // Mock authentication state - replace with actual auth context
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<MockUser | null>(null);
-
-  useEffect(() => {
-    // Mock authentication check - replace with actual auth check
-    const checkAuth = async () => {
-      try {
-        // TODO: Replace with actual authentication check
-        const token = localStorage.getItem('auth_token');
-        if (token) {
-          // Mock user data - replace with actual API call
-          setUser({
-            id: "user-123",
-            name: "João Silva",
-            email: "joao@example.com", 
-            phone: "+258 84 123 4567",
-            isVerified: false,
-            verificationStatus: "pending"
-          });
-          setIsAuthenticated(true);
-        }
-      } catch (error) {
-        console.error('Auth check failed:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, []);
-
-  const handleLoginSuccess = (userData: any) => {
-    setIsAuthenticated(true);
-    setUser(userData);
-    setShowLoginModal(false);
-    localStorage.setItem('auth_token', 'mock_token_123');
-  };
+  const { isAuthenticated, loading, user } = useAuth();
+  const [location] = useLocation();
 
   // Loading state
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -131,16 +86,16 @@ export default function ProtectedRoute({
         </div>
         
         <LoginModal
-          isOpen={showLoginModal}
-          onClose={() => setShowLoginModal(false)}
-          onSuccess={(userData: any) => handleLoginSuccess(userData)}
+          open={showLoginModal}
+          onOpenChange={setShowLoginModal}
+          redirectTo={location}
         />
       </>
     );
   }
 
   // Verification required but user not verified
-  if (requireVerification && user && !user.isVerified) {
+  if (requireVerification && user && !user.emailVerified) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
         <Card className="w-full max-w-md">
@@ -178,7 +133,7 @@ export default function ProtectedRoute({
               <div className="mt-6 p-4 bg-yellow-50 rounded-lg">
                 <div className="flex items-center space-x-2 text-yellow-800">
                   <FileCheck className="w-4 h-4" />
-                  <p className="text-sm font-medium">Status: {getVerificationStatusText(user.verificationStatus)}</p>
+                  <p className="text-sm font-medium">Status: Verificação pendente</p>
                 </div>
                 <p className="text-xs text-yellow-700 mt-1">
                   A verificação garante a segurança de todos os utilizadores da plataforma.
@@ -193,19 +148,4 @@ export default function ProtectedRoute({
 
   // All checks passed, render children
   return <>{children}</>;
-}
-
-function getVerificationStatusText(status: string): string {
-  switch (status) {
-    case "pending":
-      return "Documentos em falta";
-    case "in_review":
-      return "Em análise";
-    case "verified":
-      return "Verificado";
-    case "rejected":
-      return "Rejeitado - contacte o suporte";
-    default:
-      return "Estado desconhecido";
-  }
 }

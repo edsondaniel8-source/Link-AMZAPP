@@ -5,6 +5,7 @@ import LoginModal from "./LoginModal";
 import { Button } from "@/components/ui/button";
 import { User, LogOut } from "lucide-react";
 import { FaGoogle } from "react-icons/fa";
+import { useAuth } from "../hooks/useAuth";
 import logoPath from "@assets/link-a-logo.png";
 
 interface HeaderProps {
@@ -17,16 +18,7 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showServicesMenu, setShowServicesMenu] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
-  
-  // Mock authentication state - replace with actual auth logic
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<{
-    name: string;
-    email: string;
-    isVerified: boolean;
-    profileImage?: string;
-    loginMethod?: string;
-  } | null>(null);
+  const { isAuthenticated, user, signOut } = useAuth();
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
@@ -183,10 +175,7 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
                         <User className="w-4 h-4 text-white" />
                       )}
                     </div>
-                    <span className="hidden md:inline font-medium">{user?.name || "Utilizador"}</span>
-                    {user?.loginMethod === 'google' && (
-                      <FaGoogle className="w-3 h-3 text-red-500" />
-                    )}
+                    <span className="hidden md:inline font-medium">{user?.displayName || user?.email || "Utilizador"}</span>
                     <i className="fas fa-chevron-down text-xs"></i>
                   </button>
                 
@@ -261,7 +250,10 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
                   <button
                     data-testid="nav-logout"
                     className="w-full text-left px-4 py-2 text-sm text-dark hover:bg-gray-50"
-                    onClick={() => setShowUserMenu(false)}
+                    onClick={async () => {
+                      await signOut();
+                      setShowUserMenu(false);
+                    }}
                   >
                     <i className="fas fa-sign-out-alt mr-2"></i>Sair
                   </button>
@@ -287,12 +279,8 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
       
       {/* Login Modal */}
       <LoginModal
-        isOpen={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-        onSuccess={(userData: any) => {
-          setIsAuthenticated(true);
-          setUser(userData);
-        }}
+        open={showLoginModal}
+        onOpenChange={setShowLoginModal}
       />
     </header>
   );

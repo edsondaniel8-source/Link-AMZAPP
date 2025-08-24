@@ -4,7 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "./hooks/useAuth";
-import { SignInForm } from "@/components/SignInForm";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Home from "@/pages/home";
 import Dashboard from "@/pages/dashboard";
 import AdminPanel from "@/pages/admin";
@@ -17,26 +17,8 @@ import BookingsPage from "@/pages/bookings";
 import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/login";
 
-function Landing() {
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-primary mb-6">
-            Bem-vindo ao Link-A
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-            Trazendo o Futuro do turismo para Moçambique
-          </p>
-        </div>
-        <SignInForm />
-      </div>
-    </div>
-  );
-}
-
 function Router() {
-  const { isAuthenticated, loading } = useAuth();
+  const { loading } = useAuth();
 
   if (loading) {
     return (
@@ -48,22 +30,51 @@ function Router() {
 
   return (
     <Switch>
-      {!isAuthenticated ? (
-        <Route path="*" component={Landing} />
-      ) : (
-        <>
-          <Route path="/" component={Home} />
-          <Route path="/dashboard" component={Dashboard} />
-          <Route path="/bookings" component={BookingsPage} />
-          <Route path="/partnerships" component={Partnerships} />
-          <Route path="/events" component={Events} />
-          <Route path="/events/create" component={CreateEvent} />
-          <Route path="/loyalty" component={Loyalty} />
-          <Route path="/profile/verification" component={ProfileVerification} />
-          <Route path="/admin" component={AdminPanel} />
-          <Route component={NotFound} />
-        </>
-      )}
+      {/* Public Routes - accessible to everyone */}
+      <Route path="/" component={Home} />
+      <Route path="/events" component={Events} />
+      <Route path="/partnerships" component={Partnerships} />
+      <Route path="/login" component={LoginPage} />
+      
+      {/* Protected Routes - require authentication */}
+      <Route path="/dashboard">
+        <ProtectedRoute>
+          <Dashboard />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/bookings">
+        <ProtectedRoute>
+          <BookingsPage />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/profile/verification">
+        <ProtectedRoute>
+          <ProfileVerification />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/admin">
+        <ProtectedRoute>
+          <AdminPanel />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/loyalty">
+        <ProtectedRoute>
+          <Loyalty />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/events/create">
+        <ProtectedRoute requireVerification>
+          <CreateEvent />
+        </ProtectedRoute>
+      </Route>
+      
+      {/* Catch all - 404 */}
+      <Route component={NotFound} />
     </Switch>
   );
 }
