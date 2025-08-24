@@ -106,74 +106,43 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
                     </div>
                   </div>
                   
-                  <button 
-                    onClick={() => {
-                      // If user already has driver access, proceed directly
-                      if (canAccessFeature('offer-ride') && onOfferRide) {
+                  {onOfferRide && canAccessFeature('offer-ride') && (
+                    <button 
+                      onClick={() => {
                         onOfferRide();
                         setShowServicesMenu(false);
-                        return;
-                      }
-                      
-                      // If user doesn't have driver role, redirect to driver registration
-                      if (isAuthenticated) {
-                        window.location.href = "/driver/register";
-                      } else {
-                        setShowLoginModal(true);
-                      }
-                      setShowServicesMenu(false);
-                    }}
-                    className="w-full text-left px-4 py-3 text-sm text-dark hover:bg-gray-50 flex items-center"
-                    data-testid="offer-ride-button"
-                  >
-                    <i className="fas fa-plus mr-3 text-primary"></i>
-                    <div>
-                      <div className="font-medium">
-                        {canAccessFeature('offer-ride') ? 'Oferecer Viagem' : 'Torne-se Motorista'}
+                      }}
+                      className="w-full text-left px-4 py-3 text-sm text-dark hover:bg-gray-50 flex items-center"
+                      data-testid="offer-ride-button"
+                    >
+                      <i className="fas fa-plus mr-3 text-primary"></i>
+                      <div>
+                        <div className="font-medium">Oferecer Viagem</div>
+                        <div className="text-xs text-gray-500">Ganhe dinheiro como motorista</div>
+                        <div className="text-xs text-green-500">
+                          <i className="fas fa-shield-alt mr-1"></i>Verificação obrigatória
+                        </div>
                       </div>
-                      <div className="text-xs text-gray-500">
-                        {canAccessFeature('offer-ride') 
-                          ? 'Publique suas viagens' 
-                          : 'Registe-se como motorista'}
-                      </div>
-                      <div className={`text-xs ${canAccessFeature('offer-ride') ? 'text-green-500' : 'text-blue-500'}`}>
-                        <i className={`fas ${canAccessFeature('offer-ride') ? 'fa-check-circle' : 'fa-user-plus'} mr-1`}></i>
-                        {canAccessFeature('offer-ride') ? 'Verificado' : 'Registo necessário'}
-                      </div>
-                    </div>
-                  </button>
+                    </button>
+                  )}
                   <button 
                     className="w-full text-left px-4 py-3 text-sm text-dark hover:bg-gray-50 flex items-center"
                     onClick={() => {
-                      // If user already has hotel manager access
-                      if (canAccessFeature('accommodation-management')) {
-                        window.location.href = "/accommodations/create";
-                        setShowServicesMenu(false);
+                      // Check if user is verified first
+                      const isVerified = false; // This would come from user context
+                      if (!isVerified) {
+                        window.location.href = "/profile/verification";
                         return;
-                      }
-                      
-                      // If user doesn't have hotel manager role, redirect to registration
-                      if (isAuthenticated) {
-                        window.location.href = "/host/register";
-                      } else {
-                        setShowLoginModal(true);
                       }
                       setShowServicesMenu(false);
                     }}
                   >
                     <i className="fas fa-home mr-3 text-primary"></i>
                     <div>
-                      <div className="font-medium">
-                        {canAccessFeature('accommodation-management') ? 'Gerir Alojamentos' : 'Torne-se Anfitrião'}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {canAccessFeature('accommodation-management') 
-                          ? 'Publique seus alojamentos' 
-                          : 'Registe-se como anfitrião'}
-                      </div>
-                      <div className={`text-xs ${canAccessFeature('accommodation-management') ? 'text-green-500' : 'text-blue-500'}`}>
-                        <i className={`fas ${canAccessFeature('accommodation-management') ? 'fa-check-circle' : 'fa-user-plus'} mr-1`}></i>
-                        {canAccessFeature('accommodation-management') ? 'Verificado' : 'Registo necessário'}
+                      <div className="font-medium">Torne-se Anfitrião</div>
+                      <div className="text-xs text-gray-500">Alugue o seu espaço</div>
+                      <div className="text-xs text-red-500">
+                        <i className="fas fa-shield-alt mr-1"></i>Verificação obrigatória
                       </div>
                     </div>
                   </button>
