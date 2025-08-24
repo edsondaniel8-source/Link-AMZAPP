@@ -16,67 +16,158 @@ interface HeaderProps {
 
 export default function Header({ activeService, onServiceChange, onOfferRide }: HeaderProps) {
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showServicesMenu, setShowServicesMenu] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const { isAuthenticated, user, signOut } = useAuth();
 
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-50">
+    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
           <div className="flex items-center">
             <Link href="/">
               <div className="flex items-center cursor-pointer">
                 <img 
                   src={logoPath} 
                   alt="Link-A" 
-                  className="h-10 w-10 mr-3"
+                  className="h-12 w-12 mr-3"
                 />
-                <h1 className="text-xl font-bold text-primary">Link-A</h1>
+                <h1 className="text-2xl font-bold text-primary">Link-A</h1>
               </div>
             </Link>
           </div>
           
-          {/* Navigation Menu */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="text-gray-700 hover:text-primary font-medium transition-colors">
-              Início
-            </Link>
-            <Link href="/events" className="text-gray-700 hover:text-primary font-medium transition-colors">
-              Eventos
-            </Link>
-            <Link href="/partnerships" className="text-gray-700 hover:text-primary font-medium transition-colors">
-              Parcerias
-            </Link>
-          </nav>
+          {/* Service Toggle */}
+          <div className="hidden md:flex bg-gray-light rounded-full p-1">
+            <button
+              data-testid="service-toggle-rides"
+              onClick={() => onServiceChange("rides")}
+              className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                activeService === "rides"
+                  ? "bg-white shadow-sm text-dark"
+                  : "text-gray-medium hover:text-dark"
+              }`}
+            >
+              <i className="fas fa-car mr-2"></i>Viagens
+            </button>
+            <button
+              data-testid="service-toggle-stays"
+              onClick={() => onServiceChange("stays")}
+              className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                activeService === "stays"
+                  ? "bg-white shadow-sm text-dark"
+                  : "text-gray-medium hover:text-dark"
+              }`}
+            >
+              <i className="fas fa-bed mr-2"></i>Hospedagem
+            </button>
+          </div>
 
-          {/* Right side */}
           <div className="flex items-center space-x-4">
             
-            {/* Search Button (placeholder) */}
-            <button className="hidden md:flex items-center text-gray-500 hover:text-gray-700 transition-colors">
-              <i className="fas fa-search mr-2"></i>
-              Procurar
-            </button>
-
+            {/* Services Menu Button */}
+            <div className="relative">
+              <button
+                data-testid="services-menu-button"
+                onClick={() => setShowServicesMenu(!showServicesMenu)}
+                className="hidden md:flex items-center text-gray-medium hover:text-dark font-medium transition-colors"
+              >
+                <i className="fas fa-briefcase mr-2"></i>
+                Serviços
+                <i className="fas fa-chevron-down ml-1 text-xs"></i>
+              </button>
+              
+              {showServicesMenu && (
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
+                  {onOfferRide && (
+                    <button 
+                      onClick={() => {
+                        // Check if user is verified first
+                        const isVerified = false; // This would come from user context
+                        if (!isVerified) {
+                          window.location.href = "/profile/verification";
+                          return;
+                        }
+                        onOfferRide();
+                        setShowServicesMenu(false);
+                      }}
+                      className="w-full text-left px-4 py-3 text-sm text-dark hover:bg-gray-50 flex items-center"
+                      data-testid="offer-ride-button"
+                    >
+                      <i className="fas fa-plus mr-3 text-primary"></i>
+                      <div>
+                        <div className="font-medium">Oferecer Viagem</div>
+                        <div className="text-xs text-gray-500">Ganhe dinheiro como motorista</div>
+                        <div className="text-xs text-red-500">
+                          <i className="fas fa-shield-alt mr-1"></i>Verificação obrigatória
+                        </div>
+                      </div>
+                    </button>
+                  )}
+                  <button 
+                    className="w-full text-left px-4 py-3 text-sm text-dark hover:bg-gray-50 flex items-center"
+                    onClick={() => {
+                      // Check if user is verified first
+                      const isVerified = false; // This would come from user context
+                      if (!isVerified) {
+                        window.location.href = "/profile/verification";
+                        return;
+                      }
+                      setShowServicesMenu(false);
+                    }}
+                  >
+                    <i className="fas fa-home mr-3 text-primary"></i>
+                    <div>
+                      <div className="font-medium">Torne-se Anfitrião</div>
+                      <div className="text-xs text-gray-500">Alugue o seu espaço</div>
+                      <div className="text-xs text-red-500">
+                        <i className="fas fa-shield-alt mr-1"></i>Verificação obrigatória
+                      </div>
+                    </div>
+                  </button>
+                  <hr className="my-2" />
+                  <button 
+                    className="w-full text-left px-4 py-3 text-sm text-dark hover:bg-gray-50 flex items-center"
+                    onClick={() => {
+                      // Check if user is verified first
+                      const isVerified = false; // This would come from user context
+                      if (!isVerified) {
+                        window.location.href = "/profile/verification";
+                        return;
+                      }
+                      window.location.href = "/events/create";
+                      setShowServicesMenu(false);
+                    }}
+                  >
+                    <i className="fas fa-calendar-plus mr-3 text-primary"></i>
+                    <div>
+                      <div className="font-medium">Gestor de Eventos</div>
+                      <div className="text-xs text-gray-500">Criar e gerir eventos e feiras</div>
+                      <div className="text-xs text-red-500">
+                        <i className="fas fa-shield-alt mr-1"></i>Verificação obrigatória
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              )}
+            </div>
+            
             {/* Authentication Section */}
             {isAuthenticated ? (
               <>
-                <div className="hidden md:block">
-                  <NotificationCenter />
-                </div>
+                <NotificationCenter />
                 
                 {/* User Menu */}
                 <div className="relative">
                   <button
                     data-testid="user-menu-button"
                     onClick={() => setShowUserMenu(!showUserMenu)}
-                    className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
+                    className="flex items-center space-x-2 text-gray-medium hover:text-dark transition-colors"
                   >
                     <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center overflow-hidden">
-                      {user?.photoURL ? (
+                      {user?.profileImage ? (
                         <img 
-                          src={user.photoURL} 
+                          src={user.profileImage} 
                           alt="Perfil" 
                           className="w-full h-full object-cover"
                         />
@@ -84,62 +175,101 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
                         <User className="w-4 h-4 text-white" />
                       )}
                     </div>
-                    <span className="hidden lg:inline font-medium">{user?.displayName || user?.email?.split('@')[0] || "Utilizador"}</span>
+                    <span className="hidden md:inline font-medium">{user?.displayName || user?.email || "Utilizador"}</span>
                     <i className="fas fa-chevron-down text-xs"></i>
                   </button>
                 
                   {showUserMenu && (
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
-                      <Link href="/dashboard">
-                        <button
-                          data-testid="nav-dashboard"
-                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                          onClick={() => setShowUserMenu(false)}
-                        >
-                          <i className="fas fa-tachometer-alt mr-2 text-primary"></i>Dashboard
-                        </button>
-                      </Link>
-                      <Link href="/bookings">
-                        <button
-                          data-testid="nav-bookings"
-                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                          onClick={() => setShowUserMenu(false)}
-                        >
-                          <i className="fas fa-calendar-alt mr-2 text-primary"></i>Minhas Reservas
-                        </button>
-                      </Link>
-                      <hr className="my-2" />
-                      <button
-                        data-testid="nav-logout"
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                        onClick={async () => {
-                          await signOut();
-                          setShowUserMenu(false);
-                        }}
-                      >
-                        <i className="fas fa-sign-out-alt mr-2 text-gray-500"></i>Sair
-                      </button>
+                  <Link href="/dashboard">
+                    <button
+                      data-testid="nav-dashboard"
+                      className="w-full text-left px-4 py-2 text-sm text-dark hover:bg-gray-50"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      <i className="fas fa-calendar-alt mr-2"></i>Minhas Reservas
+                    </button>
+                  </Link>
+                  <Link href="/partnerships">
+                    <button
+                      data-testid="nav-partnerships"
+                      className="w-full text-left px-4 py-2 text-sm text-dark hover:bg-gray-50"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      <i className="fas fa-handshake mr-2"></i>Parcerias
+                    </button>
+                  </Link>
+
+                  <Link href="/loyalty">
+                    <button
+                      data-testid="nav-loyalty"
+                      className="w-full text-left px-4 py-2 text-sm text-dark hover:bg-gray-50"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      <i className="fas fa-crown mr-2"></i>Programa Fidelidade
+                    </button>
+                  </Link>
+                  <hr className="my-2" />
+                  <Link href="/profile/verification">
+                    <button
+                      data-testid="nav-verification"
+                      className="w-full text-left px-4 py-2 text-sm text-dark hover:bg-gray-50 flex items-center"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      <i className="fas fa-shield-alt mr-2 text-blue-600"></i>
+                      <div>
+                        <div className="font-medium">Verificar Perfil</div>
+                        <div className="text-xs text-gray-500">Obrigatório para oferecer serviços</div>
+                      </div>
+                    </button>
+                  </Link>
+                  <Link href="/admin">
+                    <button
+                      data-testid="nav-admin"
+                      className="w-full text-left px-4 py-2 text-sm text-dark hover:bg-gray-50"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      <i className="fas fa-shield-alt mr-2"></i>Painel Admin
+                    </button>
+                  </Link>
+                  <button
+                    data-testid="nav-profile"
+                    className="w-full text-left px-4 py-2 text-sm text-dark hover:bg-gray-50"
+                    onClick={() => setShowUserMenu(false)}
+                  >
+                    <i className="fas fa-user mr-2"></i>Perfil
+                  </button>
+                  <button
+                    data-testid="nav-help"
+                    className="w-full text-left px-4 py-2 text-sm text-dark hover:bg-gray-50"
+                    onClick={() => setShowUserMenu(false)}
+                  >
+                    <i className="fas fa-question-circle mr-2"></i>Ajuda
+                  </button>
+                  <hr className="my-2" />
+                  <button
+                    data-testid="nav-logout"
+                    className="w-full text-left px-4 py-2 text-sm text-dark hover:bg-gray-50"
+                    onClick={async () => {
+                      await signOut();
+                      setShowUserMenu(false);
+                    }}
+                  >
+                    <i className="fas fa-sign-out-alt mr-2"></i>Sair
+                  </button>
                     </div>
                   )}
                 </div>
               </>
             ) : (
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={() => setShowLoginModal(true)}
-                  className="text-gray-600 hover:text-gray-800 font-medium transition-colors"
-                  data-testid="button-login"
-                >
-                  Entrar
-                </button>
-                <Button
-                  onClick={() => setShowLoginModal(true)}
-                  className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-full font-medium"
-                  data-testid="button-signup"
-                >
-                  Oferecer Viagem
-                </Button>
-              </div>
+              <Button
+                onClick={() => setShowLoginModal(true)}
+                className="bg-primary hover:bg-primary-dark"
+                data-testid="button-login"
+              >
+                <User className="w-4 h-4 mr-2" />
+                Entrar
+              </Button>
             )}
           </div>
         </div>
