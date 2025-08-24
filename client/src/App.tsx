@@ -15,11 +15,8 @@ import CreateEvent from "@/pages/create-event";
 import BookingsPage from "@/pages/bookings";
 import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/login";
-console.log("App.tsx loaded");
-console.log(
-  "Firebase project ID:",
-  import.meta.env.VITE_FIREBASE_PROJECT_ID || "NOT SET",
-);
+// App initialization
+
 function Landing() {
   const handleFirebaseLogin = async () => {
     const { loginWithGoogle, isFirebaseConfigured } = await import(

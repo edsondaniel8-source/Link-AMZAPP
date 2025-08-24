@@ -23,7 +23,7 @@ export async function apiRequest(
       headers.Authorization = `Bearer ${token}`;
     }
   } catch (error) {
-    console.warn("Failed to get Firebase token:", error);
+    // Silently fail - this is expected when user is not logged in
   }
 
   const res = await fetch(url, {
@@ -53,7 +53,7 @@ export const getQueryFn: <T>(options: {
         headers.Authorization = `Bearer ${token}`;
       }
     } catch (error) {
-      console.warn("Failed to get Firebase token:", error);
+      // Silently fail - this is expected when user is not logged in
     }
 
     const res = await fetch(queryKey.join("/") as string, {

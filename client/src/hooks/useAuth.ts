@@ -9,18 +9,38 @@ export function useAuth() {
   // Listen to Firebase auth state changes
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
+    let mounted = true;
     
-    onAuthStateChanged((user) => {
-      setFirebaseUser(user);
-      setAuthLoading(false);
-    }).then((unsub) => {
-      unsubscribe = unsub;
-    }).catch(() => {
-      setAuthLoading(false);
-    });
+    const initAuth = async () => {
+      try {
+        const unsub = await onAuthStateChanged((user) => {
+          if (mounted) {
+            setFirebaseUser(user);
+            setAuthLoading(false);
+          }
+        });
+        if (mounted) {
+          unsubscribe = unsub;
+        }
+      } catch (error) {
+        console.warn("Auth state change failed:", error);
+        if (mounted) {
+          setAuthLoading(false);
+        }
+      }
+    };
+
+    initAuth();
 
     return () => {
-      if (unsubscribe) unsubscribe();
+      mounted = false;
+      if (unsubscribe) {
+        try {
+          unsubscribe();
+        } catch (error) {
+          console.warn("Error unsubscribing from auth:", error);
+        }
+      }
     };
   }, []);
 
