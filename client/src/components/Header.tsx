@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import NotificationCenter from "./NotificationCenter";
-import LoginModal from "./LoginModal";
 import { Button } from "@/components/ui/button";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, LogIn } from "lucide-react";
 import { FaGoogle } from "react-icons/fa";
 import logoPath from "@assets/link-a-logo.png";
+import { useAuth } from "@/hooks/useAuth";
+import { AuthRequiredDialog } from "@/components/AuthRequiredDialog";
+import { useAuthRequired } from "@/hooks/useAuthRequired";
 
 interface HeaderProps {
   activeService: "rides" | "stays";
@@ -16,17 +18,8 @@ interface HeaderProps {
 export default function Header({ activeService, onServiceChange, onOfferRide }: HeaderProps) {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showServicesMenu, setShowServicesMenu] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  
-  // Mock authentication state - replace with actual auth logic
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<{
-    name: string;
-    email: string;
-    isVerified: boolean;
-    profileImage?: string;
-    loginMethod?: string;
-  } | null>(null);
+  const { isAuthenticated, user, signOut } = useAuth();
+  const { requireAuth, showAuthDialog, closeAuthDialog } = useAuthRequired();
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
@@ -90,13 +83,9 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
                   {onOfferRide && (
                     <button 
                       onClick={() => {
-                        // Check if user is verified first
-                        const isVerified = false; // This would come from user context
-                        if (!isVerified) {
-                          window.location.href = "/profile/verification";
-                          return;
+                        if (requireAuth("oferecer uma viagem")) {
+                          onOfferRide();
                         }
-                        onOfferRide();
                         setShowServicesMenu(false);
                       }}
                       className="w-full text-left px-4 py-3 text-sm text-dark hover:bg-gray-50 flex items-center"
@@ -106,9 +95,11 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
                       <div>
                         <div className="font-medium">Oferecer Viagem</div>
                         <div className="text-xs text-gray-500">Ganhe dinheiro como motorista</div>
-                        <div className="text-xs text-red-500">
-                          <i className="fas fa-shield-alt mr-1"></i>Verificação obrigatória
-                        </div>
+                        {!isAuthenticated && (
+                          <div className="text-xs text-red-500">
+                            <i className="fas fa-user mr-1"></i>Login necessário
+                          </div>
+                        )}
                       </div>
                     </button>
                   )}
@@ -137,13 +128,9 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
                   <button 
                     className="w-full text-left px-4 py-3 text-sm text-dark hover:bg-gray-50 flex items-center"
                     onClick={() => {
-                      // Check if user is verified first
-                      const isVerified = false; // This would come from user context
-                      if (!isVerified) {
-                        window.location.href = "/profile/verification";
-                        return;
+                      if (requireAuth("criar eventos")) {
+                        window.location.href = "/events/create";
                       }
-                      window.location.href = "/events/create";
                       setShowServicesMenu(false);
                     }}
                   >
@@ -151,9 +138,11 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
                     <div>
                       <div className="font-medium">Gestor de Eventos</div>
                       <div className="text-xs text-gray-500">Criar e gerir eventos e feiras</div>
-                      <div className="text-xs text-red-500">
-                        <i className="fas fa-shield-alt mr-1"></i>Verificação obrigatória
-                      </div>
+                      {!isAuthenticated && (
+                        <div className="text-xs text-red-500">
+                          <i className="fas fa-user mr-1"></i>Login necessário
+                        </div>
+                      )}
                     </div>
                   </button>
                 </div>
@@ -173,9 +162,9 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
                     className="flex items-center space-x-2 text-gray-medium hover:text-dark transition-colors"
                   >
                     <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center overflow-hidden">
-                      {user?.profileImage ? (
+                      {user?.photoURL ? (
                         <img 
-                          src={user.profileImage} 
+                          src={user.photoURL} 
                           alt="Perfil" 
                           className="w-full h-full object-cover"
                         />
@@ -183,10 +172,8 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
                         <User className="w-4 h-4 text-white" />
                       )}
                     </div>
-                    <span className="hidden md:inline font-medium">{user?.name || "Utilizador"}</span>
-                    {user?.loginMethod === 'google' && (
-                      <FaGoogle className="w-3 h-3 text-red-500" />
-                    )}
+                    <span className="hidden md:inline font-medium">{user?.displayName || user?.email || "Utilizador"}</span>
+                    <FaGoogle className="w-3 h-3 text-red-500" />
                     <i className="fas fa-chevron-down text-xs"></i>
                   </button>
                 
@@ -261,38 +248,39 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
                   <button
                     data-testid="nav-logout"
                     className="w-full text-left px-4 py-2 text-sm text-dark hover:bg-gray-50"
-                    onClick={() => setShowUserMenu(false)}
+                    onClick={async () => {
+                      await signOut();
+                      setShowUserMenu(false);
+                    }}
                   >
-                    <i className="fas fa-sign-out-alt mr-2"></i>Sair
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sair
                   </button>
                     </div>
                   )}
                 </div>
               </>
             ) : (
-              <Button
-                onClick={() => setShowLoginModal(true)}
-                className="bg-primary hover:bg-primary-dark"
-                data-testid="button-login"
-              >
-                <User className="w-4 h-4 mr-2" />
-                Entrar
-              </Button>
+              <Link href="/login">
+                <Button
+                  className="bg-primary hover:bg-primary-dark"
+                  data-testid="button-login"
+                >
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Entrar
+                </Button>
+              </Link>
             )}
           </div>
         </div>
       </div>
       
 
-      
-      {/* Login Modal */}
-      <LoginModal
-        isOpen={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-        onSuccess={(userData: any) => {
-          setIsAuthenticated(true);
-          setUser(userData);
-        }}
+      {/* Auth Required Dialog */}
+      <AuthRequiredDialog 
+        open={showAuthDialog} 
+        onOpenChange={closeAuthDialog}
+        action="fazer essa ação" 
       />
     </header>
   );

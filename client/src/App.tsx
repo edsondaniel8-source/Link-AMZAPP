@@ -36,7 +36,7 @@ function Landing() {
 }
 
 function Router() {
-  const { isAuthenticated, loading } = useAuth();
+  const { loading } = useAuth();
 
   if (loading) {
     return (
@@ -48,22 +48,17 @@ function Router() {
 
   return (
     <Switch>
-      {!isAuthenticated ? (
-        <Route path="*" component={Landing} />
-      ) : (
-        <>
-          <Route path="/" component={Home} />
-          <Route path="/dashboard" component={Dashboard} />
-          <Route path="/bookings" component={BookingsPage} />
-          <Route path="/partnerships" component={Partnerships} />
-          <Route path="/events" component={Events} />
-          <Route path="/events/create" component={CreateEvent} />
-          <Route path="/loyalty" component={Loyalty} />
-          <Route path="/profile/verification" component={ProfileVerification} />
-          <Route path="/admin" component={AdminPanel} />
-          <Route component={NotFound} />
-        </>
-      )}
+      <Route path="/login" component={Landing} />
+      <Route path="/" component={Home} />
+      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/bookings" component={BookingsPage} />
+      <Route path="/partnerships" component={Partnerships} />
+      <Route path="/events" component={Events} />
+      <Route path="/events/create" component={CreateEvent} />
+      <Route path="/loyalty" component={Loyalty} />
+      <Route path="/profile/verification" component={ProfileVerification} />
+      <Route path="/admin" component={AdminPanel} />
+      <Route component={NotFound} />
     </Switch>
   );
 }
