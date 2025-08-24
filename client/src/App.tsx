@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "./hooks/useAuth";
+import { signInWithGoogle, isFirebaseConfigured } from "./lib/firebaseConfig";
 import Home from "@/pages/home";
 import Dashboard from "@/pages/dashboard";
 import AdminPanel from "@/pages/admin";
@@ -15,15 +16,16 @@ import CreateEvent from "@/pages/create-event";
 import BookingsPage from "@/pages/bookings";
 import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/login";
-// App initialization
 
 function Landing() {
   const handleFirebaseLogin = async () => {
-    const { loginWithGoogle, isFirebaseConfigured } = await import(
-      "./lib/firebaseSafe"
-    );
     if (isFirebaseConfigured) {
-      await loginWithGoogle();
+      try {
+        await signInWithGoogle();
+      } catch (error) {
+        console.error('Login failed:', error);
+        alert('Erro ao fazer login. Tente novamente.');
+      }
     } else {
       alert("Firebase não configurado. Configure as variáveis de ambiente.");
     }
@@ -58,9 +60,9 @@ function Landing() {
 }
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
