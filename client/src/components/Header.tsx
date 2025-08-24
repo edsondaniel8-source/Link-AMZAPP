@@ -2,10 +2,12 @@ import { useState } from "react";
 import { Link } from "wouter";
 import NotificationCenter from "./NotificationCenter";
 import LoginModal from "./LoginModal";
+import RoleSwitcher from "./RoleSwitcher";
 import { Button } from "@/components/ui/button";
 import { User, LogOut } from "lucide-react";
 import { FaGoogle } from "react-icons/fa";
 import { useAuth } from "../hooks/useAuth";
+import { useUserRoles } from "../hooks/useUserRoles";
 import logoPath from "@assets/link-a-logo.png";
 
 interface HeaderProps {
@@ -19,6 +21,7 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
   const [showServicesMenu, setShowServicesMenu] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const { isAuthenticated, user, signOut } = useAuth();
+  const { canAccessFeature } = useUserRoles();
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
@@ -103,15 +106,9 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
                     </div>
                   </div>
                   
-                  {onOfferRide && (
+                  {onOfferRide && canAccessFeature('offer-ride') && (
                     <button 
                       onClick={() => {
-                        // Check if user is verified first
-                        const isVerified = false; // This would come from user context
-                        if (!isVerified) {
-                          window.location.href = "/profile/verification";
-                          return;
-                        }
                         onOfferRide();
                         setShowServicesMenu(false);
                       }}
@@ -122,7 +119,7 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
                       <div>
                         <div className="font-medium">Oferecer Viagem</div>
                         <div className="text-xs text-gray-500">Ganhe dinheiro como motorista</div>
-                        <div className="text-xs text-red-500">
+                        <div className="text-xs text-green-500">
                           <i className="fas fa-shield-alt mr-1"></i>Verificação obrigatória
                         </div>
                       </div>
@@ -188,9 +185,9 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
                     className="flex items-center space-x-2 text-gray-medium hover:text-dark transition-colors"
                   >
                     <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center overflow-hidden">
-                      {user?.profileImage ? (
+                      {user?.photoURL ? (
                         <img 
-                          src={user.profileImage} 
+                          src={user.photoURL} 
                           alt="Perfil" 
                           className="w-full h-full object-cover"
                         />
@@ -233,6 +230,14 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
                     </button>
                   </Link>
                   <hr className="my-2" />
+                  
+                  {/* Role Switcher Integration */}
+                  <div className="px-4 py-2">
+                    <RoleSwitcher variant="compact" showBadge={true} />
+                  </div>
+                  
+                  <hr className="my-2" />
+                  
                   <Link href="/profile/verification">
                     <button
                       data-testid="nav-verification"
@@ -246,15 +251,18 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
                       </div>
                     </button>
                   </Link>
-                  <Link href="/admin">
-                    <button
-                      data-testid="nav-admin"
-                      className="w-full text-left px-4 py-2 text-sm text-dark hover:bg-gray-50"
-                      onClick={() => setShowUserMenu(false)}
-                    >
-                      <i className="fas fa-shield-alt mr-2"></i>Painel Admin
-                    </button>
-                  </Link>
+                  
+                  {canAccessFeature('admin-panel') && (
+                    <Link href="/admin">
+                      <button
+                        data-testid="nav-admin"
+                        className="w-full text-left px-4 py-2 text-sm text-dark hover:bg-gray-50"
+                        onClick={() => setShowUserMenu(false)}
+                      >
+                        <i className="fas fa-shield-alt mr-2"></i>Painel Admin
+                      </button>
+                    </Link>
+                  )}
                   <button
                     data-testid="nav-profile"
                     className="w-full text-left px-4 py-2 text-sm text-dark hover:bg-gray-50"

@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Shield, Mail, Lock, Chrome, AlertCircle, X } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import EnhancedSignupModal from "./EnhancedSignupModal";
 
 interface LoginModalProps {
   open: boolean;
@@ -16,11 +17,14 @@ interface LoginModalProps {
 }
 
 export function LoginModal({ open, onOpenChange, redirectTo }: LoginModalProps) {
-  const { signIn, signInEmail, signUpEmail, loading, error } = useAuth();
+  const { signIn, signInEmail, signUpEmail, resetPassword, loading, error } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
+  const [showEnhancedSignup, setShowEnhancedSignup] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -111,12 +115,54 @@ export function LoginModal({ open, onOpenChange, redirectTo }: LoginModalProps) 
     }
   };
 
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError(null);
+
+    if (!resetEmail) {
+      setFormError('Por favor, digite um email válido.');
+      return;
+    }
+
+    try {
+      await resetPassword(resetEmail);
+      toast({
+        title: "Email Enviado",
+        description: "Verifique sua caixa de entrada para instruções de recuperação de senha."
+      });
+      setShowPasswordReset(false);
+      setResetEmail('');
+    } catch (error: any) {
+      let errorMessage = 'Erro ao enviar email de recuperação.';
+      
+      if (error?.code) {
+        switch (error.code) {
+          case 'auth/user-not-found':
+            errorMessage = 'Não encontramos uma conta com este email.';
+            break;
+          case 'auth/invalid-email':
+            errorMessage = 'Email inválido. Verifique o formato.';
+            break;
+          case 'auth/too-many-requests':
+            errorMessage = 'Muitas tentativas. Tente novamente mais tarde.';
+            break;
+          default:
+            errorMessage = error.message || errorMessage;
+        }
+      }
+      
+      setFormError(errorMessage);
+    }
+  };
+
   const handleClose = () => {
     setEmail('');
     setPassword('');
     setConfirmPassword('');
+    setResetEmail('');
     setFormError(null);
     setIsSignUp(false);
+    setShowPasswordReset(false);
     onOpenChange(false);
   };
 
@@ -181,7 +227,11 @@ export function LoginModal({ open, onOpenChange, redirectTo }: LoginModalProps) 
               </TabsTrigger>
               <TabsTrigger 
                 value="signup" 
-                onClick={() => setIsSignUp(true)}
+                onClick={() => {
+                  setIsSignUp(true);
+                  setShowEnhancedSignup(true);
+                  onOpenChange(false);
+                }}
                 data-testid="tab-modal-signup"
               >
                 Criar Conta
@@ -232,6 +282,18 @@ export function LoginModal({ open, onOpenChange, redirectTo }: LoginModalProps) 
                 >
                   {loading ? 'Entrando...' : 'Entrar com Email'}
                 </Button>
+                
+                <div className="text-center">
+                  <Button 
+                    type="button"
+                    variant="link"
+                    className="text-sm text-primary hover:text-primary-dark"
+                    onClick={() => setShowPasswordReset(true)}
+                    data-testid="button-forgot-password"
+                  >
+                    Esqueceu a senha?
+                  </Button>
+                </div>
               </form>
             </TabsContent>
             
@@ -308,6 +370,72 @@ export function LoginModal({ open, onOpenChange, redirectTo }: LoginModalProps) 
           )}
         </div>
       </DialogContent>
+
+      {/* Password Reset Modal */}
+      <Dialog open={showPasswordReset} onOpenChange={setShowPasswordReset}>
+        <DialogContent className="sm:max-w-md" data-testid="password-reset-modal">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-primary">
+              Recuperar Senha
+            </DialogTitle>
+            <DialogDescription>
+              Digite seu email para receber instruções de recuperação
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={handlePasswordReset} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="reset-email">Email</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="reset-email"
+                  type="email"
+                  placeholder="seu@email.com"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  className="pl-10"
+                  data-testid="input-reset-email"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowPasswordReset(false)}
+                className="flex-1"
+                data-testid="button-cancel-reset"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={loading}
+                className="flex-1"
+                data-testid="button-send-reset"
+              >
+                {loading ? 'Enviando...' : 'Enviar'}
+              </Button>
+            </div>
+            
+            {formError && (
+              <Alert variant="destructive" data-testid="alert-reset-error">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{formError}</AlertDescription>
+              </Alert>
+            )}
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Enhanced Signup Modal */}
+      <EnhancedSignupModal
+        open={showEnhancedSignup}
+        onOpenChange={setShowEnhancedSignup}
+      />
     </Dialog>
   );
 }

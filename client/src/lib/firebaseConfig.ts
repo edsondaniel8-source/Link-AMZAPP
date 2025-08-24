@@ -8,6 +8,7 @@ import {
   getRedirectResult,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
   type Auth,
   type User
 } from 'firebase/auth';
@@ -130,6 +131,23 @@ export const signUpWithEmail = async (email: string, password: string): Promise<
     return result.user;
   } catch (error: any) {
     console.error('Email sign-up failed:', {
+      code: error?.code,
+      message: error?.message,
+      details: error
+    });
+    throw error;
+  }
+};
+
+export const resetPassword = async (email: string): Promise<void> => {
+  if (!auth) {
+    throw new Error('Firebase not configured');
+  }
+  
+  try {
+    await sendPasswordResetEmail(auth, email);
+  } catch (error: any) {
+    console.error('Password reset failed:', {
       code: error?.code,
       message: error?.message,
       details: error

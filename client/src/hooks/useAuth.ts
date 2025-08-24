@@ -6,6 +6,7 @@ import {
   signInWithEmail,
   signUpWithEmail,
   signOutUser, 
+  resetPassword,
   handleRedirectResult,
   isFirebaseConfigured 
 } from '../lib/firebaseConfig';
@@ -20,6 +21,7 @@ interface UseAuthReturn extends AuthState {
   signIn: () => Promise<void>;
   signInEmail: (email: string, password: string) => Promise<void>;
   signUpEmail: (email: string, password: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
   isAuthenticated: boolean;
 }
@@ -136,6 +138,27 @@ export const useAuth = (): UseAuthReturn => {
     }
   };
 
+  const resetPasswordEmail = async (email: string): Promise<void> => {
+    if (!isFirebaseConfigured) {
+      throw new Error('Firebase not configured');
+    }
+
+    setAuthState(prev => ({ ...prev, loading: true, error: null }));
+    
+    try {
+      await resetPassword(email);
+      setAuthState(prev => ({ ...prev, loading: false }));
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Password reset failed';
+      setAuthState(prev => ({
+        ...prev,
+        loading: false,
+        error: errorMessage,
+      }));
+      throw error;
+    }
+  };
+
   const signOut = async (): Promise<void> => {
     if (!isFirebaseConfigured) {
       throw new Error('Firebase not configured');
@@ -161,6 +184,7 @@ export const useAuth = (): UseAuthReturn => {
     signIn,
     signInEmail,
     signUpEmail,
+    resetPassword: resetPasswordEmail,
     signOut,
     isAuthenticated: !!authState.user,
   };
