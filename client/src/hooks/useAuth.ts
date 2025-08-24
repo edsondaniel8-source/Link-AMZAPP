@@ -3,6 +3,8 @@ import { type User } from 'firebase/auth';
 import { 
   onAuthStateChange, 
   signInWithGoogle, 
+  signInWithEmail,
+  signUpWithEmail,
   signOutUser, 
   handleRedirectResult,
   isFirebaseConfigured 
@@ -16,6 +18,8 @@ interface AuthState {
 
 interface UseAuthReturn extends AuthState {
   signIn: () => Promise<void>;
+  signInEmail: (email: string, password: string) => Promise<void>;
+  signUpEmail: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   isAuthenticated: boolean;
 }
@@ -92,6 +96,46 @@ export const useAuth = (): UseAuthReturn => {
     }
   };
 
+  const signInEmail = async (email: string, password: string): Promise<void> => {
+    if (!isFirebaseConfigured) {
+      throw new Error('Firebase not configured');
+    }
+
+    setAuthState(prev => ({ ...prev, loading: true, error: null }));
+    
+    try {
+      await signInWithEmail(email, password);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Email sign in failed';
+      setAuthState(prev => ({
+        ...prev,
+        loading: false,
+        error: errorMessage,
+      }));
+      throw error;
+    }
+  };
+
+  const signUpEmail = async (email: string, password: string): Promise<void> => {
+    if (!isFirebaseConfigured) {
+      throw new Error('Firebase not configured');
+    }
+
+    setAuthState(prev => ({ ...prev, loading: true, error: null }));
+    
+    try {
+      await signUpWithEmail(email, password);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Email sign up failed';
+      setAuthState(prev => ({
+        ...prev,
+        loading: false,
+        error: errorMessage,
+      }));
+      throw error;
+    }
+  };
+
   const signOut = async (): Promise<void> => {
     if (!isFirebaseConfigured) {
       throw new Error('Firebase not configured');
@@ -115,6 +159,8 @@ export const useAuth = (): UseAuthReturn => {
   return {
     ...authState,
     signIn,
+    signInEmail,
+    signUpEmail,
     signOut,
     isAuthenticated: !!authState.user,
   };

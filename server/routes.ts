@@ -16,7 +16,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Auth routes - Firebase Auth only
-  app.get('/api/auth/user', verifyFirebaseToken, async (req: any, res) => {
+  app.get('/api/auth/user', verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
     try {
       const userId = req.user?.claims?.sub;
       if (!userId) {
@@ -34,7 +34,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/complete-registration', upload.fields([
     { name: 'profilePhoto', maxCount: 1 },
     { name: 'documentPhoto', maxCount: 1 }
-  ]), verifyFirebaseToken, async (req: any, res) => {
+  ]), verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
     try {
       const {
         firstName,
@@ -83,7 +83,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Login endpoint to check if user needs to complete registration
-  app.post('/api/auth/check-registration', verifyFirebaseToken, async (req: any, res) => {
+  app.post('/api/auth/check-registration', verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
     try {
       const userId = req.user?.claims?.sub;
       if (!userId) {

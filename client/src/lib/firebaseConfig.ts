@@ -6,6 +6,8 @@ import {
   signOut, 
   onAuthStateChanged,
   getRedirectResult,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   type Auth,
   type User
 } from 'firebase/auth';
@@ -96,6 +98,42 @@ export const handleRedirectResult = async (): Promise<User | null> => {
     return result?.user || null;
   } catch (error) {
     console.error('Redirect result handling failed:', error);
+    throw error;
+  }
+};
+
+export const signInWithEmail = async (email: string, password: string): Promise<User> => {
+  if (!auth) {
+    throw new Error('Firebase not configured');
+  }
+  
+  try {
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    return result.user;
+  } catch (error: any) {
+    console.error('Email sign-in failed:', {
+      code: error?.code,
+      message: error?.message,
+      details: error
+    });
+    throw error;
+  }
+};
+
+export const signUpWithEmail = async (email: string, password: string): Promise<User> => {
+  if (!auth) {
+    throw new Error('Firebase not configured');
+  }
+  
+  try {
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+    return result.user;
+  } catch (error: any) {
+    console.error('Email sign-up failed:', {
+      code: error?.code,
+      message: error?.message,
+      details: error
+    });
     throw error;
   }
 };

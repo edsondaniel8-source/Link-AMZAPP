@@ -1,5 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
-import { getFirebaseAuth } from "./firebaseSafe";
+import { auth } from "./firebaseConfig";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -17,13 +17,13 @@ export async function apiRequest(
   
   // Add Firebase token if available
   try {
-    const auth = await getFirebaseAuth();
     if (auth?.currentUser) {
       const token = await auth.currentUser.getIdToken();
       headers.Authorization = `Bearer ${token}`;
     }
   } catch (error) {
     // Silently fail - this is expected when user is not logged in
+    console.debug('No auth token available:', error);
   }
 
   const res = await fetch(url, {
@@ -47,13 +47,13 @@ export const getQueryFn: <T>(options: {
     
     // Add Firebase token if available
     try {
-      const auth = await getFirebaseAuth();
       if (auth?.currentUser) {
         const token = await auth.currentUser.getIdToken();
         headers.Authorization = `Bearer ${token}`;
       }
     } catch (error) {
       // Silently fail - this is expected when user is not logged in
+      console.debug('No auth token available:', error);
     }
 
     const res = await fetch(queryKey.join("/") as string, {

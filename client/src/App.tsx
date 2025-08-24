@@ -4,7 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "./hooks/useAuth";
-import { signInWithGoogle, isFirebaseConfigured } from "./lib/firebaseConfig";
+import { SignInForm } from "@/components/SignInForm";
 import Home from "@/pages/home";
 import Dashboard from "@/pages/dashboard";
 import AdminPanel from "@/pages/admin";
@@ -18,42 +18,18 @@ import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/login";
 
 function Landing() {
-  const handleFirebaseLogin = async () => {
-    if (isFirebaseConfigured) {
-      try {
-        await signInWithGoogle();
-      } catch (error) {
-        console.error('Login failed:', error);
-        alert('Erro ao fazer login. Tente novamente.');
-      }
-    } else {
-      alert("Firebase não configurado. Configure as variáveis de ambiente.");
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
       <div className="container mx-auto px-4 py-16">
-        <div className="text-center">
+        <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-primary mb-6">
             Bem-vindo ao Link-A
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
             Trazendo o Futuro do turismo para Moçambique
           </p>
-          <div className="space-y-4 max-w-md mx-auto">
-            <button
-              onClick={handleFirebaseLogin}
-              className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
-              data-testid="button-login-google"
-            >
-              Entrar com Google
-            </button>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Entre com sua conta Google para acessar a plataforma
-            </p>
-          </div>
         </div>
+        <SignInForm />
       </div>
     </div>
   );
