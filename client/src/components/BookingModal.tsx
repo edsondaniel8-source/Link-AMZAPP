@@ -4,8 +4,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { useAuth } from "@/hooks/useAuth";
-import { AuthRequiredDialog } from "@/components/AuthRequiredDialog";
 import type { Ride, Accommodation } from "@shared/schema";
 
 interface BookingModalProps {
@@ -20,8 +18,6 @@ export default function BookingModal({ type, item, searchParams, isOpen, onClose
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [paymentMethod] = useState("Visa ****4242");
-  const { isAuthenticated, user } = useAuth();
-  const [showAuthDialog, setShowAuthDialog] = useState(false);
 
   const bookingMutation = useMutation({
     mutationFn: async (bookingData: any) => {
@@ -45,24 +41,10 @@ export default function BookingModal({ type, item, searchParams, isOpen, onClose
   });
 
   const handleConfirmBooking = () => {
-    if (!isAuthenticated) {
-      setShowAuthDialog(true);
-      return;
-    }
-
-    if (!user?.uid) {
-      toast({
-        title: "Erro de Autenticação",
-        description: "Por favor, faça login novamente.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     const bookingData = {
-      userId: user.uid,
+      userId: "mock-user-id", // In real app, this would come from auth
       type: type,
-      status: "pending_approval",
+      status: "confirmed",
       totalPrice: type === "ride" 
         ? (item as Ride).price 
         : (item as Accommodation).pricePerNight,
@@ -260,13 +242,6 @@ export default function BookingModal({ type, item, searchParams, isOpen, onClose
           </Button>
         </div>
       </DialogContent>
-      
-      {/* Auth Required Dialog */}
-      <AuthRequiredDialog 
-        open={showAuthDialog} 
-        onOpenChange={setShowAuthDialog}
-        action="fazer uma reserva" 
-      />
     </Dialog>
   );
 }
