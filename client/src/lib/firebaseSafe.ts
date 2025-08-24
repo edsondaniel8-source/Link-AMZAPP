@@ -1,8 +1,8 @@
 // Safe Firebase wrapper that doesn't import Firebase until needed
 export const isFirebaseConfigured = !!(
-    import.meta.env.VITE_FIREBASE_API_KEY &&
-    import.meta.env.VITE_FIREBASE_PROJECT_ID &&
-    import.meta.env.VITE_FIREBASE_APP_ID
+  import.meta.env.VITE_FIREBASE_API_KEY &&
+  import.meta.env.VITE_FIREBASE_PROJECT_ID &&
+  import.meta.env.VITE_FIREBASE_APP_ID
 );
 
 let firebaseInitialized = false;
@@ -21,10 +21,15 @@ export const initFirebase = async () => {
       apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
       authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
       projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-      storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebasestorage.app`,
+      storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.appspot.com`,
       appId: import.meta.env.VITE_FIREBASE_APP_ID,
     };
-
+    console.log("Firebase Config:", {
+      apiKey: import.meta.env.VITE_FIREBASE_API_KEY ? "SET" : "MISSING",
+      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+      appId: import.meta.env.VITE_FIREBASE_APP_ID,
+      authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
+    });
     const app = initializeApp(firebaseConfig);
     auth = getAuth(app);
     firebaseInitialized = true;
@@ -52,7 +57,9 @@ export const loginWithGoogle = async () => {
     throw new Error("Falha ao inicializar Firebase");
   }
 
-  const { signInWithRedirect, GoogleAuthProvider } = await import("firebase/auth");
+  const { signInWithRedirect, GoogleAuthProvider } = await import(
+    "firebase/auth"
+  );
   const googleProvider = new GoogleAuthProvider();
   return signInWithRedirect(auth, googleProvider);
 };
@@ -80,6 +87,8 @@ export const onAuthStateChanged = async (callback: (user: any) => void) => {
     return () => {};
   }
 
-  const { onAuthStateChanged: firebaseOnAuthStateChanged } = await import("firebase/auth");
+  const { onAuthStateChanged: firebaseOnAuthStateChanged } = await import(
+    "firebase/auth"
+  );
   return firebaseOnAuthStateChanged(auth, callback);
 };

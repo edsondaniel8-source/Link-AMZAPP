@@ -10,7 +10,7 @@ if (!admin.apps.length) {
 }
 
 export interface AuthenticatedRequest extends Request {
-  user?: {
+  user: {
     uid: string;
     claims: {
       sub: string;

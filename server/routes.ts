@@ -15,10 +15,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
   });
 
-  // Auth routes - Replit Auth only
-  app.get('/api/auth/user', verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
+  // Auth routes - Firebase Auth only
+  app.get('/api/auth/user', verifyFirebaseToken, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "User ID not found" });
+      }
       const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
@@ -31,7 +34,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/complete-registration', upload.fields([
     { name: 'profilePhoto', maxCount: 1 },
     { name: 'documentPhoto', maxCount: 1 }
-  ]), verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
+  ]), verifyFirebaseToken, async (req: any, res) => {
     try {
       const {
         firstName,
@@ -48,12 +51,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Fotos de perfil e documento são obrigatórias" });
       }
 
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "User ID not found" });
+      }
+
       // TODO: Upload files to storage service (implement with object storage)
-      const profilePhotoUrl = `uploads/profile_${req.user.claims.sub}_${Date.now()}.jpg`;
-      const documentPhotoUrl = `uploads/document_${req.user.claims.sub}_${Date.now()}.jpg`;
+      const profilePhotoUrl = `uploads/profile_${userId}_${Date.now()}.jpg`;
+      const documentPhotoUrl = `uploads/document_${userId}_${Date.now()}.jpg`;
 
       const userData = {
-        id: req.user.claims.sub,
+        id: userId,
         email: email || null,
         firstName,
         lastName,
@@ -75,9 +83,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Login endpoint to check if user needs to complete registration
-  app.post('/api/auth/check-registration', verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/auth/check-registration', verifyFirebaseToken, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "User ID not found" });
+      }
+      
+      const user = await storage.getUser(userId);
       
       if (!user) {
         return res.json({ needsRegistration: true });
