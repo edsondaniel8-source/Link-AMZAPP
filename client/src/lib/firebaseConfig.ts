@@ -56,13 +56,19 @@ export { auth, googleProvider, isFirebaseConfigured };
 // Authentication functions
 export const signInWithGoogle = async (): Promise<void> => {
   if (!auth || !googleProvider) {
-    throw new Error('Firebase not configured or Google provider not available');
+    const errorMsg = 'Firebase not configured or Google provider not available';
+    console.error(errorMsg);
+    throw new Error(errorMsg);
   }
   
   try {
     await signInWithRedirect(auth, googleProvider);
-  } catch (error) {
-    console.error('Google sign-in failed:', error);
+  } catch (error: any) {
+    console.error('Google sign-in failed:', {
+      code: error?.code,
+      message: error?.message,
+      details: error
+    });
     throw error;
   }
 };
