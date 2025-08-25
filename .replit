@@ -10,12 +10,27 @@ deploymentTarget = "autoscale"
 build = ["npm", "run", "build"]
 run = ["npm", "run", "start"]
 
+# Networking Configuration
+[ports]
+environment = "host"  # CRITICAL: Allows outgoing connections
+
 [[ports]]
 localPort = 5000
 externalPort = 80
+externalVisibility = "public"  # Make it publicly accessible
+
+[[ports]]  
+localPort = 3000  # Frontend port
+externalPort = 3000
+externalVisibility = "public"
 
 [env]
 PORT = "5000"
+
+# Add packages for networking
+[packages]
+nodejs = "20"
+python3 = "3.11"
 
 [workflows]
 runButton = "Project"
