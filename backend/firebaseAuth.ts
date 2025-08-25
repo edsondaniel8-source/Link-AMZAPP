@@ -22,7 +22,7 @@ export interface AuthenticatedRequest extends Request {
   };
 }
 
-export const verifyFirebaseToken = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+export const verifyFirebaseToken = async (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
   
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -33,7 +33,7 @@ export const verifyFirebaseToken = async (req: AuthenticatedRequest, res: Respon
 
   try {
     const decodedToken = await admin.auth().verifyIdToken(token);
-    req.user = {
+    (req as AuthenticatedRequest).user = {
       uid: decodedToken.uid,
       claims: {
         sub: decodedToken.uid,
