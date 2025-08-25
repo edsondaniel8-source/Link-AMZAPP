@@ -183,6 +183,7 @@ export class MemStorage {
     
     // Initialize with all mock data including rides and accommodations
     this.initializeMockData();
+    this.initializeMockBookings();
   }
 
   private initializeMockData() {
@@ -789,7 +790,7 @@ export class MemStorage {
     return undefined;
   }
 
-  private initializeMockData() {
+  private initializeMockBookings() {
     // Add mock bookings for testing the confirmation system
     const mockBookings = [
       {
