@@ -17,7 +17,7 @@ import CreateEvent from "@/pages/create-event";
 import BookingsPage from "@/pages/bookings";
 import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/login";
-
+import TestBooking from "./components/TestBooking";
 function Router() {
   const { loading } = useAuth();
 
@@ -36,46 +36,51 @@ function Router() {
       <Route path="/events" component={Events} />
       <Route path="/partnerships" component={Partnerships} />
       <Route path="/blog" component={Blog} />
-      <Route path="/blog/:id" component={() => import("@/pages/blog-post").then(m => ({ default: m.default }))} />
+      <Route
+        path="/blog/:id"
+        component={() =>
+          import("@/pages/blog-post").then((m) => ({ default: m.default }))
+        }
+      />
       <Route path="/login" component={LoginPage} />
-      
+      <Route path="/test-booking" component={TestBooking} />
       {/* Protected Routes - require authentication */}
       <Route path="/dashboard">
         <ProtectedRoute>
           <Dashboard />
         </ProtectedRoute>
       </Route>
-      
+
       <Route path="/bookings">
         <ProtectedRoute>
           <BookingsPage />
         </ProtectedRoute>
       </Route>
-      
+
       <Route path="/profile/verification">
         <ProtectedRoute>
           <ProfileVerification />
         </ProtectedRoute>
       </Route>
-      
+
       <Route path="/admin">
         <ProtectedRoute>
           <AdminPanel />
         </ProtectedRoute>
       </Route>
-      
+
       <Route path="/loyalty">
         <ProtectedRoute>
           <Loyalty />
         </ProtectedRoute>
       </Route>
-      
+
       <Route path="/events/create">
         <ProtectedRoute requireVerification>
           <CreateEvent />
         </ProtectedRoute>
       </Route>
-      
+
       {/* Catch all - 404 */}
       <Route component={NotFound} />
     </Switch>

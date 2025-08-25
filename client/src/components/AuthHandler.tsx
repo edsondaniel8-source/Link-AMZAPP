@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { onAuthStateChanged, handleRedirectResult, isFirebaseConfigured } from "@/lib/firebaseSafe";
+import { onAuthStateChange, handleRedirectResult, isFirebaseConfigured } from "@/lib/firebaseConfig";
 import { useToast } from "@/hooks/use-toast";
 import RegistrationForm from "./RegistrationForm";
 import { apiRequest } from "@/lib/queryClient";
@@ -22,8 +22,8 @@ export default function AuthHandler({ children }: AuthHandlerProps) {
 
     // Handle redirect result from Google login
     handleRedirectResult().then((result) => {
-      if (result?.user) {
-        checkRegistrationStatus(result.user);
+      if (result) {
+        checkRegistrationStatus(result);
       }
     }).catch((error) => {
       console.error("Error handling redirect:", error);
@@ -35,8 +35,7 @@ export default function AuthHandler({ children }: AuthHandlerProps) {
     });
 
     // Listen for auth state changes
-    let unsubscribe: (() => void) | undefined;
-    onAuthStateChanged((user) => {
+    const unsubscribe = onAuthStateChange((user: any) => {
       setFirebaseUser(user);
       if (user) {
         checkRegistrationStatus(user);
@@ -44,8 +43,6 @@ export default function AuthHandler({ children }: AuthHandlerProps) {
         setLoading(false);
         setNeedsRegistration(false);
       }
-    }).then((unsub) => {
-      unsubscribe = unsub;
     });
 
     return () => {

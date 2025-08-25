@@ -45,7 +45,7 @@ export default function LoginPage() {
 
   const handleGoogleLogin = async () => {
     try {
-      const { loginWithGoogle, isFirebaseConfigured } = await import('../lib/firebaseSafe');
+      const { signInWithGoogle, isFirebaseConfigured } = await import('../lib/firebaseConfig');
       
       if (!isFirebaseConfigured) {
         toast({
@@ -56,7 +56,7 @@ export default function LoginPage() {
         return;
       }
 
-      await loginWithGoogle();
+      await signInWithGoogle();
     } catch (error) {
       toast({
         title: "Erro no Login",
