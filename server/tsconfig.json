@@ -16,13 +16,13 @@
     "declarationMap": false,
     "sourceMap": false,
     "noImplicitAny": false,
-    "baseUrl": "../",
+    "baseUrl": ".",
     "paths": {
-      "@shared/*": ["shared/*"]
+      "@shared/*": ["../shared/*"]
     }
   },
   "include": [
-    "index.ts",
+    "index.production.ts",
     "db.ts",
     "authStorage.ts", 
     "firebaseAuth.ts",

@@ -4,8 +4,8 @@
   "description": "Backend for Link-A app",
   "main": "index.ts",
   "scripts": {
-    "dev": "cd .. && NODE_ENV=development tsx server/index.ts",
-    "start": "node build/index.js",
+    "dev": "NODE_ENV=development tsx index.production.ts",
+    "start": "node build/server/index.production.js",
     "build": "tsc"
   },
   "dependencies": {
