@@ -1,11 +1,13 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
-import { authStorage } from "./authStorage";
+import { storage } from "./storage";
 import { verifyFirebaseToken, type AuthenticatedRequest } from "./firebaseAuth";
+import { insertBookingSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Production Firebase Auth API - focused on authentication only
+  // Auth middleware
+
 
   // Configure multer for file uploads
   const upload = multer({ 
@@ -14,14 +16,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Auth routes - Firebase Auth only
-  app.get('/api/auth/user', verifyFirebaseToken, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
+  app.get('/api/auth/user', verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = authReq.user?.claims?.sub;
+      const userId = req.user?.claims?.sub;
       if (!userId) {
         return res.status(401).json({ message: "User ID not found" });
       }
-      const user = await authStorage.getUser(userId);
+      const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -33,8 +34,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/complete-registration', upload.fields([
     { name: 'profilePhoto', maxCount: 1 },
     { name: 'documentPhoto', maxCount: 1 }
-  ]), verifyFirebaseToken, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
+  ]), verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
     try {
       const {
         firstName,
@@ -51,7 +51,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Fotos de perfil e documento são obrigatórias" });
       }
 
-      const userId = authReq.user?.claims?.sub;
+      const userId = req.user?.claims?.sub;
       if (!userId) {
         return res.status(401).json({ message: "User ID not found" });
       }
@@ -74,7 +74,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         verificationStatus: "pending"
       };
 
-      const user = await authStorage.upsertUser(userData);
+      const user = await storage.upsertUser(userData);
       res.json({ user, message: "Registro concluído com sucesso!" });
     } catch (error) {
       console.error("Error completing registration:", error);
@@ -83,15 +83,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Login endpoint to check if user needs to complete registration
-  app.post('/api/auth/check-registration', verifyFirebaseToken, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
+  app.post('/api/auth/check-registration', verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = authReq.user?.claims?.sub;
+      const userId = req.user?.claims?.sub;
       if (!userId) {
         return res.status(401).json({ message: "User ID not found" });
       }
       
-      const user = await authStorage.getUser(userId);
+      const user = await storage.getUser(userId);
       
       if (!user) {
         return res.json({ needsRegistration: true });

@@ -78,13 +78,7 @@ export class DatabaseStorage implements IStorage {
   async createRide(insertRide: InsertRide): Promise<Ride> {
     const [ride] = await db
       .insert(rides)
-      .values({
-        ...insertRide,
-        // Ensure required fields have proper defaults
-        isActive: insertRide.isActive ?? true,
-        maxPassengers: insertRide.maxPassengers ?? 4,
-        availableSeats: insertRide.availableSeats ?? 4
-      })
+      .values(insertRide)
       .returning();
     return ride;
   }
@@ -101,14 +95,7 @@ export class DatabaseStorage implements IStorage {
   async createAccommodation(insertAccommodation: InsertAccommodation): Promise<Accommodation> {
     const [accommodation] = await db
       .insert(accommodations)
-      .values({
-        ...insertAccommodation,
-        // Ensure required fields have proper defaults
-        isAvailable: insertAccommodation.isAvailable ?? true,
-        reviewCount: insertAccommodation.reviewCount ?? 0,
-        offerDriverDiscounts: insertAccommodation.offerDriverDiscounts ?? false,
-        partnershipBadgeVisible: insertAccommodation.partnershipBadgeVisible ?? false
-      })
+      .values(insertAccommodation)
       .returning();
     return accommodation;
   }
@@ -670,7 +657,7 @@ export class MemStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.email === username);
+    return Array.from(this.users.values()).find(user => user.username === username);
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
@@ -679,19 +666,7 @@ export class MemStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = randomUUID();
-    const user: User = { 
-      ...insertUser, 
-      id, 
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      // Ensure all nullable fields are properly handled
-      userType: insertUser.userType ?? "user",
-      canOfferServices: insertUser.canOfferServices ?? false,
-      rating: insertUser.rating ?? "0.00",
-      totalReviews: insertUser.totalReviews ?? 0,
-      isVerified: insertUser.isVerified ?? false,
-      registrationCompleted: insertUser.registrationCompleted ?? false
-    };
+    const user: User = { ...insertUser, id, createdAt: new Date() };
     this.users.set(id, user);
     return user;
   }
@@ -706,14 +681,7 @@ export class MemStorage {
 
   async createRide(insertRide: InsertRide): Promise<Ride> {
     const id = randomUUID();
-    const ride: Ride = { 
-      ...insertRide, 
-      id,
-      // Ensure all nullable fields are properly handled
-      isActive: insertRide.isActive ?? true,
-      maxPassengers: insertRide.maxPassengers ?? 4,
-      availableSeats: insertRide.availableSeats ?? 4
-    };
+    const ride: Ride = { ...insertRide, id };
     this.rides.set(id, ride);
     return ride;
   }
@@ -728,16 +696,7 @@ export class MemStorage {
 
   async createAccommodation(insertAccommodation: InsertAccommodation): Promise<Accommodation> {
     const id = randomUUID();
-    const accommodation: Accommodation = { 
-      ...insertAccommodation, 
-      id,
-      // Ensure all nullable fields are properly handled
-      rating: insertAccommodation.rating ?? null,
-      reviewCount: insertAccommodation.reviewCount ?? 0,
-      isAvailable: insertAccommodation.isAvailable ?? true,
-      offerDriverDiscounts: insertAccommodation.offerDriverDiscounts ?? false,
-      partnershipBadgeVisible: insertAccommodation.partnershipBadgeVisible ?? false
-    };
+    const accommodation: Accommodation = { ...insertAccommodation, id };
     this.accommodations.set(id, accommodation);
     return accommodation;
   }
@@ -830,7 +789,7 @@ export class MemStorage {
     return undefined;
   }
 
-  private initializeMockDataSecond() {
+  private initializeMockData() {
     // Add mock bookings for testing the confirmation system
     const mockBookings = [
       {

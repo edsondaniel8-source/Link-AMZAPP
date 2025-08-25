@@ -455,7 +455,13 @@ export const driverDocuments = pgTable("driver_documents", {
 });
 
 export const insertUserSchema = createInsertSchema(users);
-export const upsertUserSchema = createInsertSchema(users);
+export const upsertUserSchema = createInsertSchema(users).pick({
+  id: true,
+  email: true,
+  firstName: true,
+  lastName: true,
+  profileImageUrl: true,
+});
 
 export const insertBookingSchema = createInsertSchema(bookings);
 export const insertRideSchema = createInsertSchema(rides);
@@ -502,7 +508,11 @@ export type PickupRequest = typeof pickupRequests.$inferSelect;
 export type InsertPickupRequest = z.infer<typeof insertPickupRequestSchema>;
 
 // Partnership system schemas
-export const insertDriverStatsSchema = createInsertSchema(driverStats);
+export const insertDriverStatsSchema = createInsertSchema(driverStats).omit({
+  id: true,
+  joinedAt: true,
+  updatedAt: true,
+});
 
 export type InsertDriverStats = z.infer<typeof insertDriverStatsSchema>;
 // REMOVED: InsertDriverHotelPartnership schema and type

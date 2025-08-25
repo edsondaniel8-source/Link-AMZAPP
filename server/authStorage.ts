@@ -2,7 +2,7 @@ import {
   users,
   type User,
   type UpsertUser,
-} from "./schema";
+} from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 
@@ -21,7 +21,7 @@ export class DatabaseAuthStorage implements IAuthStorage {
   }
 
   async getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, firebaseUid));
+    const [user] = await db.select().from(users).where(eq(users.firebaseUid, firebaseUid));
     return user;
   }
 
