@@ -1,4 +1,4 @@
-import { users, } from "../shared/schema";
+import { users, } from "./schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 export class DatabaseAuthStorage {
