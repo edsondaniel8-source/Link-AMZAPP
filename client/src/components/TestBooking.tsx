@@ -10,6 +10,7 @@ const TestBooking = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [testResult, setTestResult] = useState<any>(null); // ← ADDED FOR TESTING
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -28,6 +29,7 @@ const TestBooking = () => {
       alert("Logged in successfully!");
       setEmail("");
       setPassword("");
+      setTestResult(null); // Clear previous test results
     } catch (error) {
       console.error("Login failed:", error);
       alert("Login failed. Please check your credentials.");
@@ -52,6 +54,7 @@ const TestBooking = () => {
       });
 
       console.log("Booking result:", result);
+      setTestResult(result); // ← STORE RESULT FOR DISPLAY
 
       if (result.success) {
         alert("✅ Booking test successful! Check Firebase console.");
@@ -60,8 +63,31 @@ const TestBooking = () => {
       }
     } catch (error) {
       console.error("Booking error:", error);
-      alert("❌ Booking failed with unexpected error");
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      alert("❌ Booking failed with error: " + errorMessage);
+      setTestResult({ success: false, error: errorMessage }); // ← STORE ERROR
     }
+  };
+
+  // ← ADDED: SIMULATED TEST FOR DEMO PURPOSES
+  const testSimulatedBooking = async () => {
+    console.log("Testing SIMULATED booking system...");
+
+    // Simulate API call delay
+    setLoading(true);
+    setTimeout(() => {
+      const simulatedResult = {
+        success: true,
+        id: "simulated-booking-123",
+        message: "This is a simulated success for demo purposes",
+      };
+
+      console.log("Simulated booking result:", simulatedResult);
+      setTestResult(simulatedResult);
+      alert("🎭 SIMULATED: Booking would be created if Firebase was connected");
+      setLoading(false);
+    }, 1000);
   };
 
   return (
@@ -121,18 +147,61 @@ const TestBooking = () => {
           </p>
         </div>
       ) : (
-        <button
-          onClick={testRideBooking}
-          style={{
-            padding: "10px 15px",
-            backgroundColor: "#2196F3",
-            color: "white",
-            border: "none",
-            borderRadius: "5px",
-          }}
-        >
-          Test Create Booking
-        </button>
+        <div>
+          {/* REAL TEST BUTTON */}
+          <button
+            onClick={testRideBooking}
+            disabled={loading}
+            style={{
+              padding: "10px 15px",
+              backgroundColor: "#2196F3",
+              color: "white",
+              border: "none",
+              borderRadius: "5px",
+              marginRight: "10px",
+            }}
+          >
+            {loading ? "Testing..." : "🚗 Test Real Booking"}
+          </button>
+
+          {/* SIMULATED TEST BUTTON */}
+          <button
+            onClick={testSimulatedBooking}
+            disabled={loading}
+            style={{
+              padding: "10px 15px",
+              backgroundColor: "#FF9800",
+              color: "white",
+              border: "none",
+              borderRadius: "5px",
+            }}
+          >
+            {loading ? "Simulating..." : "🎭 Test Simulated Booking"}
+          </button>
+
+          {/* TEST RESULTS DISPLAY */}
+          {testResult && (
+            <div
+              style={{
+                marginTop: "20px",
+                padding: "15px",
+                border: "1px solid #ccc",
+                borderRadius: "5px",
+                backgroundColor: testResult.success ? "#e8f5e8" : "#ffe8e8",
+              }}
+            >
+              <h4>Test Results:</h4>
+              <pre style={{ fontSize: "12px", overflow: "auto" }}>
+                {JSON.stringify(testResult, null, 2)}
+              </pre>
+            </div>
+          )}
+
+          <p style={{ color: "gray", marginTop: "10px", fontSize: "12px" }}>
+            💡 Use simulated test for demo purposes while Firebase issues are
+            resolved
+          </p>
+        </div>
       )}
     </div>
   );
