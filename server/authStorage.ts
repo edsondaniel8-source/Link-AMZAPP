@@ -21,7 +21,7 @@ export class DatabaseAuthStorage implements IAuthStorage {
   }
 
   async getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.firebaseUid, firebaseUid));
+    const [user] = await db.select().from(users).where(eq(users.id, firebaseUid));
     return user;
   }
 

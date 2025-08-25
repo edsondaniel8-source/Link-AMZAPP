@@ -657,7 +657,7 @@ export class MemStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.username === username);
+    return Array.from(this.users.values()).find(user => user.email === username);
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
@@ -789,7 +789,7 @@ export class MemStorage {
     return undefined;
   }
 
-  private initializeMockData() {
+  private initializeMockDataSecond() {
     // Add mock bookings for testing the confirmation system
     const mockBookings = [
       {
