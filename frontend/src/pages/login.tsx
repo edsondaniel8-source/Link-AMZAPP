@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { signInWithGoogle, isFirebaseConfigured } from '../lib/firebaseConfig';
 
 const loginSchema = z.object({
   phone: z.string().min(9, "Número de telefone deve ter pelo menos 9 dígitos"),
@@ -46,6 +45,8 @@ export default function LoginPage() {
 
   const handleGoogleLogin = async () => {
     try {
+      const { signInWithGoogle, isFirebaseConfigured } = await import('../lib/firebaseConfig');
+      
       if (!isFirebaseConfigured) {
         toast({
           title: "Firebase Não Configurado",
