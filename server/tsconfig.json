@@ -16,10 +16,7 @@
     "declarationMap": false,
     "sourceMap": false,
     "noImplicitAny": false,
-    "baseUrl": ".",
-    "paths": {
-      "@shared/*": ["../shared/*"]
-    }
+    "baseUrl": "."
   },
   "include": [
     "index.production.ts",
