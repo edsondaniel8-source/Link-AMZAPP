@@ -396,13 +396,7 @@ export const driverDocuments = pgTable("driver_documents", {
     updatedAt: timestamp("updated_at").defaultNow(),
 });
 export const insertUserSchema = createInsertSchema(users);
-export const upsertUserSchema = createInsertSchema(users).pick({
-    id: true,
-    email: true,
-    firstName: true,
-    lastName: true,
-    profileImageUrl: true,
-});
+export const upsertUserSchema = createInsertSchema(users);
 export const insertBookingSchema = createInsertSchema(bookings);
 export const insertRideSchema = createInsertSchema(rides);
 export const insertAccommodationSchema = createInsertSchema(accommodations);
@@ -412,10 +406,6 @@ export const insertPriceNegotiationSchema = createInsertSchema(priceNegotiations
 // Pickup request types
 export const insertPickupRequestSchema = createInsertSchema(pickupRequests);
 // Partnership system schemas
-export const insertDriverStatsSchema = createInsertSchema(driverStats).omit({
-    id: true,
-    joinedAt: true,
-    updatedAt: true,
-});
+export const insertDriverStatsSchema = createInsertSchema(driverStats);
 // REMOVED: InsertDriverHotelPartnership schema and type
 // REMOVED: Event ticket schemas - functionality integrated into eventBookings

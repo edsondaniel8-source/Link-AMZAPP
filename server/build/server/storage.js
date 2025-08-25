@@ -33,7 +33,13 @@ export class DatabaseStorage {
     async createRide(insertRide) {
         const [ride] = await db
             .insert(rides)
-            .values(insertRide)
+            .values({
+            ...insertRide,
+            // Ensure required fields have proper defaults
+            isActive: insertRide.isActive ?? true,
+            maxPassengers: insertRide.maxPassengers ?? 4,
+            availableSeats: insertRide.availableSeats ?? 4
+        })
             .returning();
         return ride;
     }
@@ -47,7 +53,14 @@ export class DatabaseStorage {
     async createAccommodation(insertAccommodation) {
         const [accommodation] = await db
             .insert(accommodations)
-            .values(insertAccommodation)
+            .values({
+            ...insertAccommodation,
+            // Ensure required fields have proper defaults
+            isAvailable: insertAccommodation.isAvailable ?? true,
+            reviewCount: insertAccommodation.reviewCount ?? 0,
+            offerDriverDiscounts: insertAccommodation.offerDriverDiscounts ?? false,
+            partnershipBadgeVisible: insertAccommodation.partnershipBadgeVisible ?? false
+        })
             .returning();
         return accommodation;
     }
@@ -594,7 +607,19 @@ export class MemStorage {
     }
     async createUser(insertUser) {
         const id = randomUUID();
-        const user = { ...insertUser, id, createdAt: new Date() };
+        const user = {
+            ...insertUser,
+            id,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            // Ensure all nullable fields are properly handled
+            userType: insertUser.userType ?? "user",
+            canOfferServices: insertUser.canOfferServices ?? false,
+            rating: insertUser.rating ?? "0.00",
+            totalReviews: insertUser.totalReviews ?? 0,
+            isVerified: insertUser.isVerified ?? false,
+            registrationCompleted: insertUser.registrationCompleted ?? false
+        };
         this.users.set(id, user);
         return user;
     }
@@ -606,7 +631,14 @@ export class MemStorage {
     }
     async createRide(insertRide) {
         const id = randomUUID();
-        const ride = { ...insertRide, id };
+        const ride = {
+            ...insertRide,
+            id,
+            // Ensure all nullable fields are properly handled
+            isActive: insertRide.isActive ?? true,
+            maxPassengers: insertRide.maxPassengers ?? 4,
+            availableSeats: insertRide.availableSeats ?? 4
+        };
         this.rides.set(id, ride);
         return ride;
     }
@@ -618,7 +650,16 @@ export class MemStorage {
     }
     async createAccommodation(insertAccommodation) {
         const id = randomUUID();
-        const accommodation = { ...insertAccommodation, id };
+        const accommodation = {
+            ...insertAccommodation,
+            id,
+            // Ensure all nullable fields are properly handled
+            rating: insertAccommodation.rating ?? null,
+            reviewCount: insertAccommodation.reviewCount ?? 0,
+            isAvailable: insertAccommodation.isAvailable ?? true,
+            offerDriverDiscounts: insertAccommodation.offerDriverDiscounts ?? false,
+            partnershipBadgeVisible: insertAccommodation.partnershipBadgeVisible ?? false
+        };
         this.accommodations.set(id, accommodation);
         return accommodation;
     }

@@ -1,10 +1,9 @@
 import { createServer } from "http";
 import multer from "multer";
-import { storage } from "./storage";
+import { authStorage } from "./authStorage";
 import { verifyFirebaseToken } from "./firebaseAuth";
-import { insertBookingSchema } from "@shared/schema";
 export async function registerRoutes(app) {
-    // Auth middleware
+    // Production Firebase Auth API - focused on authentication only
     // Configure multer for file uploads
     const upload = multer({
         storage: multer.memoryStorage(),
@@ -18,7 +17,7 @@ export async function registerRoutes(app) {
             if (!userId) {
                 return res.status(401).json({ message: "User ID not found" });
             }
-            const user = await storage.getUser(userId);
+            const user = await authStorage.getUser(userId);
             res.json(user);
         }
         catch (error) {
@@ -58,7 +57,7 @@ export async function registerRoutes(app) {
                 registrationCompleted: true,
                 verificationStatus: "pending"
             };
-            const user = await storage.upsertUser(userData);
+            const user = await authStorage.upsertUser(userData);
             res.json({ user, message: "Registro concluído com sucesso!" });
         }
         catch (error) {
@@ -74,7 +73,7 @@ export async function registerRoutes(app) {
             if (!userId) {
                 return res.status(401).json({ message: "User ID not found" });
             }
-            const user = await storage.getUser(userId);
+            const user = await authStorage.getUser(userId);
             if (!user) {
                 return res.json({ needsRegistration: true });
             }

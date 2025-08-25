@@ -22,15 +22,11 @@
     }
   },
   "include": [
-    "*.ts",
-    "../shared/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "build",
-    "../client/**/*",
-    "../frontend/**/*",
-    "../backend/**/*",
-    "../vite.config.ts"
+    "index.ts",
+    "db.ts",
+    "authStorage.ts", 
+    "firebaseAuth.ts",
+    "routes.production.ts",
+    "../shared/schema.ts"
   ]
 }
