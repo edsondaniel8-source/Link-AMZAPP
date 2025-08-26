@@ -74,6 +74,24 @@ export default function Home() {
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-dark">Planeie Sua Viagem Completa com Link-A Mz</h2>
             <p className="text-gray-medium mt-2">Combine viagens e hospedagens para uma experiência perfeita</p>
+            
+            {/* Backend Connection Test Button */}
+            <button 
+              onClick={async () => {
+                try {
+                  const response = await fetch('https://link-amzapp-production.up.railway.app/health');
+                  const data = await response.json();
+                  console.log('Backend response:', data);
+                  alert('Backend connected successfully! Check console for details.');
+                } catch (error) {
+                  console.error('Backend connection failed:', error);
+                  alert('Backend connection failed. Check console for details.');
+                }
+              }}
+              className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+            >
+              Test Backend Connection
+            </button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">

@@ -26,7 +26,11 @@ export async function apiRequest(
     console.debug('No auth token available:', error);
   }
 
-  const res = await fetch(url, {
+  // Use full URL if it includes protocol, otherwise prepend API base URL
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://link-amzapp-production.up.railway.app';
+  const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
+
+  const res = await fetch(fullUrl, {
     method,
     headers,
     body: data ? JSON.stringify(data) : undefined,
@@ -56,7 +60,12 @@ export const getQueryFn: <T>(options: {
       console.debug('No auth token available:', error);
     }
 
-    const res = await fetch(queryKey.join("/") as string, {
+    // Use full URL if it includes protocol, otherwise prepend API base URL
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://link-amzapp-production.up.railway.app';
+    const url = queryKey.join("/") as string;
+    const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
+
+    const res = await fetch(fullUrl, {
       headers,
       credentials: "include",
     });
