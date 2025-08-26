@@ -10,11 +10,17 @@ const log = (message: string) => {
 
 // CORS middleware
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  
-  if (req.method === 'OPTIONS') {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+  );
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization",
+  );
+
+  if (req.method === "OPTIONS") {
     res.sendStatus(200);
   } else {
     next();
@@ -54,6 +60,49 @@ app.use((req, res, next) => {
   next();
 });
 
+// 🚨 ADD THESE BASIC ROUTES IMMEDIATELY 🚨
+app.get("/health", (req: Request, res: Response) => {
+  res.json({
+    status: "OK",
+    message: "Backend is working!",
+    timestamp: new Date().toISOString(),
+    database: process.env.DATABASE_URL ? "Connected" : "Missing",
+  });
+});
+
+app.get("/api/health", (req: Request, res: Response) => {
+  res.json({
+    status: "API is healthy",
+    environment: process.env.NODE_ENV || "development",
+  });
+});
+
+app.get("/api/users", (req: Request, res: Response) => {
+  res.json({
+    users: [],
+    message: "Users endpoint ready",
+    total: 0,
+  });
+});
+
+app.get("/api/auth", (req: Request, res: Response) => {
+  res.json({
+    auth: "Authentication endpoint ready",
+    message: "Add authentication logic here",
+  });
+});
+
+// Handle undefined routes - return JSON instead of HTML
+app.use("*", (req: Request, res: Response) => {
+  res.status(404).json({
+    error: "Route not found",
+    path: req.originalUrl,
+    method: req.method,
+    message: "The requested endpoint does not exist",
+    availableEndpoints: ["/health", "/api/health", "/api/users", "/api/auth"],
+  });
+});
+
 (async () => {
   const server = await registerRoutes(app);
 
@@ -62,14 +111,11 @@ app.use((req, res, next) => {
     const message = err.message || "Internal Server Error";
 
     res.status(status).json({ message });
-    throw err;
+    console.error("Error:", err);
   });
 
   // Backend API only - no static file serving
-  // This will be deployed separately from the frontend
-
-  // Backend API server only
-  const port = parseInt(process.env.PORT || '5000', 10);
+  const port = parseInt(process.env.PORT || "5000", 10);
   server.listen(port, "0.0.0.0", () => {
     log(`Backend API serving on port ${port}`);
   });
