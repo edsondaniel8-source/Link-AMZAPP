@@ -4,11 +4,10 @@ import NotificationCenter from "./NotificationCenter";
 import LoginModal from "./LoginModal";
 import RoleSwitcher from "./RoleSwitcher";
 import { Button } from "@/components/ui/button";
-import { User, LogOut } from "lucide-react";
-import { FaGoogle } from "react-icons/fa";
+import { User } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useUserRoles } from "../hooks/useUserRoles";
-import logoPath from "@assets/link-a-logo.png";
+// Logo is now served from public directory
 
 interface HeaderProps {
   activeService: "rides" | "stays";
@@ -31,7 +30,7 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
             <Link href="/">
               <div className="flex items-center cursor-pointer">
                 <img 
-                  src={logoPath} 
+                  src="/link-a-logo.png" 
                   alt="Link-A" 
                   className="h-12 w-12 mr-3"
                 />

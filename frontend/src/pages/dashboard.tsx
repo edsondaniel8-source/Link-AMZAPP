@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatMzn } from "@/lib/currency";
 import { formatDateToDDMMYYYY, formatDepartureTime } from "@/lib/dateUtils";
-import logoPath from "@assets/link-a-logo.png";
+// Logo is now served from public directory
 import MobileNavigation from "@/components/MobileNavigation";
 import type { Booking, Payment } from "@shared/schema";
 
