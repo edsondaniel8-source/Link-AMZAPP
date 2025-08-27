@@ -23,17 +23,13 @@ export default function FileUploadButton({
     }
   };
 
-  const handleButtonClick = () => {
-    document.getElementById(fileInputId)?.click();
-  };
-
   return (
-    <div className="relative">
+    <>
       {/* Hidden file input */}
       <input 
         type="file" 
         id={fileInputId}
-        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+        className="hidden" 
         accept={accept}
         onChange={handleFileSelect}
       />
@@ -42,11 +38,11 @@ export default function FileUploadButton({
       <button 
         type="button"
         className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium bg-white text-[#0F1419] border border-gray-300 hover:bg-gray-50 transition-colors ${className}`}
-        onClick={handleButtonClick}
+        onClick={() => document.getElementById(fileInputId)?.click()}
       >
         <Camera className="w-4 h-4" />
         {children || "Selecionar Foto"}
       </button>
-    </div>
+    </>
   );
 }
