@@ -16,11 +16,15 @@ export default defineConfig({
     sourcemap: false,
     target: 'es2020',
     rollupOptions: {
+      external: [],
       output: {
         manualChunks: undefined,
       },
     },
     chunkSizeWarningLimit: 2000,
+    commonjsOptions: {
+      include: [/node_modules/],
+    },
   },
   server: {
     host: "0.0.0.0",
