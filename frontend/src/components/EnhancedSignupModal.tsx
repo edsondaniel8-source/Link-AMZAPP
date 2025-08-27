@@ -430,25 +430,23 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
                           id="profile-photo-upload"
                           data-testid="input-profile-photo"
                         />
-                        <Button 
+                        <button 
                           type="button" 
-                          variant="outline"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            console.log("Profile photo button clicked - attempting to trigger file input");
-                            
-                            const fileInput = profilePhotoRef.current || document.getElementById("profile-photo-upload") as HTMLInputElement;
-                            if (fileInput) {
-                              console.log("File input found, triggering click");
-                              fileInput.click();
+                          className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
+                          onClick={() => {
+                            console.log("🔥 PROFILE BUTTON CLICKED!");
+                            const input = document.getElementById("profile-photo-upload");
+                            console.log("Input element:", input);
+                            if (input) {
+                              (input as HTMLInputElement).click();
+                              console.log("✅ Input clicked!");
                             } else {
-                              console.error("File input not found!");
+                              console.error("❌ Input not found!");
                             }
                           }}
                         >
                           Selecionar Foto
-                        </Button>
+                        </button>
                       </div>
                     )}
                     {uploadProgress.profile > 0 && uploadProgress.profile < 100 && (
@@ -502,25 +500,23 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
                           id="document-photo-upload"
                           data-testid="input-document-photo"
                         />
-                        <Button 
+                        <button 
                           type="button" 
-                          variant="outline"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            console.log("Document photo button clicked - attempting to trigger file input");
-                            
-                            const fileInput = documentPhotoRef.current || document.getElementById("document-photo-upload") as HTMLInputElement;
-                            if (fileInput) {
-                              console.log("File input found, triggering click");
-                              fileInput.click();
+                          className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
+                          onClick={() => {
+                            console.log("🔥 DOCUMENT BUTTON CLICKED!");
+                            const input = document.getElementById("document-photo-upload");
+                            console.log("Input element:", input);
+                            if (input) {
+                              (input as HTMLInputElement).click();
+                              console.log("✅ Input clicked!");
                             } else {
-                              console.error("File input not found!");
+                              console.error("❌ Input not found!");
                             }
                           }}
                         >
                           Selecionar Foto
-                        </Button>
+                        </button>
                       </div>
                     )}
                     {uploadProgress.document > 0 && uploadProgress.document < 100 && (
