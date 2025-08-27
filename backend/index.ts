@@ -1,4 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
+import multer from "multer";
+import path from "path";
 import { registerRoutes } from "./routes";
 
 const app = express();
@@ -29,6 +31,35 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// File upload configuration
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ storage });
+
+// Simple upload endpoint
+app.post('/api/upload', upload.single('file'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
+  
+  res.json({ 
+    message: 'File uploaded successfully', 
+    filename: req.file.filename,
+    path: req.file.path,
+    url: `/uploads/${req.file.filename}`
+  });
+});
+
+// Serve uploaded files
+app.use('/uploads', express.static('uploads'));
 
 app.use((req, res, next) => {
   const start = Date.now();
