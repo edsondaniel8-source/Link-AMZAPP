@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload de Documentos - Firebase Storage</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            background: #f9f9f9;
+            margin: 20px 0;
+        }
+        
+        .upload-btn {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        
+        .upload-btn:hover {
+            background: #45a049;
+        }
+        
+        .upload-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .progress-container {
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #4CAF50;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .progress-text {
+            margin-top: 10px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .status {
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📄 Upload de Documentos</h1>
+        <p>Selecione uma foto do seu BI, Passaporte ou Carta de Condução</p>
+        
+        <div class="upload-area">
+            <p>📷 Clique no botão para selecionar sua foto</p>
+            
+            <!-- Input file escondido -->
+            <input type="file" id="fileInput" accept="image/*" style="display: none;">
+            
+            <!-- Botão visível -->
+            <button class="upload-btn" id="selectBtn">Selecionar Foto</button>
+        </div>
+        
+        <!-- Barra de progresso -->
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">Preparando upload...</div>
+        </div>
+        
+        <!-- Status messages -->
+        <div class="status" id="statusMessage"></div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+
+        // CONFIGURAÇÃO DO FIREBASE
+        // ⚠️ SUBSTITUA com suas próprias credenciais Firebase
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const storage = getStorage(app);
+
+        // Elementos do DOM
+        const fileInput = document.getElementById('fileInput');
+        const selectBtn = document.getElementById('selectBtn');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const statusMessage = document.getElementById('statusMessage');
+
+        // Função para mostrar status
+        function showStatus(message, type) {
+            statusMessage.textContent = message;
+            statusMessage.className = `status ${type}`;
+            statusMessage.style.display = 'block';
+        }
+
+        // Função para esconder status
+        function hideStatus() {
+            statusMessage.style.display = 'none';
+        }
+
+        // Função para mostrar progresso
+        function showProgress() {
+            progressContainer.style.display = 'block';
+        }
+
+        // Função para esconder progresso
+        function hideProgress() {
+            progressContainer.style.display = 'none';
+        }
+
+        // Botão "Selecionar Foto" clica no input escondido
+        selectBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('🔥 BOTÃO CLICADO!');
+            hideStatus();
+            
+            // Clica no input file escondido
+            fileInput.click();
+            console.log('✅ Input file acionado!');
+        });
+
+        // Quando usuário seleciona um arquivo
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            
+            if (!file) {
+                console.log('❌ Nenhum arquivo selecionado');
+                return;
+            }
+            
+            console.log('📁 Arquivo selecionado:', file.name);
+            console.log('📏 Tamanho:', (file.size / 1024 / 1024).toFixed(2) + ' MB');
+            console.log('🎭 Tipo:', file.type);
+            
+            // Validar se é uma imagem
+            if (!file.type.startsWith('image/')) {
+                showStatus('❌ Por favor, selecione apenas arquivos de imagem!', 'error');
+                return;
+            }
+            
+            // Fazer upload do arquivo
+            uploadFile(file);
+        });
+
+        // Função para fazer upload
+        function uploadFile(file) {
+            hideStatus();
+            showProgress();
+            
+            // Gerar nome único para o arquivo
+            const timestamp = new Date().getTime();
+            const fileName = `${timestamp}_${file.name}`;
+            
+            console.log('🚀 Iniciando upload para:', fileName);
+            
+            // Criar referência no Firebase Storage na pasta "documentos/"
+            const storageRef = ref(storage, `documentos/${fileName}`);
+            
+            // Criar upload task
+            const uploadTask = uploadBytesResumable(storageRef, file);
+            
+            // Desabilitar botão durante upload
+            selectBtn.disabled = true;
+            selectBtn.textContent = 'Enviando...';
+            
+            // Monitorar progresso do upload
+            uploadTask.on('state_changed', 
+                (snapshot) => {
+                    // Calcular progresso
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    
+                    console.log(`📊 Progresso: ${progress.toFixed(2)}%`);
+                    console.log(`📤 Enviado: ${(snapshot.bytesTransferred / 1024 / 1024).toFixed(2)} MB`);
+                    console.log(`📦 Total: ${(snapshot.totalBytes / 1024 / 1024).toFixed(2)} MB`);
+                    
+                    // Atualizar barra de progresso
+                    progressFill.style.width = progress + '%';
+                    progressText.textContent = `Enviando... ${Math.round(progress)}%`;
+                    
+                    switch (snapshot.state) {
+                        case 'paused':
+                            console.log('⏸️ Upload pausado');
+                            break;
+                        case 'running':
+                            console.log('🏃 Upload em andamento');
+                            break;
+                    }
+                },
+                (error) => {
+                    // Erro durante upload
+                    console.error('❌ Erro no upload:', error);
+                    
+                    hideProgress();
+                    showStatus('❌ Erro ao enviar arquivo. Tente novamente.', 'error');
+                    
+                    // Reabilitar botão
+                    selectBtn.disabled = false;
+                    selectBtn.textContent = 'Selecionar Foto';
+                },
+                () => {
+                    // Upload concluído com sucesso
+                    console.log('✅ Upload concluído!');
+                    
+                    // Obter URL de download
+                    getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                        console.log('🔗 Link de download:', downloadURL);
+                        console.log('📁 Nome do arquivo:', fileName);
+                        console.log('📂 Pasta:', 'documentos/');
+                        
+                        // Esconder progresso
+                        hideProgress();
+                        
+                        // Mostrar sucesso
+                        showStatus('✅ Foto enviada com sucesso!', 'success');
+                        
+                        // Alert de sucesso
+                        alert('Foto enviada com sucesso!');
+                        
+                        // Reabilitar botão
+                        selectBtn.disabled = false;
+                        selectBtn.textContent = 'Selecionar Foto';
+                        
+                        // Limpar input
+                        fileInput.value = '';
+                        
+                        console.log('🎉 PROCESSO CONCLUÍDO COM SUCESSO!');
+                    });
+                }
+            );
+        }
+
+        console.log('🔥 Sistema de upload inicializado!');
+        console.log('📋 Instruções:');
+        console.log('1. Substitua as credenciais Firebase na configuração');
+        console.log('2. Clique em "Selecionar Foto"');
+        console.log('3. Escolha uma imagem do seu dispositivo');
+        console.log('4. Acompanhe o progresso no console e na tela');
+    </script>
+</body>
+</html>
