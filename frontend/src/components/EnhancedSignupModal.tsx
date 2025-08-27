@@ -13,7 +13,6 @@ import {
   Lock, 
   User, 
   Phone, 
-  MapPin, 
   FileText, 
   Camera, 
   Upload,
@@ -327,14 +326,14 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="city">Cidade de Residência</Label>
+              <Label htmlFor="city-select">Cidade de Residência</Label>
               <Select onValueChange={(value) => handleInputChange('city', value)} value={formData.city}>
-                <SelectTrigger data-testid="select-city">
+                <SelectTrigger id="city-select" data-testid="select-city">
                   <SelectValue placeholder="Selecione sua cidade" />
                 </SelectTrigger>
                 <SelectContent>
                   {mozambicanCities.map(city => (
-                    <SelectItem key={city} value={city}>{city}</SelectItem>
+                    <SelectItem key={city} value={city} data-testid={`select-city-${city.toLowerCase().replace(/\s+/g, '-')}`}>{city}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
