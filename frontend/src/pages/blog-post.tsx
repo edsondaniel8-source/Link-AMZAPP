@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { 
   Calendar, 
   User, 
@@ -313,7 +314,7 @@ export default function BlogPost() {
 
         {/* Article Content */}
         <Card>
-          <CardContent className="max-w-none pt-6 text-base leading-7 text-foreground">
+          <CardContent className="prose prose-lg max-w-none pt-6">
             <div className="whitespace-pre-wrap leading-relaxed">
               {post.content}
             </div>
@@ -364,7 +365,7 @@ export default function BlogPost() {
                     <Card className="hover:shadow-md transition-shadow cursor-pointer">
                       <CardContent className="pt-4">
                         <div className="flex items-center gap-2 mb-2">
-                          <Badge variant="secondary">
+                          <Badge variant="secondary" size="sm">
                             {relatedPost.category}
                           </Badge>
                         </div>

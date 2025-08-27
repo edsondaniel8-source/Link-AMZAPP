@@ -129,19 +129,19 @@ app.get("/api/auth", (req: Request, res: Response) => {
   });
 });
 
+// Handle undefined routes - return JSON instead of HTML
+app.use("*", (req: Request, res: Response) => {
+  res.status(404).json({
+    error: "Route not found",
+    path: req.originalUrl,
+    method: req.method,
+    message: "The requested endpoint does not exist",
+    availableEndpoints: ["/health", "/api/health", "/api/users", "/api/auth"],
+  });
+});
+
 (async () => {
   const server = await registerRoutes(app);
-
-  // Handle undefined routes - return JSON instead of HTML (MUST be after registerRoutes!)
-  app.use("*", (req: Request, res: Response) => {
-    res.status(404).json({
-      error: "Route not found",
-      path: req.originalUrl,
-      method: req.method,
-      message: "The requested endpoint does not exist",
-      availableEndpoints: ["/", "/health", "/api/health", "/api/users", "/api/auth"],
-    });
-  });
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

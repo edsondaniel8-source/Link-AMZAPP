@@ -6,15 +6,6 @@ import { verifyFirebaseToken, type AuthenticatedRequest } from "./firebaseAuth";
 import { insertBookingSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Root route
-  app.get('/', (req, res) => {
-    res.json({ 
-      message: 'Link-A Backend API', 
-      status: 'running',
-      endpoints: ['/api/auth', '/api/users', '/api/bookings', '/api/rides']
-    });
-  });
-
   // Auth middleware
 
 

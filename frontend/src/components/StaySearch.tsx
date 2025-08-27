@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,7 +34,7 @@ export default function StaySearch({ onSearch }: StaySearchProps) {
   const [selectedAccommodationType, setSelectedAccommodationType] = useState("todos");
   
   const form = useForm<StaySearchForm>({
-    mode: "onChange",
+    resolver: zodResolver(staySearchSchema),
     defaultValues: {
       location: "",
       checkIn: getTodayHTML(),
@@ -43,30 +44,6 @@ export default function StaySearch({ onSearch }: StaySearchProps) {
   });
 
   const handleSubmit = (data: StaySearchForm) => {
-    // Manual validation to replace zodResolver
-    if (!data.location || data.location.length < 1) {
-      console.error("Local é obrigatório");
-      return;
-    }
-    if (!data.checkIn || data.checkIn.length < 1) {
-      console.error("Data de entrada é obrigatória");
-      return;
-    }
-    if (!data.checkOut || data.checkOut.length < 1) {
-      console.error("Data de saída é obrigatória");
-      return;
-    }
-    if (data.guests < 1 || data.guests > 16) {
-      console.error("Número de hóspedes deve estar entre 1 e 16");
-      return;
-    }
-    // Check if checkOut is after checkIn
-    const checkIn = new Date(data.checkIn);
-    const checkOut = new Date(data.checkOut);
-    if (checkOut <= checkIn) {
-      console.error("Data de saída deve ser posterior à data de entrada");
-      return;
-    }
     onSearch({ ...data, accommodationType: selectedAccommodationType });
   };
 

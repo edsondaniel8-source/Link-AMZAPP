@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,33 +20,10 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<LoginData>({
-    mode: "onChange",
-    defaultValues: {
-      phone: "",
-      password: ""
-    }
+    resolver: zodResolver(loginSchema),
   });
 
   const onSubmit = async (data: LoginData) => {
-    // Manual validation to replace zodResolver
-    if (!data.phone || data.phone.length < 9) {
-      toast({
-        title: "Erro de Validação",
-        description: "Número de telefone deve ter pelo menos 9 dígitos",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!data.password || data.password.length < 6) {
-      toast({
-        title: "Erro de Validação", 
-        description: "Senha deve ter pelo menos 6 caracteres",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsLoading(true);
     try {
       // TODO: Implement manual login logic

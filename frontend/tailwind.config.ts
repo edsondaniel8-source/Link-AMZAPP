@@ -2,7 +2,7 @@ import type { Config } from "tailwindcss";
 
 export default {
   darkMode: ["class"],
-  content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
+  content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
       borderRadius: {
@@ -11,75 +11,93 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       colors: {
-        background: "hsl(0 0% 100%)",
-        foreground: "hsl(210 25% 7.8431%)",
+        background: "var(--background)",
+        foreground: "var(--foreground)",
         card: {
-          DEFAULT: "hsl(180 6.6667% 97.0588%)",
-          foreground: "hsl(210 25% 7.8431%)",
+          DEFAULT: "var(--card)",
+          foreground: "var(--card-foreground)",
         },
         popover: {
-          DEFAULT: "hsl(0 0% 100%)",
-          foreground: "hsl(210 25% 7.8431%)",
+          DEFAULT: "var(--popover)",
+          foreground: "var(--popover-foreground)",
         },
         primary: {
-          DEFAULT: "hsl(45 100% 50%)",
-          foreground: "hsl(0 0% 0%)",
+          DEFAULT: "var(--primary)",
+          foreground: "var(--primary-foreground)",
         },
         secondary: {
-          DEFAULT: "hsl(170.9 100% 33.1%)",
-          foreground: "hsl(0 0% 100%)",
+          DEFAULT: "var(--secondary)",
+          foreground: "var(--secondary-foreground)",
         },
         success: {
-          DEFAULT: "hsl(171.4 100% 26.9%)",
-          foreground: "hsl(0 0% 100%)",
+          DEFAULT: "var(--success)",
+          foreground: "var(--success-foreground)",
         },
         alert: {
-          DEFAULT: "hsl(14.1 100% 56.9%)",
-          foreground: "hsl(0 0% 100%)",
+          DEFAULT: "var(--alert)",
+          foreground: "var(--alert-foreground)",
         },
         dark: {
-          DEFAULT: "hsl(210 25% 13.3%)",
-          foreground: "hsl(0 0% 100%)",
+          DEFAULT: "var(--dark)",
+          foreground: "var(--dark-foreground)",
         },
-        "gray-medium": "hsl(0 0% 44.3%)",
-        "gray-light": "hsl(0 0% 96.9%)",
+        "gray-medium": "var(--gray-medium)",
+        "gray-light": "var(--gray-light)",
         muted: {
-          DEFAULT: "hsl(240 1.9608% 90%)",
-          foreground: "hsl(210 25% 7.8431%)",
+          DEFAULT: "var(--muted)",
+          foreground: "var(--muted-foreground)",
         },
         accent: {
-          DEFAULT: "hsl(211.5789 51.3514% 92.7451%)",
-          foreground: "hsl(203.8863 88.2845% 53.1373%)",
+          DEFAULT: "var(--accent)",
+          foreground: "var(--accent-foreground)",
         },
         destructive: {
-          DEFAULT: "hsl(356.3033 90.5579% 54.3137%)",
-          foreground: "hsl(0 0% 100%)",
+          DEFAULT: "var(--destructive)",
+          foreground: "var(--destructive-foreground)",
         },
-        border: "hsl(201.4286 30.4348% 90.9804%)",
-        input: "hsl(200 23.0769% 97.4510%)",
-        ring: "hsl(202.8169 89.1213% 53.1373%)",
+        border: "var(--border)",
+        input: "var(--input)",
+        ring: "var(--ring)",
         chart: {
-          "1": "hsl(203.8863 88.2845% 53.1373%)",
-          "2": "hsl(159.7826 100% 36.0784%)",
-          "3": "hsl(42.0290 92.8251% 56.2745%)",
-          "4": "hsl(147.1429 78.5047% 41.9608%)",
-          "5": "hsl(341.4894 75.2000% 50.9804%)",
+          "1": "var(--chart-1)",
+          "2": "var(--chart-2)",
+          "3": "var(--chart-3)",
+          "4": "var(--chart-4)",
+          "5": "var(--chart-5)",
+        },
+        sidebar: {
+          DEFAULT: "var(--sidebar-background)",
+          foreground: "var(--sidebar-foreground)",
+          primary: "var(--sidebar-primary)",
+          "primary-foreground": "var(--sidebar-primary-foreground)",
+          accent: "var(--sidebar-accent)",
+          "accent-foreground": "var(--sidebar-accent-foreground)",
+          border: "var(--sidebar-border)",
+          ring: "var(--sidebar-ring)",
         },
       },
       fontFamily: {
-        sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
-        serif: ["ui-serif", "Georgia", "serif"],
-        mono: ["ui-monospace", "Menlo", "monospace"],
+        sans: ["var(--font-sans)"],
+        serif: ["var(--font-serif)"],
+        mono: ["var(--font-mono)"],
         inter: ["Inter", "sans-serif"],
       },
       keyframes: {
         "accordion-down": {
-          from: { height: "0" },
-          to: { height: "var(--radix-accordion-content-height)" },
+          from: {
+            height: "0",
+          },
+          to: {
+            height: "var(--radix-accordion-content-height)",
+          },
         },
         "accordion-up": {
-          from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: "0" },
+          from: {
+            height: "var(--radix-accordion-content-height)",
+          },
+          to: {
+            height: "0",
+          },
         },
       },
       animation: {
@@ -88,5 +106,5 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
 } satisfies Config;

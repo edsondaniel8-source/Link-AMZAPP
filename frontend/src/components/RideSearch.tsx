@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,7 +27,7 @@ export default function RideSearch({ onSearch }: RideSearchProps) {
   const [selectedTransportType, setSelectedTransportType] = useState("todos");
   
   const form = useForm<RideSearchForm>({
-    mode: "onChange",
+    resolver: zodResolver(rideSearchSchema),
     defaultValues: {
       from: "",
       to: "",
@@ -36,23 +37,6 @@ export default function RideSearch({ onSearch }: RideSearchProps) {
   });
 
   const handleSubmit = (data: RideSearchForm) => {
-    // Manual validation to replace zodResolver
-    if (!data.from || data.from.length < 1) {
-      console.error("Local de recolha é obrigatório");
-      return;
-    }
-    if (!data.to || data.to.length < 1) {
-      console.error("Destino é obrigatório");
-      return;
-    }
-    if (!data.when || data.when.length < 1) {
-      console.error("Data e hora são obrigatórias");
-      return;
-    }
-    if (data.passengers < 1 || data.passengers > 8) {
-      console.error("Número de passageiros deve estar entre 1 e 8");
-      return;
-    }
     onSearch({ ...data, transportType: selectedTransportType });
   };
 

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,7 +38,7 @@ export default function RegistrationForm({ firebaseUser, onComplete }: Registrat
   const [documentPhotoPreview, setDocumentPhotoPreview] = useState<string>("");
 
   const form = useForm<RegistrationData>({
-    mode: "onChange",
+    resolver: zodResolver(registrationSchema),
     defaultValues: {
       firstName: firebaseUser?.displayName?.split(" ")[0] || "",
       lastName: firebaseUser?.displayName?.split(" ").slice(1).join(" ") || "",

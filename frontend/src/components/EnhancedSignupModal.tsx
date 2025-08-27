@@ -13,6 +13,7 @@ import {
   Lock, 
   User, 
   Phone, 
+  MapPin, 
   FileText, 
   Camera, 
   Upload,
@@ -326,14 +327,14 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="city-select">Cidade de Residência</Label>
+              <Label htmlFor="city">Cidade de Residência</Label>
               <Select onValueChange={(value) => handleInputChange('city', value)} value={formData.city}>
-                <SelectTrigger id="city-select" data-testid="select-city">
+                <SelectTrigger data-testid="select-city">
                   <SelectValue placeholder="Selecione sua cidade" />
                 </SelectTrigger>
                 <SelectContent>
                   {mozambicanCities.map(city => (
-                    <SelectItem key={city} value={city} data-testid={`select-city-${city.toLowerCase().replace(/\s+/g, '-')}`}>{city}</SelectItem>
+                    <SelectItem key={city} value={city}>{city}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -417,7 +418,7 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
                         <p className="text-sm text-gray-600">
                           Clique para carregar sua foto de perfil
                         </p>
-                        <input
+                        <Input
                           ref={profilePhotoRef}
                           type="file"
                           accept="image/*"
@@ -425,16 +426,25 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
                             const file = e.target.files?.[0];
                             if (file) handleFileUpload(file, 'profile');
                           }}
-                          style={{ display: 'none' }}
+                          className="hidden"
                           id="profile-photo-upload"
                           data-testid="input-profile-photo"
                         />
-                        <label 
-                          htmlFor="profile-photo-upload"
-                          className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 cursor-pointer"
+                        <Button 
+                          type="button" 
+                          variant="outline"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            console.log("Profile photo button clicked");
+                            if (profilePhotoRef.current) {
+                              profilePhotoRef.current.click();
+                            } else {
+                              document.getElementById("profile-photo-upload")?.click();
+                            }
+                          }}
                         >
                           Selecionar Foto
-                        </label>
+                        </Button>
                       </div>
                     )}
                     {uploadProgress.profile > 0 && uploadProgress.profile < 100 && (
@@ -476,7 +486,7 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
                         <p className="text-sm text-gray-600">
                           Foto do seu BI, Passaporte ou Carta de Condução
                         </p>
-                        <input
+                        <Input
                           ref={documentPhotoRef}
                           type="file"
                           accept="image/*"
@@ -484,16 +494,25 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
                             const file = e.target.files?.[0];
                             if (file) handleFileUpload(file, 'document');
                           }}
-                          style={{ display: 'none' }}
+                          className="hidden"
                           id="document-photo-upload"
                           data-testid="input-document-photo"
                         />
-                        <label 
-                          htmlFor="document-photo-upload"
-                          className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 cursor-pointer"
+                        <Button 
+                          type="button" 
+                          variant="outline"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            console.log("Document photo button clicked");
+                            if (documentPhotoRef.current) {
+                              documentPhotoRef.current.click();
+                            } else {
+                              document.getElementById("document-photo-upload")?.click();
+                            }
+                          }}
                         >
                           Selecionar Foto
-                        </label>
+                        </Button>
                       </div>
                     )}
                     {uploadProgress.document > 0 && uploadProgress.document < 100 && (
