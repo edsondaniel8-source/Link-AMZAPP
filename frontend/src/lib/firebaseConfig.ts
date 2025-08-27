@@ -141,18 +141,31 @@ export const signOutUser = async (): Promise<void> => {
   }
 };
 
+// Prevent multiple redirect handling
+let redirectHandled = false;
+
 export const handleRedirectResult = async (): Promise<User | null> => {
   if (!auth) {
     console.warn('Auth not configured for redirect result');
     return null;
   }
   
+  // Prevent multiple calls
+  if (redirectHandled) {
+    console.log('🔄 Redirect already handled, skipping...');
+    return null;
+  }
+  
   try {
     console.log('🔄 Handling redirect result...');
+    redirectHandled = true;
+    
     const result = await getRedirectResult(auth);
     if (result?.user) {
       console.log('✅ Redirect result successful:', result.user.email);
       return result.user;
+    } else {
+      console.log('ℹ️ No redirect result available');
     }
     return null;
   } catch (error: any) {
@@ -160,6 +173,9 @@ export const handleRedirectResult = async (): Promise<User | null> => {
       code: error?.code,
       message: error?.message
     });
+    
+    // Reset flag on error so it can be retried
+    redirectHandled = false;
     
     // Handle specific redirect errors
     if (error?.code === 'auth/unauthorized-domain') {
@@ -267,6 +283,9 @@ export const resetPassword = async (email: string): Promise<void> => {
   }
 };
 
+// Prevent multiple listeners
+let listenerCount = 0;
+
 export const onAuthStateChange = (callback: (user: User | null) => void): (() => void) => {
   if (!auth) {
     console.warn('Auth not configured for state change listener');
@@ -274,11 +293,20 @@ export const onAuthStateChange = (callback: (user: User | null) => void): (() =>
     return () => {};
   }
   
-  console.log('🔄 Setting up auth state listener');
-  return onAuthStateChanged(auth, (user) => {
+  listenerCount++;
+  console.log(`🔄 Setting up auth state listener #${listenerCount}`);
+  
+  const unsubscribe = onAuthStateChanged(auth, (user) => {
     console.log('👤 Auth state changed:', user ? `Signed in as ${user.email}` : 'Signed out');
     callback(user);
   });
+  
+  // Return cleanup function
+  return () => {
+    listenerCount--;
+    console.log(`🧹 Cleaning up auth listener, remaining: ${listenerCount}`);
+    unsubscribe();
+  };
 };
 
 // Debug function to test Firebase connection

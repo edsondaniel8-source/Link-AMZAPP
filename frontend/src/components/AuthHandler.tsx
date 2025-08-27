@@ -16,39 +16,71 @@ export default function AuthHandler({ children }: AuthHandlerProps) {
 
   useEffect(() => {
     if (!isFirebaseConfigured) {
+      console.log('⚠️ Firebase not configured, skipping auth setup');
       setLoading(false);
       return;
     }
 
-    // Handle redirect result from Google login
-    handleRedirectResult().then((result) => {
-      if (result) {
-        checkRegistrationStatus(result);
-      }
-    }).catch((error) => {
-      console.error("Error handling redirect:", error);
-      toast({
-        title: "Erro no Login",
-        description: "Erro ao processar login com Google",
-        variant: "destructive",
-      });
-    });
+    console.log('🔄 AuthHandler: Setting up Firebase auth...');
+    let redirectHandled = false;
+    let mounted = true;
 
-    // Listen for auth state changes
+    const setupAuth = async () => {
+      try {
+        // Handle redirect result ONCE
+        if (!redirectHandled) {
+          redirectHandled = true;
+          console.log('🔍 Checking for redirect result...');
+          
+          const result = await handleRedirectResult();
+          if (result && mounted) {
+            console.log('✅ Found redirect result, checking registration...');
+            await checkRegistrationStatus(result);
+          }
+        }
+      } catch (error) {
+        if (mounted) {
+          console.error("❌ Error handling redirect:", error);
+          toast({
+            title: "Erro no Login",
+            description: "Erro ao processar login com Google",
+            variant: "destructive",
+          });
+          setLoading(false);
+        }
+      }
+    };
+
+    // Setup auth state listener with cleanup
+    console.log('📡 Setting up auth state listener...');
     const unsubscribe = onAuthStateChange((user: any) => {
+      if (!mounted) return;
+      
+      console.log('👤 AuthHandler: Auth state change detected');
       setFirebaseUser(user);
+      
       if (user) {
+        console.log('✅ User signed in:', user.email);
         checkRegistrationStatus(user);
       } else {
+        console.log('👋 User signed out');
         setLoading(false);
         setNeedsRegistration(false);
       }
     });
 
+    // Run setup
+    setupAuth();
+
+    // Cleanup function
     return () => {
-      if (unsubscribe) unsubscribe();
+      console.log('🧹 AuthHandler cleanup');
+      mounted = false;
+      if (unsubscribe) {
+        unsubscribe();
+      }
     };
-  }, []);
+  }, []); // Empty dependency array to run only once
 
   const checkRegistrationStatus = async (user: any) => {
     try {
