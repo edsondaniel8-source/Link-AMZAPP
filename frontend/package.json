@@ -77,6 +77,12 @@
     "wouter": "^3.3.5",
     "zod": "^3.24.2"
   },
+  "resolutions": {
+    "@tanstack/react-query": "^5.85.5"
+  },
+  "overrides": {
+    "@tanstack/react-query": "^5.85.5"
+  },
   "devDependencies": {
     "@replit/vite-plugin-cartographer": "^0.3.0",
     "@replit/vite-plugin-runtime-error-modal": "^0.0.3",
