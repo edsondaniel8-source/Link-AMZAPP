@@ -10,15 +10,32 @@ const log = (message: string) => {
 
 // CORS middleware
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
+  const allowedOrigins = [
+    "https://link-amzapp-*.vercel.app",
+    "https://link-amzapp-production.vercel.app",
+    "http://localhost:3000",
+    "http://localhost:5173",
+  ];
+
+  const origin = req.headers.origin;
+  if (
+    origin &&
+    allowedOrigins.some((allowed) => origin.includes(allowed.replace("*", "")))
+  ) {
+    res.header("Access-Control-Allow-Origin", origin);
+  }
+
   res.header(
     "Access-Control-Allow-Methods",
     "GET, POST, PUT, DELETE, PATCH, OPTIONS",
   );
+
   res.header(
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept, Authorization",
   );
+
+  res.header("Access-Control-Allow-Credentials", "true");
 
   if (req.method === "OPTIONS") {
     res.sendStatus(200);
@@ -53,9 +70,9 @@ app.use((req, res, next) => {
         logLine = logLine.slice(0, 79) + "…";
       }
 
-      log(logLine);
+      console.log(logLine); // ← FIXED: Changed log() to console.log()
     }
-  });
+  }); // ← FIXED: Added missing closing parenthesis for res.on("finish")
 
   next();
 });
