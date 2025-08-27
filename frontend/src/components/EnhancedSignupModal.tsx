@@ -418,7 +418,7 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
                         <p className="text-sm text-gray-600">
                           Clique para carregar sua foto de perfil
                         </p>
-                        <Input
+                        <input
                           ref={profilePhotoRef}
                           type="file"
                           accept="image/*"
@@ -426,22 +426,65 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
                             const file = e.target.files?.[0];
                             if (file) handleFileUpload(file, 'profile');
                           }}
-                          className="hidden"
+                          style={{ display: 'none' }}
                           id="profile-photo-upload"
                           data-testid="input-profile-photo"
                         />
                         <button 
                           type="button" 
                           className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
                             console.log("🔥 PROFILE BUTTON CLICKED!");
-                            const input = document.getElementById("profile-photo-upload");
-                            console.log("Input element:", input);
-                            if (input) {
-                              (input as HTMLInputElement).click();
-                              console.log("✅ Input clicked!");
-                            } else {
-                              console.error("❌ Input not found!");
+                            
+                            // SUPER TENTATIVA: Usar ref diretamente PRIMEIRO
+                            console.log("🚀 Tentativa SUPER - usando ref diretamente:");
+                            console.log("profilePhotoRef.current:", profilePhotoRef.current);
+                            
+                            if (profilePhotoRef.current) {
+                              console.log("✅ REF ENCONTRADA! Clicando...");
+                              profilePhotoRef.current.click();
+                              console.log("✅ CLICK VIA REF EXECUTADO!");
+                              return;
+                            }
+                            
+                            console.log("⚠️ Ref não disponível, tentando métodos DOM...");
+                            
+                            // Múltiplas tentativas para garantir que funciona
+                            const tryClick = () => {
+                              // Tentativa 1: getElementById
+                              let input = document.getElementById("profile-photo-upload") as HTMLInputElement;
+                              console.log("Tentativa 1 - getElementById:", input);
+                              
+                              if (!input) {
+                                // Tentativa 2: querySelector
+                                input = document.querySelector("#profile-photo-upload") as HTMLInputElement;
+                                console.log("Tentativa 2 - querySelector:", input);
+                              }
+                              
+                              if (!input) {
+                                // Tentativa 3: querySelector por type
+                                input = document.querySelector('input[type="file"][id="profile-photo-upload"]') as HTMLInputElement;
+                                console.log("Tentativa 3 - querySelector com type:", input);
+                              }
+                              
+                              if (input) {
+                                console.log("✅ Input encontrado! Tentando clicar...");
+                                input.click();
+                                console.log("✅ Click executado!");
+                                return true;
+                              }
+                              
+                              console.error("❌ Input não encontrado com nenhum método!");
+                              return false;
+                            };
+                            
+                            // Tentar imediatamente
+                            if (!tryClick()) {
+                              // Se falhar, tentar novamente após um pequeno delay
+                              console.log("🔄 Tentando novamente após delay...");
+                              setTimeout(tryClick, 100);
                             }
                           }}
                         >
@@ -488,7 +531,7 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
                         <p className="text-sm text-gray-600">
                           Foto do seu BI, Passaporte ou Carta de Condução
                         </p>
-                        <Input
+                        <input
                           ref={documentPhotoRef}
                           type="file"
                           accept="image/*"
@@ -496,22 +539,65 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
                             const file = e.target.files?.[0];
                             if (file) handleFileUpload(file, 'document');
                           }}
-                          className="hidden"
+                          style={{ display: 'none' }}
                           id="document-photo-upload"
                           data-testid="input-document-photo"
                         />
                         <button 
                           type="button" 
                           className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
                             console.log("🔥 DOCUMENT BUTTON CLICKED!");
-                            const input = document.getElementById("document-photo-upload");
-                            console.log("Input element:", input);
-                            if (input) {
-                              (input as HTMLInputElement).click();
-                              console.log("✅ Input clicked!");
-                            } else {
-                              console.error("❌ Input not found!");
+                            
+                            // SUPER TENTATIVA: Usar ref diretamente PRIMEIRO
+                            console.log("🚀 Tentativa SUPER - usando ref diretamente:");
+                            console.log("documentPhotoRef.current:", documentPhotoRef.current);
+                            
+                            if (documentPhotoRef.current) {
+                              console.log("✅ REF ENCONTRADA! Clicando...");
+                              documentPhotoRef.current.click();
+                              console.log("✅ CLICK VIA REF EXECUTADO!");
+                              return;
+                            }
+                            
+                            console.log("⚠️ Ref não disponível, tentando métodos DOM...");
+                            
+                            // Múltiplas tentativas para garantir que funciona
+                            const tryClick = () => {
+                              // Tentativa 1: getElementById
+                              let input = document.getElementById("document-photo-upload") as HTMLInputElement;
+                              console.log("Tentativa 1 - getElementById:", input);
+                              
+                              if (!input) {
+                                // Tentativa 2: querySelector
+                                input = document.querySelector("#document-photo-upload") as HTMLInputElement;
+                                console.log("Tentativa 2 - querySelector:", input);
+                              }
+                              
+                              if (!input) {
+                                // Tentativa 3: querySelector por type
+                                input = document.querySelector('input[type="file"][id="document-photo-upload"]') as HTMLInputElement;
+                                console.log("Tentativa 3 - querySelector com type:", input);
+                              }
+                              
+                              if (input) {
+                                console.log("✅ Input encontrado! Tentando clicar...");
+                                input.click();
+                                console.log("✅ Click executado!");
+                                return true;
+                              }
+                              
+                              console.error("❌ Input não encontrado com nenhum método!");
+                              return false;
+                            };
+                            
+                            // Tentar imediatamente
+                            if (!tryClick()) {
+                              // Se falhar, tentar novamente após um pequeno delay
+                              console.log("🔄 Tentando novamente após delay...");
+                              setTimeout(tryClick, 100);
                             }
                           }}
                         >
