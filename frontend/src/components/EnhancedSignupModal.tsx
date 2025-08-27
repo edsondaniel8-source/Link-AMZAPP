@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,6 +53,10 @@ const mozambicanCities = [
 export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalProps) {
   const { signUpEmail, loading, error } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
+  
+  // Create refs for file inputs
+  const profilePhotoRef = useRef<HTMLInputElement>(null);
+  const documentPhotoRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState<FormData>({
     email: '',
     password: '',
@@ -415,6 +419,7 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
                           Clique para carregar sua foto de perfil
                         </p>
                         <Input
+                          ref={profilePhotoRef}
                           type="file"
                           accept="image/*"
                           onChange={(e) => {
@@ -425,11 +430,21 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
                           id="profile-photo-upload"
                           data-testid="input-profile-photo"
                         />
-                        <Label htmlFor="profile-photo-upload" className="cursor-pointer">
-                          <Button type="button" variant="outline">
-                            Selecionar Foto
-                          </Button>
-                        </Label>
+                        <Button 
+                          type="button" 
+                          variant="outline"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            console.log("Profile photo button clicked");
+                            if (profilePhotoRef.current) {
+                              profilePhotoRef.current.click();
+                            } else {
+                              document.getElementById("profile-photo-upload")?.click();
+                            }
+                          }}
+                        >
+                          Selecionar Foto
+                        </Button>
                       </div>
                     )}
                     {uploadProgress.profile > 0 && uploadProgress.profile < 100 && (
@@ -472,6 +487,7 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
                           Foto do seu BI, Passaporte ou Carta de Condução
                         </p>
                         <Input
+                          ref={documentPhotoRef}
                           type="file"
                           accept="image/*"
                           onChange={(e) => {
@@ -482,11 +498,21 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
                           id="document-photo-upload"
                           data-testid="input-document-photo"
                         />
-                        <Label htmlFor="document-photo-upload" className="cursor-pointer">
-                          <Button type="button" variant="outline">
-                            Selecionar Foto
-                          </Button>
-                        </Label>
+                        <Button 
+                          type="button" 
+                          variant="outline"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            console.log("Document photo button clicked");
+                            if (documentPhotoRef.current) {
+                              documentPhotoRef.current.click();
+                            } else {
+                              document.getElementById("document-photo-upload")?.click();
+                            }
+                          }}
+                        >
+                          Selecionar Foto
+                        </Button>
                       </div>
                     )}
                     {uploadProgress.document > 0 && uploadProgress.document < 100 && (

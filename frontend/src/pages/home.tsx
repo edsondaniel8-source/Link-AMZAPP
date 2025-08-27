@@ -10,7 +10,6 @@ import MobileNavigation from "@/components/MobileNavigation";
 // RestaurantStops component removed - restaurant functionality eliminated
 import DriverPartnerships from "@/components/DriverPartnerships";
 import FeaturedEvents from "@/components/FeaturedEvents";
-import FileUploadTest from "@/components/FileUploadTest";
 
 export default function Home() {
   const [activeService, setActiveService] = useState<"rides" | "stays">("rides");
@@ -94,10 +93,6 @@ export default function Home() {
               Test Backend Connection
             </button>
             
-            {/* File Upload Test Component */}
-            <div className="mt-4">
-              <FileUploadTest />
-            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
