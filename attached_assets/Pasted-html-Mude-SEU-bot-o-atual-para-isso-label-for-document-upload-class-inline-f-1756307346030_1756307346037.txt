@@ -1,0 +1,61 @@
+html
+<!-- Mude SEU botão atual para isso: -->
+<label 
+  for="document-upload" 
+  class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 cursor-pointer"
+>
+  Selecionar Foto
+</label>
+3. Adicione JavaScript para Manipular o Upload:
+javascript
+// Adicione este script
+document.getElementById('document-upload').addEventListener('change', function(e) {
+  if (e.target.files.length > 0) {
+    const file = e.target.files[0];
+    console.log('Arquivo selecionado:', file.name);
+    
+    // Aqui você fará o upload para Firebase Storage
+    uploadFileToFirebase(file);
+  }
+});
+
+async function uploadFileToFirebase(file) {
+  // Seu código de upload aqui
+}
+🔍 Para Verificar Agora:
+No DevTools, procure por <input type="file">
+
+Se não existir, é o problema!
+
+Adicione o input como mostrado acima
+
+📋 Se Estiver Usando React:
+jsx
+// Componente corrigido
+const FileUpload = () => {
+  const handleFileChange = (e) => {
+    if (e.target.files[0]) {
+      console.log('Arquivo:', e.target.files[0]);
+    }
+  };
+
+  return (
+    <div>
+      <input
+        type="file"
+        id="document-upload"
+        onChange={handleFileChange}
+        style={{ display: 'none' }}
+      />
+      <label
+        htmlFor="document-upload"
+        className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 cursor-pointer"
+      >
+        Selecionar Foto
+      </label>
+    </div>
+  );
+};
+Agora o botão deve funcionar! O problema era que faltava o elemento <input type="file"> que é essencial para uploads. 🚀
+
+New chat

@@ -429,16 +429,12 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
                           id="profile-photo-upload"
                           data-testid="input-profile-photo"
                         />
-                        <button 
-                          type="button" 
-                          className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
-                          onClick={() => {
-                            console.log("🔥 SIMPLE PROFILE CLICK!");
-                            profilePhotoRef.current?.click();
-                          }}
+                        <label 
+                          htmlFor="profile-photo-upload"
+                          className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 cursor-pointer"
                         >
                           Selecionar Foto
-                        </button>
+                        </label>
                       </div>
                     )}
                     {uploadProgress.profile > 0 && uploadProgress.profile < 100 && (
@@ -492,16 +488,12 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
                           id="document-photo-upload"
                           data-testid="input-document-photo"
                         />
-                        <button 
-                          type="button" 
-                          className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
-                          onClick={() => {
-                            console.log("🔥 SIMPLE DOCUMENT CLICK!");
-                            documentPhotoRef.current?.click();
-                          }}
+                        <label 
+                          htmlFor="document-photo-upload"
+                          className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 cursor-pointer"
                         >
                           Selecionar Foto
-                        </button>
+                        </label>
                       </div>
                     )}
                     {uploadProgress.document > 0 && uploadProgress.document < 100 && (
