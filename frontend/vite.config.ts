@@ -46,6 +46,10 @@ export default defineConfig({
       '@radix-ui/react-progress', 
       '@radix-ui/react-dialog',
       '@radix-ui/react-slot',
+      '@hookform/resolvers',
+      '@hookform/resolvers/zod',
+      'react-hook-form',
+      'zod',
       'react',
       'react-dom'
     ],
@@ -77,7 +81,10 @@ export default defineConfig({
       '@radix-ui/react-tooltip',
       '@radix-ui/react-select', 
       '@radix-ui/react-progress',
-      '@radix-ui/react-dialog'
+      '@radix-ui/react-dialog',
+      '@hookform/resolvers',
+      'react-hook-form',
+      'zod'
     ],
   },
   define: {

@@ -82,14 +82,20 @@
     "@radix-ui/react-tooltip": "^1.2.0",
     "@radix-ui/react-select": "^2.1.7",
     "@radix-ui/react-progress": "^1.1.3",
-    "@radix-ui/react-dialog": "^1.1.7"
+    "@radix-ui/react-dialog": "^1.1.7",
+    "@hookform/resolvers": "^3.10.0",
+    "react-hook-form": "^7.55.0",
+    "zod": "^3.24.2"
   },
   "overrides": {
     "@tanstack/react-query": "^5.60.5",
     "@radix-ui/react-tooltip": "^1.2.0",
     "@radix-ui/react-select": "^2.1.7", 
     "@radix-ui/react-progress": "^1.1.3",
-    "@radix-ui/react-dialog": "^1.1.7"
+    "@radix-ui/react-dialog": "^1.1.7",
+    "@hookform/resolvers": "^3.10.0",
+    "react-hook-form": "^7.55.0",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@replit/vite-plugin-cartographer": "^0.3.0",
