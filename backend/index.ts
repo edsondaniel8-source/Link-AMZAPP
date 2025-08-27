@@ -46,22 +46,16 @@ const upload = multer({ storage });
 
 // Simple upload endpoint
 app.post('/api/upload', upload.single('file'), (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
-    }
-    
-    res.json({ 
-      success: true,
-      message: 'File uploaded successfully', 
-      filename: req.file.filename,
-      path: req.file.path,
-      size: req.file.size,
-      url: `/uploads/${req.file.filename}`
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Upload failed', details: error.message });
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded' });
   }
+  
+  res.json({ 
+    message: 'File uploaded successfully', 
+    filename: req.file.filename,
+    path: req.file.path,
+    url: `/uploads/${req.file.filename}`
+  });
 });
 
 // Serve uploaded files

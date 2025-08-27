@@ -1,10 +1,11 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle, Shield, CheckCircle, XCircle, Upload, FileText, Camera, Car } from "lucide-react";
 import { getTodayHTML } from "@/lib/dateUtils";
@@ -26,14 +27,6 @@ export default function DocumentVerification({
   verificationBadge,
   onSubmitDocuments
 }: DocumentVerificationProps) {
-  // Create refs for all file inputs
-  const identityDocumentRef = useRef<HTMLInputElement>(null);
-  const profilePhotoRef = useRef<HTMLInputElement>(null);
-  const drivingLicenseRef = useRef<HTMLInputElement>(null);
-  const vehicleRegistrationRef = useRef<HTMLInputElement>(null);
-  const vehicleInsuranceRef = useRef<HTMLInputElement>(null);
-  const vehicleInspectionRef = useRef<HTMLInputElement>(null);
-
   const [documents, setDocuments] = useState({
     // Basic user documents
     identityDocumentType: "bilhete_identidade",
@@ -250,7 +243,6 @@ export default function DocumentVerification({
                   <Label htmlFor="identityDocument">Documento de Identidade *</Label>
                   <div className="mt-2">
                     <input
-                      ref={identityDocumentRef}
                       id="identityDocument"
                       type="file"
                       accept="image/*,application/pdf"
@@ -259,17 +251,8 @@ export default function DocumentVerification({
                       data-testid="file-identity-document"
                     />
                     <Button
-                      type="button"
                       variant="outline"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        console.log("Identity document button clicked");
-                        if (identityDocumentRef.current) {
-                          identityDocumentRef.current.click();
-                        } else {
-                          document.getElementById("identityDocument")?.click();
-                        }
-                      }}
+                      onClick={() => document.getElementById("identityDocument")?.click()}
                       className="w-full"
                     >
                       <Upload className="w-4 h-4 mr-2" />
@@ -282,7 +265,6 @@ export default function DocumentVerification({
                   <Label htmlFor="profilePhoto">Foto de Perfil *</Label>
                   <div className="mt-2">
                     <input
-                      ref={profilePhotoRef}
                       id="profilePhoto"
                       type="file"
                       accept="image/*"
@@ -291,17 +273,8 @@ export default function DocumentVerification({
                       data-testid="file-profile-photo"
                     />
                     <Button
-                      type="button"
                       variant="outline"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        console.log("Profile photo button clicked");
-                        if (profilePhotoRef.current) {
-                          profilePhotoRef.current.click();
-                        } else {
-                          document.getElementById("profilePhoto")?.click();
-                        }
-                      }}
+                      onClick={() => document.getElementById("profilePhoto")?.click()}
                       className="w-full"
                     >
                       <Camera className="w-4 h-4 mr-2" />
@@ -325,7 +298,6 @@ export default function DocumentVerification({
                     <Label htmlFor="drivingLicense">Carta de Condução *</Label>
                     <div className="mt-2">
                       <input
-                        ref={drivingLicenseRef}
                         id="drivingLicense"
                         type="file"
                         accept="image/*,application/pdf"
@@ -334,17 +306,8 @@ export default function DocumentVerification({
                         data-testid="file-driving-license"
                       />
                       <Button
-                        type="button"
                         variant="outline"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          console.log("Driving license button clicked");
-                          if (drivingLicenseRef.current) {
-                            drivingLicenseRef.current.click();
-                          } else {
-                            document.getElementById("drivingLicense")?.click();
-                          }
-                        }}
+                        onClick={() => document.getElementById("drivingLicense")?.click()}
                         className="w-full"
                       >
                         <Upload className="w-4 h-4 mr-2" />
