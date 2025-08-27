@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle, Shield, CheckCircle, XCircle, Upload, FileText, Camera, Car } from "lucide-react";
 import { getTodayHTML } from "@/lib/dateUtils";
+import FileUploadButton from "./FileUploadButton";
 
 interface DocumentVerificationProps {
   userId: string;
@@ -264,22 +265,13 @@ export default function DocumentVerification({
                 <div>
                   <Label htmlFor="profilePhoto">Foto de Perfil *</Label>
                   <div className="mt-2">
-                    <input
-                      id="profilePhoto"
-                      type="file"
+                    <FileUploadButton
+                      onFileSelect={(file) => handleFileChange("profilePhoto", file)}
                       accept="image/*"
-                      onChange={(e) => handleFileChange("profilePhoto", e.target.files?.[0] || null)}
-                      className="hidden"
-                      data-testid="file-profile-photo"
-                    />
-                    <Button
-                      variant="outline"
-                      onClick={() => document.getElementById("profilePhoto")?.click()}
                       className="w-full"
                     >
-                      <Camera className="w-4 h-4 mr-2" />
-                      {documents.profilePhoto ? documents.profilePhoto.name : "Enviar Foto"}
-                    </Button>
+                      {documents.profilePhoto ? documents.profilePhoto.name : "Selecionar Foto"}
+                    </FileUploadButton>
                   </div>
                 </div>
               </div>
