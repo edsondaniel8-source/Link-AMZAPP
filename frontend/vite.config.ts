@@ -2,29 +2,25 @@ import { defineConfig } from "vite";
 import path from "path";
 
 export default defineConfig({
-  plugins: [
-    // Use esbuild for JSX instead of the React plugin to avoid dependency issues
-  ],
+  plugins: [],
   esbuild: {
     jsx: 'automatic',
     jsxImportSource: 'react',
     target: 'es2020',
+    loader: 'tsx',
   },
   root: ".",
   publicDir: "public",
   build: {
     outDir: "dist",
-    sourcemap: true,
+    sourcemap: false,
+    target: 'es2020',
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore'],
-          ui: ['@radix-ui/react-dialog', '@radix-ui/react-select', '@radix-ui/react-toast'],
-        },
+        manualChunks: undefined,
       },
     },
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 2000,
   },
   server: {
     host: "0.0.0.0",
