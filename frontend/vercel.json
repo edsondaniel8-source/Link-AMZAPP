@@ -23,7 +23,6 @@
   "env": {
     "VITE_API_URL": "@api_url"
   },
-  "functions": {},
   "rewrites": [
     {
       "source": "/((?!api/.*).*)",
