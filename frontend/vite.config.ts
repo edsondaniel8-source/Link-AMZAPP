@@ -19,13 +19,37 @@ export default defineConfig({
     rollupOptions: {
       external: [],
       output: {
-        manualChunks: undefined,
+        manualChunks: (id) => {
+          if (id.includes('@tanstack/react-query')) {
+            return 'react-query';
+          }
+          if (id.includes('@radix-ui')) {
+            return 'radix-ui';
+          }
+          if (id.includes('react') || id.includes('react-dom')) {
+            return 'react';
+          }
+          return undefined;
+        },
       },
     },
     chunkSizeWarningLimit: 2000,
     commonjsOptions: {
       include: [/node_modules/],
     },
+  },
+  optimizeDeps: {
+    include: [
+      '@tanstack/react-query',
+      '@radix-ui/react-tooltip',
+      '@radix-ui/react-select',
+      '@radix-ui/react-progress', 
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-slot',
+      'react',
+      'react-dom'
+    ],
+    force: true,
   },
   server: {
     host: "0.0.0.0",
@@ -46,7 +70,15 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
       "@assets": path.resolve(__dirname, "../attached_assets"),
     },
-    dedupe: ['react', 'react-dom', '@tanstack/react-query'],
+    dedupe: [
+      'react', 
+      'react-dom', 
+      '@tanstack/react-query',
+      '@radix-ui/react-tooltip',
+      '@radix-ui/react-select', 
+      '@radix-ui/react-progress',
+      '@radix-ui/react-dialog'
+    ],
   },
   define: {
     global: "globalThis",
