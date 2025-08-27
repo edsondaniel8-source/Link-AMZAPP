@@ -1,9 +1,15 @@
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
 import path from "path";
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    // Use esbuild for JSX instead of the React plugin to avoid dependency issues
+  ],
+  esbuild: {
+    jsx: 'automatic',
+    jsxImportSource: 'react',
+    target: 'es2020',
+  },
   root: ".",
   publicDir: "public",
   build: {
