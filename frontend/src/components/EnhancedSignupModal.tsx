@@ -414,7 +414,7 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
                         <p className="text-sm text-gray-600">
                           Clique para carregar sua foto de perfil
                         </p>
-                        <Input
+                        <input
                           type="file"
                           accept="image/*"
                           onChange={(e) => {
@@ -425,11 +425,14 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
                           id="profile-photo-upload"
                           data-testid="input-profile-photo"
                         />
-                        <Label htmlFor="profile-photo-upload" className="cursor-pointer">
-                          <Button type="button" variant="outline">
-                            Selecionar Foto
-                          </Button>
-                        </Label>
+                        <button
+                          type="button"
+                          onClick={() => document.getElementById('profile-photo-upload')?.click()}
+                          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium bg-white text-[#0F1419] border border-gray-300 hover:bg-gray-50 transition-colors"
+                        >
+                          <Camera className="w-4 h-4" />
+                          Selecionar Foto
+                        </button>
                       </div>
                     )}
                     {uploadProgress.profile > 0 && uploadProgress.profile < 100 && (
@@ -471,7 +474,7 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
                         <p className="text-sm text-gray-600">
                           Foto do seu BI, Passaporte ou Carta de Condução
                         </p>
-                        <Input
+                        <input
                           type="file"
                           accept="image/*"
                           onChange={(e) => {
@@ -482,11 +485,14 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
                           id="document-photo-upload"
                           data-testid="input-document-photo"
                         />
-                        <Label htmlFor="document-photo-upload" className="cursor-pointer">
-                          <Button type="button" variant="outline">
-                            Selecionar Foto
-                          </Button>
-                        </Label>
+                        <button
+                          type="button"
+                          onClick={() => document.getElementById('document-photo-upload')?.click()}
+                          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium bg-white text-[#0F1419] border border-gray-300 hover:bg-gray-50 transition-colors"
+                        >
+                          <FileText className="w-4 h-4" />
+                          Selecionar Foto
+                        </button>
                       </div>
                     )}
                     {uploadProgress.document > 0 && uploadProgress.document < 100 && (
