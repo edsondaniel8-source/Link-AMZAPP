@@ -435,11 +435,15 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
                           variant="outline"
                           onClick={(e) => {
                             e.preventDefault();
-                            console.log("Profile photo button clicked");
-                            if (profilePhotoRef.current) {
-                              profilePhotoRef.current.click();
+                            e.stopPropagation();
+                            console.log("Profile photo button clicked - attempting to trigger file input");
+                            
+                            const fileInput = profilePhotoRef.current || document.getElementById("profile-photo-upload") as HTMLInputElement;
+                            if (fileInput) {
+                              console.log("File input found, triggering click");
+                              fileInput.click();
                             } else {
-                              document.getElementById("profile-photo-upload")?.click();
+                              console.error("File input not found!");
                             }
                           }}
                         >
@@ -503,11 +507,15 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
                           variant="outline"
                           onClick={(e) => {
                             e.preventDefault();
-                            console.log("Document photo button clicked");
-                            if (documentPhotoRef.current) {
-                              documentPhotoRef.current.click();
+                            e.stopPropagation();
+                            console.log("Document photo button clicked - attempting to trigger file input");
+                            
+                            const fileInput = documentPhotoRef.current || document.getElementById("document-photo-upload") as HTMLInputElement;
+                            if (fileInput) {
+                              console.log("File input found, triggering click");
+                              fileInput.click();
                             } else {
-                              document.getElementById("document-photo-upload")?.click();
+                              console.error("File input not found!");
                             }
                           }}
                         >
