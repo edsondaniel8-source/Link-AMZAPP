@@ -1,5 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
+import cors from "cors";
 
 const app = express();
 
@@ -9,40 +10,26 @@ const log = (message: string) => {
 };
 
 // CORS middleware
-app.use((req, res, next) => {
-  const allowedOrigins = [
-    "https://link-amzapp-*.vercel.app",
-    "https://link-amzapp-production.vercel.app",
-    "http://localhost:3000",
-    "http://localhost:5173",
-  ];
-
-  const origin = req.headers.origin;
-  if (
-    origin &&
-    allowedOrigins.some((allowed) => origin.includes(allowed.replace("*", "")))
-  ) {
-    res.header("Access-Control-Allow-Origin", origin);
-  }
-
-  res.header(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-  );
-
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization",
-  );
-
-  res.header("Access-Control-Allow-Credentials", "true");
-
-  if (req.method === "OPTIONS") {
-    res.sendStatus(200);
-  } else {
-    next();
-  }
-});
+app.use(
+  cors({
+    origin: [
+      "https://link-aturismomoz.com",
+      "https://link-amzapp.vercel.app",
+      "https://link-amzapp-*.vercel.app",
+      "http://localhost:3000",
+      "http://localhost:5173",
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: [
+      "Origin",
+      "X-Requested-With",
+      "Content-Type",
+      "Accept",
+      "Authorization",
+    ],
+  }),
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

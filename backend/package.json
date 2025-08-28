@@ -17,6 +17,7 @@
   "dependencies": {
     "@google-cloud/storage": "^7.17.0",
     "@neondatabase/serverless": "^0.10.4",
+    "@types/cors": "^2.8.19",
     "connect-pg-simple": "^10.0.0",
     "drizzle-orm": "^0.39.1",
     "drizzle-zod": "^0.7.0",
