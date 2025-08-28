@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'wouter';
-import { LayoutDashboard, Users, BarChart, Settings, LogOut, Shield } from 'lucide-react';
+import { LayoutDashboard, Users, BarChart, Settings, LogOut, Shield, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../../shared/hooks/useAuth';
 
 export default function Navigation() {
@@ -7,11 +7,10 @@ export default function Navigation() {
   const { user, logout } = useAuth();
 
   const navigation = [
-    { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-    { name: 'Usuários', href: '/users', icon: Users },
-    { name: 'Relatórios', href: '/analytics', icon: BarChart },
-    { name: 'Sistema', href: '/system', icon: Settings },
-    { name: 'Perfil', href: '/profile', icon: Shield },
+    { name: '👥 Gestão Utilizadores', href: '/users', icon: Users },
+    { name: '📈 Analytics Plataforma', href: '/analytics', icon: BarChart },
+    { name: '⚙️ Configurações Sistema', href: '/settings', icon: Settings },
+    { name: '🚨 Moderação & Suporte', href: '/moderation', icon: AlertTriangle },
   ];
 
   return (
@@ -21,7 +20,7 @@ export default function Navigation() {
           <div className="flex items-center space-x-8">
             <div className="flex items-center space-x-2">
               <Shield className="h-8 w-8 text-red-600" />
-              <span className="text-xl font-bold text-gray-900">Admin Panel</span>
+              <span className="text-xl font-bold text-gray-900">🚀 Link-A Admin</span>
             </div>
             
             <div className="hidden md:flex space-x-4">
