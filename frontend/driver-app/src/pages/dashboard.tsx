@@ -14,10 +14,8 @@ import {
   Navigation,
   Calendar,
   Star,
-  AlertCircle,
   Hotel,
-  Calendar as CalendarIcon,
-  UserCheck
+  Calendar as CalendarIcon
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -56,44 +54,6 @@ export default function DriverDashboard() {
     }
   ];
 
-  const partnerRequests = [
-    {
-      id: "1",
-      type: "hotel",
-      from: "Hotel Cardoso",
-      category: "PARCERIA HOTEL",
-      title: "Solicitação de Transporte VIP",
-      description: "Precisamos de motorista para transfer de hóspedes VIP no fim-de-semana",
-      date: "25-27 Jan",
-      offer: "+25% tarifa normal",
-      priority: "high",
-      slots: "3 vagas disponíveis"
-    },
-    {
-      id: "2", 
-      type: "event",
-      from: "Festival da Praia",
-      category: "EVENTO ESPECIAL",
-      title: "Transporte para Festival",
-      description: "Oportunidade para transportar visitantes durante festival de 3 dias",
-      date: "1-3 Fev",
-      offer: "Tarifa fixa 500 MZN/viagem",
-      priority: "medium",
-      slots: "5 motoristas necessários"
-    },
-    {
-      id: "3",
-      type: "admin",
-      from: "Administração Link-A",
-      category: "OPORTUNIDADE ADMIN",
-      title: "Programa Motorista Premium",
-      description: "Convite para programa de motoristas premium com benefícios exclusivos",
-      date: "Permanente",
-      offer: "Comissão reduzida 10%",
-      priority: "low",
-      slots: "Limitado"
-    }
-  ];
 
   const upcomingSchedule = [
     {
@@ -254,88 +214,177 @@ export default function DriverDashboard() {
               </CardContent>
             </Card>
 
-            {/* Partner Requests - Special Feature */}
-            <Card>
+            {/* Partnership Opportunities - Featured Section */}
+            <Card className="bg-gradient-to-r from-orange-50 to-yellow-50 border-orange-200">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <UserCheck className="w-5 h-5" />
-                  Solicitações de Parceiros
-                  <Badge variant="destructive" className="ml-2">3 Novas</Badge>
+                  🎯 <span className="text-orange-800">Oportunidades de Parceria</span>
+                  <Badge className="bg-orange-600 text-white ml-2">5 Novas</Badge>
                 </CardTitle>
+                <p className="text-sm text-orange-700">Propostas exclusivas de hotéis e eventos para você!</p>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {partnerRequests.map((request) => (
-                    <div 
-                      key={request.id} 
-                      className={`border-l-4 rounded-r-lg p-4 bg-gradient-to-r ${
-                        request.priority === 'high' ? 'border-red-500 from-red-50 to-red-25' :
-                        request.priority === 'medium' ? 'border-yellow-500 from-yellow-50 to-yellow-25' :
-                        'border-blue-500 from-blue-50 to-blue-25'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center space-x-3">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                            request.type === 'hotel' ? 'bg-purple-100' :
-                            request.type === 'event' ? 'bg-orange-100' : 'bg-gray-100'
-                          }`}>
-                            {request.type === 'hotel' ? 
-                              <Hotel className="w-5 h-5 text-purple-600" /> :
-                              request.type === 'event' ?
-                              <CalendarIcon className="w-5 h-5 text-orange-600" /> :
-                              <AlertCircle className="w-5 h-5 text-gray-600" />
-                            }
-                          </div>
-                          <div>
-                            <Badge variant="outline" className="text-xs mb-1">
-                              {request.category}
-                            </Badge>
-                            <h4 className="font-semibold text-gray-900">{request.title}</h4>
-                            <p className="text-sm text-gray-600">{request.from}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <Badge className={
-                            request.priority === 'high' ? 'bg-red-600' :
-                            request.priority === 'medium' ? 'bg-yellow-600' : 'bg-blue-600'
-                          }>
-                            {request.priority === 'high' ? 'URGENTE' :
-                             request.priority === 'medium' ? 'IMPORTANTE' : 'NORMAL'}
-                          </Badge>
-                        </div>
-                      </div>
-
-                      <p className="text-sm text-gray-700 mb-3">{request.description}</p>
-                      
-                      <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
-                        <div>
-                          <span className="font-medium text-gray-600">Data:</span>
-                          <span className="ml-1">{request.date}</span>
+                <div className="space-y-6">
+                  {/* Hotel Partnership Post */}
+                  <div className="bg-white rounded-xl p-6 shadow-sm border border-orange-100">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                          <Hotel className="w-6 h-6 text-purple-600" />
                         </div>
                         <div>
-                          <span className="font-medium text-gray-600">Vagas:</span>
-                          <span className="ml-1">{request.slots}</span>
+                          <h3 className="font-bold text-lg text-gray-900">Hotel Cardoso</h3>
+                          <p className="text-sm text-gray-600">Polana • Hotel 5 estrelas</p>
                         </div>
                       </div>
+                      <Badge className="bg-purple-600 text-white">HOTEL PREMIUM</Badge>
+                    </div>
+                    
+                    <div className="mb-4">
+                      <h4 className="font-semibold text-gray-900 mb-2">🚗 Transfer VIP Weekend</h4>
+                      <p className="text-gray-700 text-sm mb-3">
+                        Procuramos motoristas profissionais para transfers exclusivos de hóspedes VIP durante o fim-de-semana. 
+                        Oportunidade para trabalhar com clientes internacionais e ganhar extra!
+                      </p>
+                    </div>
 
-                      <div className="bg-white p-3 rounded-lg mb-4">
-                        <p className="font-semibold text-green-700 text-center">{request.offer}</p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                      <div className="text-center p-3 bg-purple-50 rounded-lg">
+                        <CalendarIcon className="w-5 h-5 text-purple-600 mx-auto mb-1" />
+                        <p className="text-sm font-medium">25-27 Jan</p>
+                        <p className="text-xs text-gray-600">Este fim-de-semana</p>
                       </div>
-
-                      <div className="flex space-x-2">
-                        <Button className="flex-1 bg-green-600 hover:bg-green-700">
-                          Interessado
-                        </Button>
-                        <Button variant="outline" className="flex-1">
-                          Mais Info
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          ✕
-                        </Button>
+                      <div className="text-center p-3 bg-green-50 rounded-lg">
+                        <DollarSign className="w-5 h-5 text-green-600 mx-auto mb-1" />
+                        <p className="text-sm font-medium">+40%</p>
+                        <p className="text-xs text-gray-600">Tarifa premium</p>
+                      </div>
+                      <div className="text-center p-3 bg-blue-50 rounded-lg">
+                        <Users className="w-5 h-5 text-blue-600 mx-auto mb-1" />
+                        <p className="text-sm font-medium">3 Vagas</p>
+                        <p className="text-xs text-gray-600">Disponíveis</p>
+                      </div>
+                      <div className="text-center p-3 bg-orange-50 rounded-lg">
+                        <Star className="w-5 h-5 text-orange-600 mx-auto mb-1" />
+                        <p className="text-sm font-medium">Bónus</p>
+                        <p className="text-xs text-gray-600">+200 MZN/dia</p>
                       </div>
                     </div>
-                  ))}
+
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+                      <h5 className="font-semibold text-green-800 mb-2">💰 O que você ganha:</h5>
+                      <ul className="text-sm text-green-700 space-y-1">
+                        <li>• Tarifa premium +40% do valor normal</li>
+                        <li>• Bónus diário de 200 MZN por completar 5+ transfers</li>
+                        <li>• Gorjetas generosas de hóspedes internacionais</li>
+                        <li>• Certificado de Motorista Parceiro VIP</li>
+                      </ul>
+                    </div>
+
+                    <div className="flex space-x-3">
+                      <Button className="flex-1 bg-purple-600 hover:bg-purple-700 text-white">
+                        🎯 Candidatar-me
+                      </Button>
+                      <Button variant="outline" className="flex-1 border-purple-300 text-purple-700">
+                        📞 Contactar Hotel
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Event Partnership Post */}
+                  <div className="bg-white rounded-xl p-6 shadow-sm border border-orange-100">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                          <CalendarIcon className="w-6 h-6 text-orange-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-lg text-gray-900">Festival da Praia</h3>
+                          <p className="text-sm text-gray-600">Costa do Sol • Evento Premium</p>
+                        </div>
+                      </div>
+                      <Badge className="bg-orange-600 text-white">EVENTO ESPECIAL</Badge>
+                    </div>
+                    
+                    <div className="mb-4">
+                      <h4 className="font-semibold text-gray-900 mb-2">🎪 Transporte Oficial do Festival</h4>
+                      <p className="text-gray-700 text-sm mb-3">
+                        Seja motorista oficial do maior festival de música de Moçambique! 3 dias de evento com milhares de visitantes. 
+                        Oportunidade única para grandes rendimentos!
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                      <div className="text-center p-3 bg-orange-50 rounded-lg">
+                        <CalendarIcon className="w-5 h-5 text-orange-600 mx-auto mb-1" />
+                        <p className="text-sm font-medium">1-3 Fev</p>
+                        <p className="text-xs text-gray-600">3 dias consecutivos</p>
+                      </div>
+                      <div className="text-center p-3 bg-green-50 rounded-lg">
+                        <DollarSign className="w-5 h-5 text-green-600 mx-auto mb-1" />
+                        <p className="text-sm font-medium">500 MZN</p>
+                        <p className="text-xs text-gray-600">Tarifa fixa/viagem</p>
+                      </div>
+                      <div className="text-center p-3 bg-blue-50 rounded-lg">
+                        <Users className="w-5 h-5 text-blue-600 mx-auto mb-1" />
+                        <p className="text-sm font-medium">8 Vagas</p>
+                        <p className="text-xs text-gray-600">Ainda disponíveis</p>
+                      </div>
+                      <div className="text-center p-3 bg-red-50 rounded-lg">
+                        <TrendingUp className="w-5 h-5 text-red-600 mx-auto mb-1" />
+                        <p className="text-sm font-medium">Alta</p>
+                        <p className="text-xs text-gray-600">Demanda</p>
+                      </div>
+                    </div>
+
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                      <h5 className="font-semibold text-blue-800 mb-2">🎁 Ofertas e Descontos:</h5>
+                      <ul className="text-sm text-blue-700 space-y-1">
+                        <li>• Tarifa garantida de 500 MZN por viagem (independente da distância)</li>
+                        <li>• Combustível gratuito fornecido pelo evento</li>
+                        <li>• Refeições gratuitas durante os 3 dias</li>
+                        <li>• Entrada VIP gratuita para o festival para você + acompanhante</li>
+                        <li>• Bónus de 1000 MZN se completar os 3 dias</li>
+                      </ul>
+                    </div>
+
+                    <div className="flex space-x-3">
+                      <Button className="flex-1 bg-orange-600 hover:bg-orange-700 text-white">
+                        🎪 Juntar-me ao Festival
+                      </Button>
+                      <Button variant="outline" className="flex-1 border-orange-300 text-orange-700">
+                        📋 Ver Detalhes
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Quick Preview of More Opportunities */}
+                  <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold text-gray-900">📢 Mais Oportunidades</h4>
+                      <Badge variant="outline">+3 Propostas</Badge>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                      <div className="bg-white p-3 rounded-lg">
+                        <p className="font-medium text-gray-900">Hotel Polana</p>
+                        <p className="text-gray-600">Transfer Aeroporto • +30%</p>
+                        <p className="text-green-600 text-xs">28-30 Jan</p>
+                      </div>
+                      <div className="bg-white p-3 rounded-lg">
+                        <p className="font-medium text-gray-900">Casamento Premium</p>
+                        <p className="text-gray-600">Evento Privado • 800 MZN</p>
+                        <p className="text-green-600 text-xs">2 Fev</p>
+                      </div>
+                      <div className="bg-white p-3 rounded-lg">
+                        <p className="font-medium text-gray-900">Conferência SADC</p>
+                        <p className="text-gray-600">Evento Oficial • Tarifa VIP</p>
+                        <p className="text-green-600 text-xs">5-7 Fev</p>
+                      </div>
+                    </div>
+                    <Button variant="outline" className="w-full mt-3">
+                      Ver Todas as Oportunidades →
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
