@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,61 +36,54 @@ import {
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   
-  // Mock data - seria substituído por dados reais da API
-  const platformStats = {
-    totalUsers: 12547,
-    activeDrivers: 1823,
-    activeHotels: 245,
-    totalEvents: 89,
-    monthlyRevenue: 487500,
-    totalRides: 8945,
-    pendingApprovals: 23,
-    activeDisputes: 7,
-    systemHealth: 98.5
+  // Hook para buscar dados reais da API
+  const { data: dashboardData, isLoading, error } = useQuery({
+    queryKey: ['/api/admin/dashboard'],
+    refetchInterval: 30000, // Atualizar a cada 30 segundos
+    staleTime: 15000 // Dados frescos por 15 segundos
+  });
+  
+  // Usar dados da API ou fallback enquanto carrega
+  const platformStats = dashboardData?.stats || {
+    totalUsers: 0,
+    activeDrivers: 0,
+    partnerHotels: 0,
+    totalRides: 0,
+    totalBookings: 0,
+    totalRevenue: 0,
+    pendingVerifications: 0
   };
 
-  const recentActivity = [
-    {
-      id: "1",
-      type: "user_registration",
-      message: "Novo motorista registado: João Silva",
-      timestamp: "Há 5 minutos",
-      status: "pending",
-      action: "approve"
-    },
-    {
-      id: "2", 
-      type: "dispute",
-      message: "Disputa relatada: Corrida #8392",
-      timestamp: "Há 12 minutos",
-      status: "urgent",
-      action: "resolve"
-    },
-    {
-      id: "3",
-      type: "payment",
-      message: "Pagamento processado: 2.500 MZN",
-      timestamp: "Há 18 minutos", 
-      status: "completed",
-      action: "view"
-    },
-    {
-      id: "4",
-      type: "hotel_approval",
-      message: "Hotel pendente: Polana Serena Hotel",
-      timestamp: "Há 25 minutos",
-      status: "pending",
-      action: "review"
-    },
-    {
-      id: "5",
-      type: "system",
-      message: "Backup automático concluído",
-      timestamp: "Há 1 hora",
-      status: "completed",
-      action: "view"
-    }
-  ];
+  // Atividade recente da API
+  const recentActivity = dashboardData?.stats?.recentActivity || [];
+  
+  // Tarefas pendentes da API
+  const pendingTasks = dashboardData?.stats?.pendingTasks || [];
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="flex items-center space-x-2">
+          <RefreshCw className="h-6 w-6 animate-spin" />
+          <span>Carregando dashboard...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold">Erro ao carregar dashboard</h3>
+          <p className="text-gray-600">Tente novamente em alguns instantes</p>
+        </div>
+      </div>
+    );
+  }
 
   const monthlyGrowth = {
     users: 12.5,
@@ -224,7 +218,7 @@ export default function Dashboard() {
               </Badge>
               <Button className="bg-red-600 hover:bg-red-700">
                 <Bell className="w-4 h-4 mr-2" />
-                {platformStats.pendingApprovals} Pendentes
+                {platformStats.pendingVerifications} Pendentes
               </Button>
             </div>
           </div>
@@ -238,7 +232,7 @@ export default function Dashboard() {
                 <div>
                   <p className="text-sm font-medium text-gray-600">👥 Total de Usuários</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {platformStats.totalUsers.toLocaleString()}
+                    {platformStats.totalUsers?.toLocaleString() || '0'}
                   </p>
                   <div className="flex items-center mt-2">
                     <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
@@ -256,7 +250,7 @@ export default function Dashboard() {
                 <div>
                   <p className="text-sm font-medium text-gray-600">💰 Receita Mensal</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {(platformStats.monthlyRevenue / 1000).toFixed(0)}K MZN
+                    {(platformStats.totalRevenue / 1000).toFixed(0)}K MZN
                   </p>
                   <div className="flex items-center mt-2">
                     <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
@@ -274,7 +268,7 @@ export default function Dashboard() {
                 <div>
                   <p className="text-sm font-medium text-gray-600">🚗 Motoristas Ativos</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {platformStats.activeDrivers.toLocaleString()}
+                    {platformStats.activeDrivers?.toLocaleString() || '0'}
                   </p>
                   <div className="flex items-center mt-2">
                     <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
@@ -292,7 +286,7 @@ export default function Dashboard() {
                 <div>
                   <p className="text-sm font-medium text-gray-600">🏨 Hotéis Ativos</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {platformStats.activeHotels}
+                    {platformStats.partnerHotels || '0'}
                   </p>
                   <div className="flex items-center mt-2">
                     <TrendingUp className="w-4 h-4 text-green-600 mr-1" />

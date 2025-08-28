@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,15 +29,36 @@ export default function PlatformAnalytics() {
   const [activeTab, setActiveTab] = useState("overview");
   const [timeRange, setTimeRange] = useState("30d");
 
-  // Mock data - seria substituído por dados reais da API
-  const platformMetrics = {
-    totalRevenue: 487500,
-    monthlyGrowth: 12.5,
-    totalUsers: 12547,
-    userGrowth: 8.3,
-    totalTransactions: 8945,
-    transactionGrowth: 15.2,
-    averageOrderValue: 54.5
+  // Hook para buscar dados reais da API de analytics
+  const { data: analyticsData, isLoading, error } = useQuery({
+    queryKey: ['/api/admin/analytics'],
+    refetchInterval: 60000, // Atualizar a cada minuto
+    staleTime: 30000 // Dados frescos por 30 segundos
+  });
+
+  // Usar dados da API ou fallback
+  const platformMetrics = analyticsData?.analytics || {
+    userGrowth: {
+      total: 0,
+      monthlyGrowth: 0,
+      weeklyGrowth: 0,
+      newThisMonth: 0,
+      newThisWeek: 0
+    },
+    revenueGrowth: {
+      total: 0,
+      monthlyGrowth: 0,
+      thisMonth: 0,
+      averagePerTransaction: 0
+    },
+    transactionVolume: {
+      totalRides: 0,
+      ridesThisMonth: 0,
+      totalBookings: 0,
+      bookingsThisMonth: 0
+    },
+    sectorPerformance: [],
+    geographicDistribution: []
   };
 
   const revenueByService = [
@@ -147,11 +169,11 @@ export default function PlatformAnalytics() {
                 <div>
                   <p className="text-sm font-medium text-gray-600">💰 Receita Total</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {(platformMetrics.totalRevenue / 1000).toFixed(0)}K MZN
+                    {(platformMetrics.revenueGrowth.total / 1000).toFixed(0)}K MZN
                   </p>
                   <div className="flex items-center mt-2">
                     <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
-                    <span className="text-sm text-green-600">+{platformMetrics.monthlyGrowth}%</span>
+                    <span className="text-sm text-green-600">+{platformMetrics.revenueGrowth.monthlyGrowth}%</span>
                   </div>
                 </div>
                 <DollarSign className="w-8 h-8 text-green-600" />
@@ -165,11 +187,11 @@ export default function PlatformAnalytics() {
                 <div>
                   <p className="text-sm font-medium text-gray-600">👥 Total Usuários</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {platformMetrics.totalUsers.toLocaleString()}
+                    {platformMetrics.userGrowth.total.toLocaleString()}
                   </p>
                   <div className="flex items-center mt-2">
                     <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
-                    <span className="text-sm text-green-600">+{platformMetrics.userGrowth}%</span>
+                    <span className="text-sm text-green-600">+{platformMetrics.userGrowth.monthlyGrowth}%</span>
                   </div>
                 </div>
                 <Users className="w-8 h-8 text-blue-600" />

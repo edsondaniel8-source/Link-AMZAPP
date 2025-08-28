@@ -2,6 +2,7 @@ import { Router, Route, Switch } from 'wouter';
 import { AuthProvider } from '../shared/hooks/useAuth';
 import { AuthRedirect } from '../shared/components/AuthRedirect';
 import Dashboard from './pages/Dashboard';
+import Users from './pages/Users';
 import UserManagement from './pages/UserManagement';
 import PlatformAnalytics from './pages/PlatformAnalytics';
 import SystemSettings from './pages/SystemSettings';
@@ -17,7 +18,7 @@ function App() {
           <Router>
             <Switch>
               <Route path="/" component={Dashboard} />
-              <Route path="/users" component={UserManagement} />
+              <Route path="/users" component={Users} />
               <Route path="/analytics" component={PlatformAnalytics} />
               <Route path="/settings" component={SystemSettings} />
               <Route path="/moderation" component={ModerationSupport} />

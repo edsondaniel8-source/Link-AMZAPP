@@ -9,6 +9,7 @@ import { insertBookingSchema } from "@shared/schema";
 import searchRoutes from "./searchRoutes";
 import profileRoutes from "./profileRoutes";
 import blogRoutes from "./blogRoutes";
+import adminRoutes from "./src/modules/admin/adminController";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -24,6 +25,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/search', searchRoutes);
   app.use('/api/profile', profileRoutes);
   app.use('/api/blog', blogRoutes);
+  app.use('/api/admin', adminRoutes);
   
   // Import and mount test routes
   const testRoutes = await import("./testRoutes");
