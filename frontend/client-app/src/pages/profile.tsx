@@ -298,14 +298,96 @@ export default function Profile() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  {/* Points Balance */}
+                  {/* Points Balance & Level Control */}
                   <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg p-6">
-                    <h3 className="text-lg font-semibold mb-2">Seus Pontos</h3>
-                    <div className="flex items-baseline space-x-2">
-                      <span className="text-3xl font-bold">1,250</span>
-                      <span className="text-orange-100">pontos disponíveis</span>
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 className="text-lg font-semibold">Programa de Fidelidade</h3>
+                        <p className="text-orange-100 text-sm">Nível Bronze • 1,250 pontos</p>
+                      </div>
+                      <div className="text-3xl font-bold">1,250</div>
                     </div>
-                    <p className="text-orange-100 text-sm mt-2">Nível: Bronze</p>
+                    
+                    {/* Progress Bar */}
+                    <div className="mb-4">
+                      <div className="flex justify-between text-xs text-orange-100 mb-1">
+                        <span>Bronze</span>
+                        <span>Silver (2,500 pts)</span>
+                      </div>
+                      <div className="w-full bg-orange-400 rounded-full h-2">
+                        <div className="bg-white h-2 rounded-full" style={{width: '50%'}}></div>
+                      </div>
+                      <p className="text-xs text-orange-100 mt-1">Faltam 1,250 pontos para Silver</p>
+                    </div>
+
+                    {/* Current Benefits */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="bg-white/20 backdrop-blur-sm p-2 rounded text-xs">
+                        <strong>5%</strong> desconto em viagens
+                      </div>
+                      <div className="bg-white/20 backdrop-blur-sm p-2 rounded text-xs">
+                        <strong>10%</strong> cashback em hotéis
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Level Benefits */}
+                  <div className="bg-white p-6 rounded-lg border">
+                    <h3 className="text-lg font-semibold mb-4">Níveis & Benefícios</h3>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-4 bg-orange-50 border-l-4 border-orange-600 rounded-r">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <Badge className="bg-orange-600">ATUAL</Badge>
+                            <span className="font-semibold text-orange-800">Bronze (0-2,499 pts)</span>
+                          </div>
+                          <p className="text-sm text-orange-600 mt-1">5% desconto viagens • 10% cashback hotéis</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between p-4 bg-gray-50 rounded border">
+                        <div>
+                          <span className="font-semibold text-gray-700">Silver (2,500-4,999 pts)</span>
+                          <p className="text-sm text-gray-600 mt-1">15% desconto • Suporte Priority • Upgrades ocasionais</p>
+                        </div>
+                        <Badge variant="outline">PRÓXIMO</Badge>
+                      </div>
+                      
+                      <div className="flex items-center justify-between p-4 bg-gray-50 rounded border">
+                        <div>
+                          <span className="font-semibold text-gray-700">Gold (5,000-9,999 pts)</span>
+                          <p className="text-sm text-gray-600 mt-1">25% desconto • Check-in Express • Cancelamento grátis</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between p-4 bg-gray-50 rounded border">
+                        <div>
+                          <span className="font-semibold text-gray-700">Platinum (10,000+ pts)</span>
+                          <p className="text-sm text-gray-600 mt-1">35% desconto • Upgrades grátis • Concierge 24/7</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Special Offers for Current Level */}
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-red-800 mb-3">🔥 Ofertas Especiais Bronze</h4>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-red-700">Weekend Special</p>
+                          <p className="text-xs text-red-600">Válido este fim-de-semana</p>
+                        </div>
+                        <Badge className="bg-red-600 text-white">-20%</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-red-700">Hotel Partner Bonus</p>
+                          <p className="text-xs text-red-600">Hotéis parceiros selecionados</p>
+                        </div>
+                        <Badge className="bg-red-600 text-white">Extra 100 pts</Badge>
+                      </div>
+                    </div>
                   </div>
 
                   {/* How to Earn Points */}
