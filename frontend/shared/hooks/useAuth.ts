@@ -1,4 +1,5 @@
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
+import { getCurrentDomains } from '../utils/constants';
 
 interface User {
   id: string;
@@ -28,7 +29,7 @@ export function useAuth() {
   return context;
 }
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -45,7 +46,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const validateToken = async (token: string) => {
     try {
-      const response = await fetch('/api/auth/validate', {
+      const domains = getCurrentDomains();
+      const response = await fetch(`${domains.api}/api/auth/validate`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -68,7 +70,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const response = await fetch('/api/auth/login', {
+      const domains = getCurrentDomains();
+      const response = await fetch(`${domains.api}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -97,7 +100,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     localStorage.removeItem('auth_token');
     setUser(null);
-    window.location.href = 'https://link-aturismomoz.com';
+    const domains = getCurrentDomains();
+    window.location.href = domains.client;
   };
 
   const switchRole = async (role: string) => {
@@ -107,15 +111,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const redirectBasedOnRole = (role: string) => {
-    const domains = {
-      client: 'https://link-aturismomoz.com',
-      driver: 'https://driver.link-aturismomoz.com',
-      hotel: 'https://hotel.link-aturismomoz.com', 
-      event: 'https://event.link-aturismomoz.com',
-      admin: 'https://admin.link-aturismomoz.com'
+    const domains = getCurrentDomains();
+    const domainMap = {
+      client: domains.client,
+      driver: domains.driver,
+      hotel: domains.hotel,
+      event: domains.event,
+      admin: domains.admin
     };
 
-    const targetDomain = domains[role as keyof typeof domains];
+    const targetDomain = domainMap[role as keyof typeof domainMap];
     if (targetDomain && window.location.origin !== targetDomain) {
       window.location.href = targetDomain;
     }

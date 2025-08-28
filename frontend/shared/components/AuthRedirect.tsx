@@ -1,17 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, ReactNode } from 'react';
 import { useAuth } from '../hooks/useAuth';
-
-// Configuração dos domínios das apps
-const APP_DOMAINS = {
-  client: 'https://link-aturismomoz.com',
-  driver: 'https://driver.link-aturismomoz.com', 
-  hotel: 'https://hotel.link-aturismomoz.com',
-  event: 'https://event.link-aturismomoz.com',
-  admin: 'https://admin.link-aturismomoz.com'
-};
+import { getCurrentDomains } from '../utils/constants';
 
 interface AuthRedirectProps {
-  children: React.ReactNode;
+  children: ReactNode;
   requiredRole?: 'client' | 'driver' | 'hotel' | 'event' | 'admin';
 }
 
@@ -19,14 +11,24 @@ export function AuthRedirect({ children, requiredRole }: AuthRedirectProps) {
   const { user, loading } = useAuth();
 
   useEffect(() => {
+    const domains = getCurrentDomains();
+    
     if (!loading && user && requiredRole) {
       // Se o usuário está logado mas não tem o papel necessário
       if (!user.roles?.includes(requiredRole)) {
         // Redireciona para a app principal do usuário
         const primaryRole = user.roles?.[0] || 'client';
-        const targetDomain = APP_DOMAINS[primaryRole as keyof typeof APP_DOMAINS];
+        const domainMap = {
+          client: domains.client,
+          driver: domains.driver,
+          hotel: domains.hotel,
+          event: domains.event,
+          admin: domains.admin
+        };
         
-        if (window.location.origin !== targetDomain) {
+        const targetDomain = domainMap[primaryRole as keyof typeof domainMap];
+        
+        if (targetDomain && window.location.origin !== targetDomain) {
           window.location.href = targetDomain;
           return;
         }
@@ -34,8 +36,8 @@ export function AuthRedirect({ children, requiredRole }: AuthRedirectProps) {
     }
 
     // Se não está logado e não está na app principal
-    if (!loading && !user && window.location.origin !== APP_DOMAINS.client) {
-      window.location.href = APP_DOMAINS.client;
+    if (!loading && !user && window.location.origin !== domains.client) {
+      window.location.href = domains.client;
     }
   }, [user, loading, requiredRole]);
 
@@ -49,13 +51,14 @@ export function AuthRedirect({ children, requiredRole }: AuthRedirectProps) {
 
   // Se requer papel específico e usuário não tem
   if (requiredRole && (!user?.roles?.includes(requiredRole))) {
+    const domains = getCurrentDomains();
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold mb-4">Acesso Negado</h2>
           <p className="mb-4">Você não tem permissão para acessar esta área.</p>
           <button 
-            onClick={() => window.location.href = APP_DOMAINS.client}
+            onClick={() => window.location.href = domains.client}
             className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
           >
             Voltar ao Início

@@ -6,6 +6,9 @@ import { createServer } from "http";
 import authController from "./modules/auth/authController";
 import clientController from "./modules/clients/clientController";
 import driverController from "./modules/drivers/driverController";
+import hotelController from "./modules/hotels/hotelController";
+import eventController from "./modules/events/eventController";
+import adminController from "./modules/admin/adminController";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -41,11 +44,9 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authController);
 app.use('/api/clients', clientController);  
 app.use('/api/drivers', driverController);
-
-// TODO: Add other modules
-// app.use('/api/hotels', hotelController);
-// app.use('/api/events', eventController);
-// app.use('/api/admin', adminController);
+app.use('/api/hotels', hotelController);
+app.use('/api/events', eventController);
+app.use('/api/admin', adminController);
 
 // Global error handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -70,6 +71,9 @@ server.listen(PORT, () => {
   console.log(`🚀 Link-A Backend API running on port ${PORT}`);
   console.log(`📱 Client API: http://localhost:${PORT}/api/clients`);
   console.log(`🚗 Driver API: http://localhost:${PORT}/api/drivers`);
+  console.log(`🏨 Hotel API: http://localhost:${PORT}/api/hotels`);
+  console.log(`🎪 Event API: http://localhost:${PORT}/api/events`);
+  console.log(`⚙️ Admin API: http://localhost:${PORT}/api/admin`);
   console.log(`🔐 Auth API: http://localhost:${PORT}/api/auth`);
 });
 

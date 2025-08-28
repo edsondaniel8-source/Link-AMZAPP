@@ -12,8 +12,8 @@ import {
   type InsertAccommodation,
   type Booking,
   type InsertBooking
-} from "@shared/schema";
-import { db } from "./db";
+} from "../../../shared/schema";
+import { db } from "../../db";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
