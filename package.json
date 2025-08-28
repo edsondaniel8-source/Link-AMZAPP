@@ -16,7 +16,13 @@
     "backend"
   ],
   "dependencies": {
+    "@stripe/react-stripe-js": "^3.9.2",
+    "@stripe/stripe-js": "^7.9.0",
     "@types/cors": "^2.8.19",
-    "cors": "^2.8.5"
+    "@types/memoizee": "^0.4.12",
+    "cors": "^2.8.5",
+    "memoizee": "^0.4.17",
+    "openid-client": "^6.7.0",
+    "stripe": "^18.5.0"
   }
 }

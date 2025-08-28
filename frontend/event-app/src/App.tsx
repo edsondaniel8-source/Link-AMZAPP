@@ -3,9 +3,10 @@ import { AuthProvider } from '../shared/hooks/useAuth';
 import { AuthRedirect } from '../shared/components/AuthRedirect';
 import Dashboard from './pages/Dashboard';
 import Events from './pages/Events';
-import Bookings from './pages/Bookings';
+import Tickets from './pages/Tickets';
 import Analytics from './pages/Analytics';
-import Profile from './pages/Profile';
+import Experience from './pages/Experience';
+import PartnershipCreate from './pages/PartnershipCreate';
 import Navigation from './components/Navigation';
 
 function App() {
@@ -18,10 +19,12 @@ function App() {
             <Router>
               <Switch>
                 <Route path="/" component={Dashboard} />
+                <Route path="/dashboard" component={Dashboard} />
                 <Route path="/events" component={Events} />
-                <Route path="/bookings" component={Bookings} />
+                <Route path="/tickets" component={Tickets} />
                 <Route path="/analytics" component={Analytics} />
-                <Route path="/profile" component={Profile} />
+                <Route path="/experience" component={Experience} />
+                <Route path="/partnerships/create" component={PartnershipCreate} />
                 <Route>
                   <div className="text-center py-20">
                     <h2 className="text-2xl font-bold text-gray-800">Página não encontrada</h2>

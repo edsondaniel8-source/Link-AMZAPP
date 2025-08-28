@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'wouter';
-import { LayoutDashboard, Calendar, Users, BarChart, Settings, LogOut, Ticket } from 'lucide-react';
+import { LayoutDashboard, Calendar, Users, BarChart3, Star, MessageSquare, LogOut, Music } from 'lucide-react';
 import { useAuth } from '../../shared/hooks/useAuth';
 
 export default function Navigation() {
@@ -7,11 +7,12 @@ export default function Navigation() {
   const { user, logout } = useAuth();
 
   const navigation = [
-    { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Eventos', href: '/events', icon: Calendar },
-    { name: 'Inscrições', href: '/bookings', icon: Users },
-    { name: 'Relatórios', href: '/analytics', icon: BarChart },
-    { name: 'Perfil', href: '/profile', icon: Settings },
+    { name: 'Ingressos', href: '/tickets', icon: Users },
+    { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+    { name: 'Experiência', href: '/experience', icon: Star },
+    { name: 'Parcerias', href: '/partnerships/create', icon: MessageSquare },
   ];
 
   return (
@@ -20,14 +21,15 @@ export default function Navigation() {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-8">
             <div className="flex items-center space-x-2">
-              <Ticket className="h-8 w-8 text-purple-600" />
-              <span className="text-xl font-bold text-gray-900">Event Manager</span>
+              <Music className="h-8 w-8 text-purple-600" />
+              <span className="text-xl font-bold text-gray-900">Link-A Events</span>
             </div>
             
             <div className="hidden md:flex space-x-4">
               {navigation.map((item) => {
                 const Icon = item.icon;
-                const isActive = location === item.href;
+                const isActive = location === item.href || 
+                  (item.href !== '/dashboard' && location.startsWith(item.href));
                 return (
                   <Link
                     key={item.name}
