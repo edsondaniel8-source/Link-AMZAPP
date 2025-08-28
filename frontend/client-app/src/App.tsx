@@ -7,17 +7,13 @@ import { useAuth } from "./hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Home from "@/pages/home";
 import Dashboard from "@/pages/dashboard";
-import AdminPanel from "@/pages/admin";
-import Partnerships from "@/pages/partnerships";
-import Events from "@/pages/events";
-import Blog from "@/pages/blog";
-import Loyalty from "@/pages/loyalty";
-import ProfileVerification from "@/pages/profile-verification";
-import CreateEvent from "@/pages/create-event";
+import Profile from "@/pages/profile";
+import Chat from "@/pages/chat";
+import Notifications from "@/pages/notifications";
 import BookingsPage from "@/pages/bookings";
+import Events from "@/pages/events";
 import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/login";
-import TestBooking from "./components/TestBooking";
 function Router() {
   const { loading } = useAuth();
 
@@ -43,7 +39,7 @@ function Router() {
         }
       />
       <Route path="/login" component={LoginPage} />
-      <Route path="/test-booking" component={TestBooking} />
+      
       {/* Protected Routes - require authentication */}
       <Route path="/dashboard">
         <ProtectedRoute>
@@ -57,27 +53,18 @@ function Router() {
         </ProtectedRoute>
       </Route>
 
-      <Route path="/profile/verification">
+      <Route path="/profile">
         <ProtectedRoute>
-          <ProfileVerification />
+          <Profile />
         </ProtectedRoute>
       </Route>
 
-      <Route path="/admin">
-        <ProtectedRoute>
-          <AdminPanel />
-        </ProtectedRoute>
-      </Route>
+      <Route path="/chat" component={Chat} />
+      <Route path="/chat/:chatId" component={Chat} />
 
-      <Route path="/loyalty">
+      <Route path="/notifications">
         <ProtectedRoute>
-          <Loyalty />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/events/create">
-        <ProtectedRoute requireVerification>
-          <CreateEvent />
+          <Notifications />
         </ProtectedRoute>
       </Route>
 

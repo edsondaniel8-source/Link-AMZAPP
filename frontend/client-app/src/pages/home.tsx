@@ -1,107 +1,252 @@
 import { useState } from "react";
-import Header from "@/components/Header";
-import RideSearch from "@/components/RideSearch";
-import RideOfferModal from "@/components/RideOfferModal";
-import StaySearch from "@/components/StaySearch";
-import RideResults from "@/components/RideResults";
-import StayResults from "@/components/StayResults";
-import DealsOfTheDay from "@/components/DealsOfTheDay";
-import MobileNavigation from "@/components/MobileNavigation";
-// RestaurantStops component removed - restaurant functionality eliminated
-import DriverPartnerships from "@/components/DriverPartnerships";
-import FeaturedEvents from "@/components/FeaturedEvents";
+import { useAuth } from "../hooks/useAuth";
+import { Link } from "wouter";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { CalendarDays, MapPin, Users, Star, Car, Hotel, Calendar } from "lucide-react";
 
 export default function Home() {
-  const [activeService, setActiveService] = useState<"rides" | "stays">("rides");
-  const [searchParams, setSearchParams] = useState<any>(null);
-  const [showOfferModal, setShowOfferModal] = useState(false);
+  const { user } = useAuth();
+  const [searchType, setSearchType] = useState<"rides" | "stays" | "events">("rides");
+  const [searchQuery, setSearchQuery] = useState({ from: "", to: "", date: "" });
 
-  const handleSubmitOffer = (offerData: any) => {
-    console.log('Ride offer submitted:', offerData);
-    // TODO: Implement API call to submit ride offer
+  const handleSearch = () => {
+    console.log('Search:', { type: searchType, ...searchQuery });
+    // TODO: Implementar busca
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      <Header 
-        activeService={activeService} 
-        onServiceChange={setActiveService} 
-        onOfferRide={() => setShowOfferModal(true)}
-      />
-      
-      {/* Search Section */}
-      <section className="bg-gray-light py-8">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          {activeService === "rides" ? (
-            <RideSearch onSearch={setSearchParams} />
-          ) : (
-            <StaySearch onSearch={setSearchParams} />
-          )}
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <h1 className="text-2xl font-bold text-orange-600">Link-A</h1>
+            <span className="text-gray-500">Moçambique</span>
+          </div>
+          <nav className="hidden md:flex items-center space-x-6">
+            {user ? (
+              <>
+                <Link href="/dashboard">
+                  <Button variant="ghost">Dashboard</Button>
+                </Link>
+                <Link href="/bookings">
+                  <Button variant="ghost">Minhas Reservas</Button>
+                </Link>
+                <Link href="/profile">
+                  <Button variant="outline">Perfil</Button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link href="/login">
+                  <Button variant="ghost">Entrar</Button>
+                </Link>
+                <Link href="/login">
+                  <Button variant="default">Registar</Button>
+                </Link>
+              </>
+            )}
+          </nav>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <section className="bg-gradient-to-r from-orange-600 to-red-600 text-white py-20">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <h2 className="text-4xl font-bold mb-4">Viaje por todo Moçambique</h2>
+          <p className="text-xl mb-8">Viagens, hospedagem e eventos numa só plataforma</p>
+          
+          {/* Search Tabs */}
+          <div className="bg-white rounded-lg p-6 shadow-lg">
+            <div className="flex justify-center mb-6">
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => setSearchType("rides")}
+                  className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    searchType === "rides"
+                      ? "bg-white text-orange-600 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  <Car className="w-4 h-4 mr-2" />
+                  Viagens
+                </button>
+                <button
+                  onClick={() => setSearchType("stays")}
+                  className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    searchType === "stays"
+                      ? "bg-white text-orange-600 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  <Hotel className="w-4 h-4 mr-2" />
+                  Hospedagem
+                </button>
+                <button
+                  onClick={() => setSearchType("events")}
+                  className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    searchType === "events"
+                      ? "bg-white text-orange-600 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Eventos
+                </button>
+              </div>
+            </div>
+
+            {/* Search Form */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {searchType === "rides" ? (
+                <>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                      placeholder="De onde?"
+                      value={searchQuery.from}
+                      onChange={(e) => setSearchQuery({...searchQuery, from: e.target.value})}
+                      className="pl-10 text-gray-900"
+                    />
+                  </div>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                      placeholder="Para onde?"
+                      value={searchQuery.to}
+                      onChange={(e) => setSearchQuery({...searchQuery, to: e.target.value})}
+                      className="pl-10 text-gray-900"
+                    />
+                  </div>
+                  <div className="relative">
+                    <CalendarDays className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                      type="date"
+                      value={searchQuery.date}
+                      onChange={(e) => setSearchQuery({...searchQuery, date: e.target.value})}
+                      className="pl-10 text-gray-900"
+                    />
+                  </div>
+                </>
+              ) : searchType === "stays" ? (
+                <>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                      placeholder="Destino"
+                      value={searchQuery.from}
+                      onChange={(e) => setSearchQuery({...searchQuery, from: e.target.value})}
+                      className="pl-10 text-gray-900"
+                    />
+                  </div>
+                  <div className="relative">
+                    <CalendarDays className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                      type="date"
+                      placeholder="Check-in"
+                      value={searchQuery.date}
+                      onChange={(e) => setSearchQuery({...searchQuery, date: e.target.value})}
+                      className="pl-10 text-gray-900"
+                    />
+                  </div>
+                  <div className="relative">
+                    <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                      placeholder="Hóspedes"
+                      value={searchQuery.to}
+                      onChange={(e) => setSearchQuery({...searchQuery, to: e.target.value})}
+                      className="pl-10 text-gray-900"
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                      placeholder="Cidade ou evento"
+                      value={searchQuery.from}
+                      onChange={(e) => setSearchQuery({...searchQuery, from: e.target.value})}
+                      className="pl-10 text-gray-900"
+                    />
+                  </div>
+                  <div className="relative">
+                    <CalendarDays className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                      type="date"
+                      placeholder="Data"
+                      value={searchQuery.date}
+                      onChange={(e) => setSearchQuery({...searchQuery, date: e.target.value})}
+                      className="pl-10 text-gray-900"
+                    />
+                  </div>
+                  <div className="relative">
+                    <Input
+                      placeholder="Tipo de evento"
+                      value={searchQuery.to}
+                      onChange={(e) => setSearchQuery({...searchQuery, to: e.target.value})}
+                      className="text-gray-900"
+                    />
+                  </div>
+                </>
+              )}
+              <Button onClick={handleSearch} className="bg-orange-600 hover:bg-orange-700">
+                Buscar
+              </Button>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Deals of the Day Section */}
-      {!searchParams && (
-        <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <DealsOfTheDay />
-        </section>
-      )}
-
-      {/* Restaurant functionality removed from platform */}
-
-
-      {/* Featured Events Section */}
-      {!searchParams && (
-        <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <FeaturedEvents />
-        </section>
-      )}
-
-      {/* Results Section */}
-      {searchParams && (
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {activeService === "rides" ? (
-            <RideResults searchParams={searchParams} />
-          ) : (
-            <StayResults searchParams={searchParams} />
-          )}
-        </main>
-      )}
-
-      {/* Trip Planning Section */}
-      <section className="bg-gray-light py-12 mt-12">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-dark">Planeie Sua Viagem Completa com Link-A Mz</h2>
-            <p className="text-gray-medium mt-2">Combine viagens e hospedagens para uma experiência perfeita</p>
-            
-            {/* Backend Connection Test Button */}
-            <button 
-              onClick={async () => {
-                try {
-                  const response = await fetch('https://link-amzapp-production.up.railway.app/health');
-                  const data = await response.json();
-                  console.log('Backend response:', data);
-                  alert('Backend connected successfully! Check console for details.');
-                } catch (error) {
-                  console.error('Backend connection failed:', error);
-                  alert('Backend connection failed. Check console for details.');
-                }
-              }}
-              className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
-            >
-              Test Backend Connection
-            </button>
+      {/* Features Section */}
+      <section className="py-16">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Por que escolher Link-A?</h2>
+            <p className="text-lg text-gray-600">A melhor forma de viajar e descobrir Moçambique</p>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-white rounded-xl p-6 text-center shadow-md">
-              <div className="w-16 h-16 bg-primary bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i className="fas fa-route text-primary text-2xl"></i>
-              </div>
-              <h3 className="text-xl font-semibold text-dark mb-2">Smart Routing</h3>
-              <p className="text-gray-medium">Book rides to and from your accommodation automatically</p>
-            </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <Card>
+              <CardHeader className="text-center">
+                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <Car className="w-6 h-6 text-orange-600" />
+                </div>
+                <CardTitle>Viagens Seguras</CardTitle>
+              </CardHeader>
+              <CardContent className="text-center">
+                <p className="text-gray-600">Motoristas verificados e veículos inspeccionados para sua segurança</p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="text-center">
+                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <Hotel className="w-6 h-6 text-orange-600" />
+                </div>
+                <CardTitle>Hospedagem Quality</CardTitle>
+              </CardHeader>
+              <CardContent className="text-center">
+                <p className="text-gray-600">Hotéis e casas verificadas com as melhores avaliações</p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="text-center">
+                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <Star className="w-6 h-6 text-orange-600" />
+                </div>
+                <CardTitle>Programa de Pontos</CardTitle>
+              </CardHeader>
+              <CardContent className="text-center">
+                <p className="text-gray-600">Ganhe pontos a cada reserva e troque por descontos</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
 
             <div className="bg-white rounded-xl p-6 text-center shadow-md">
               <div className="w-16 h-16 bg-secondary bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4">
