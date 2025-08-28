@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'wouter';
-import { LayoutDashboard, Calendar, BedDouble, Users, BarChart, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, Calendar, BedDouble, Users, BarChart, Star, DollarSign, MessageSquare, LogOut } from 'lucide-react';
 import { useAuth } from '../../shared/hooks/useAuth';
 
 export default function Navigation() {
@@ -7,12 +7,12 @@ export default function Navigation() {
   const { user, logout } = useAuth();
 
   const navigation = [
-    { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-    { name: 'Reservas', href: '/reservations', icon: Users },
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Reservas', href: '/bookings', icon: Users },
     { name: 'Quartos', href: '/rooms', icon: BedDouble },
-    { name: 'Calendário', href: '/calendar', icon: Calendar },
-    { name: 'Relatórios', href: '/analytics', icon: BarChart },
-    { name: 'Perfil', href: '/profile', icon: Settings },
+    { name: 'Financeiro', href: '/financial', icon: DollarSign },
+    { name: 'Avaliações', href: '/reviews', icon: Star },
+    { name: 'Parcerias', href: '/partnerships/create', icon: MessageSquare },
   ];
 
   return (
@@ -22,7 +22,7 @@ export default function Navigation() {
           <div className="flex items-center space-x-8">
             <div className="flex items-center space-x-2">
               <BedDouble className="h-8 w-8 text-blue-600" />
-              <span className="text-xl font-bold text-gray-900">Hotel Manager</span>
+              <span className="text-xl font-bold text-gray-900">Link-A Hotel</span>
             </div>
             
             <div className="hidden md:flex space-x-4">

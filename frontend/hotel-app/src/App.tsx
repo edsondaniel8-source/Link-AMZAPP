@@ -2,11 +2,11 @@ import { Router, Route, Switch } from 'wouter';
 import { AuthProvider } from '../shared/hooks/useAuth';
 import { AuthRedirect } from '../shared/components/AuthRedirect';
 import Dashboard from './pages/Dashboard';
-import Reservations from './pages/Reservations';
+import Bookings from './pages/Bookings';
 import Rooms from './pages/Rooms';
-import Calendar from './pages/Calendar';
-import Analytics from './pages/Analytics';
-import Profile from './pages/Profile';
+import Financial from './pages/Financial';
+import Reviews from './pages/Reviews';
+import PartnershipCreate from './pages/PartnershipCreate';
 import Navigation from './components/Navigation';
 
 function App() {
@@ -19,11 +19,12 @@ function App() {
             <Router>
               <Switch>
                 <Route path="/" component={Dashboard} />
-                <Route path="/reservations" component={Reservations} />
+                <Route path="/dashboard" component={Dashboard} />
+                <Route path="/bookings" component={Bookings} />
                 <Route path="/rooms" component={Rooms} />
-                <Route path="/calendar" component={Calendar} />
-                <Route path="/analytics" component={Analytics} />
-                <Route path="/profile" component={Profile} />
+                <Route path="/financial" component={Financial} />
+                <Route path="/reviews" component={Reviews} />
+                <Route path="/partnerships/create" component={PartnershipCreate} />
                 <Route>
                   <div className="text-center py-20">
                     <h2 className="text-2xl font-bold text-gray-800">Página não encontrada</h2>

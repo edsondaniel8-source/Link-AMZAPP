@@ -454,6 +454,122 @@ export const driverDocuments = pgTable("driver_documents", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Hotel partnership proposals system
+export const partnershipProposals = pgTable("partnership_proposals", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  hotelId: varchar("hotel_id").references(() => accommodations.id).notNull(),
+  title: text("title").notNull(), // "Transfer VIP Weekend"
+  description: text("description").notNull(),
+  proposalType: text("proposal_type").notNull(), // "transfer", "event_transport", "guest_shuttle"
+  
+  // Target criteria
+  targetRegions: text("target_regions").array(), // ["Maputo", "Matola"]
+  minimumDriverLevel: text("minimum_driver_level").default("bronze"),
+  requiredVehicleType: text("required_vehicle_type"), // "sedan", "suv", "minivan"
+  
+  // Dates and scheduling
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  specificDates: text("specific_dates").array(), // Specific dates if not continuous
+  timeSlots: text("time_slots").array(), // ["06:00-10:00", "18:00-22:00"]
+  
+  // Compensation and benefits
+  basePaymentMzn: decimal("base_payment_mzn", { precision: 8, scale: 2 }).notNull(),
+  bonusPaymentMzn: decimal("bonus_payment_mzn", { precision: 8, scale: 2 }).default("0.00"),
+  premiumRate: decimal("premium_rate", { precision: 5, scale: 2 }).default("0.00"), // +40% = 40.00
+  offerFreeAccommodation: boolean("offer_free_accommodation").default(false),
+  offerMeals: boolean("offer_meals").default(false),
+  offerFuel: boolean("offer_fuel").default(false),
+  additionalBenefits: text("additional_benefits").array(), // ["Gorjetas generosas", "Certificado VIP"]
+  
+  // Requirements and details
+  maxDriversNeeded: integer("max_drivers_needed").notNull(),
+  currentApplicants: integer("current_applicants").default(0),
+  minimumRides: integer("minimum_rides"), // Minimum rides to complete for bonus
+  estimatedEarnings: text("estimated_earnings"), // "500-800 MZN/dia"
+  
+  // Status and priority
+  status: text("status").default("active"), // active, paused, completed, cancelled
+  priority: text("priority").default("normal"), // normal, high, urgent
+  featuredUntil: timestamp("featured_until"), // Featured on driver dashboard until this date
+  
+  // Contact and application
+  contactMethod: text("contact_method").default("in_app"), // in_app, phone, email
+  applicationDeadline: timestamp("application_deadline"),
+  requiresInterview: boolean("requires_interview").default(false),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Hotel rooms management
+export const hotelRooms = pgTable("hotel_rooms", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  accommodationId: varchar("accommodation_id").references(() => accommodations.id).notNull(),
+  roomNumber: text("room_number").notNull(),
+  roomType: text("room_type").notNull(), // "Standard", "Deluxe", "Suite", "Presidential"
+  description: text("description"),
+  images: text("images").array(),
+  
+  // Pricing
+  basePrice: decimal("base_price", { precision: 8, scale: 2 }).notNull(),
+  weekendPrice: decimal("weekend_price", { precision: 8, scale: 2 }),
+  holidayPrice: decimal("holiday_price", { precision: 8, scale: 2 }),
+  
+  // Capacity
+  maxOccupancy: integer("max_occupancy").notNull().default(2),
+  bedType: text("bed_type"), // "Single", "Double", "Queen", "King", "Twin"
+  bedCount: integer("bed_count").default(1),
+  
+  // Amenities
+  hasPrivateBathroom: boolean("has_private_bathroom").default(true),
+  hasAirConditioning: boolean("has_air_conditioning").default(false),
+  hasWifi: boolean("has_wifi").default(false),
+  hasTV: boolean("has_tv").default(false),
+  hasBalcony: boolean("has_balcony").default(false),
+  hasKitchen: boolean("has_kitchen").default(false),
+  roomAmenities: text("room_amenities").array(), // Additional amenities
+  
+  // Availability
+  isAvailable: boolean("is_available").default(true),
+  maintenanceUntil: timestamp("maintenance_until"), // Room unavailable until this date
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Hotel financial reports
+export const hotelFinancialReports = pgTable("hotel_financial_reports", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  accommodationId: varchar("accommodation_id").references(() => accommodations.id).notNull(),
+  reportDate: timestamp("report_date").notNull(),
+  reportType: text("report_type").notNull(), // "daily", "weekly", "monthly"
+  
+  // Revenue metrics
+  totalRevenue: decimal("total_revenue", { precision: 10, scale: 2 }).notNull(),
+  roomRevenue: decimal("room_revenue", { precision: 10, scale: 2 }).notNull(),
+  serviceRevenue: decimal("service_revenue", { precision: 10, scale: 2 }).default("0.00"),
+  
+  // Booking metrics
+  totalBookings: integer("total_bookings").default(0),
+  confirmedBookings: integer("confirmed_bookings").default(0),
+  cancelledBookings: integer("cancelled_bookings").default(0),
+  noShowBookings: integer("no_show_bookings").default(0),
+  
+  // Occupancy metrics
+  totalRooms: integer("total_rooms").notNull(),
+  occupiedRooms: integer("occupied_rooms").default(0),
+  occupancyRate: decimal("occupancy_rate", { precision: 5, scale: 2 }).default("0.00"), // Percentage
+  averageDailyRate: decimal("average_daily_rate", { precision: 8, scale: 2 }).default("0.00"), // ADR
+  revenuePerAvailableRoom: decimal("revenue_per_available_room", { precision: 8, scale: 2 }).default("0.00"), // RevPAR
+  
+  // Platform fees
+  platformFees: decimal("platform_fees", { precision: 8, scale: 2 }).default("0.00"),
+  netRevenue: decimal("net_revenue", { precision: 10, scale: 2 }).notNull(),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users);
 export const upsertUserSchema = createInsertSchema(users).pick({
   id: true,
@@ -466,12 +582,19 @@ export const upsertUserSchema = createInsertSchema(users).pick({
 export const insertBookingSchema = createInsertSchema(bookings);
 export const insertRideSchema = createInsertSchema(rides);
 export const insertAccommodationSchema = createInsertSchema(accommodations);
+export const insertPartnershipProposalSchema = createInsertSchema(partnershipProposals);
+export const insertHotelRoomSchema = createInsertSchema(hotelRooms);
+export const insertHotelFinancialReportSchema = createInsertSchema(hotelFinancialReports);
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type UpsertUser = z.infer<typeof upsertUserSchema>;
 export type InsertBooking = z.infer<typeof insertBookingSchema>;
 export type InsertRide = z.infer<typeof insertRideSchema>;
 export type InsertAccommodation = z.infer<typeof insertAccommodationSchema>;
+export type InsertPartnershipProposal = z.infer<typeof insertPartnershipProposalSchema>;
+export type InsertHotelRoom = z.infer<typeof insertHotelRoomSchema>;
+export type InsertHotelFinancialReport = z.infer<typeof insertHotelFinancialReportSchema>;
+
 export type User = typeof users.$inferSelect;
 export type Ride = typeof rides.$inferSelect;
 export type Accommodation = typeof accommodations.$inferSelect;
@@ -479,6 +602,9 @@ export type Booking = typeof bookings.$inferSelect;
 export type Rating = typeof ratings.$inferSelect;
 export type Event = typeof events.$inferSelect;
 export type EventManager = typeof eventManagers.$inferSelect;
+export type PartnershipProposal = typeof partnershipProposals.$inferSelect;
+export type HotelRoom = typeof hotelRooms.$inferSelect;
+export type HotelFinancialReport = typeof hotelFinancialReports.$inferSelect;
 // REMOVED: EventPartnership type - data integrated into events table
 // REMOVED: EventBooking type - functionality integrated into Booking type
 export type LoyaltyProgram = typeof loyaltyProgram.$inferSelect;
