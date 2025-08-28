@@ -128,23 +128,45 @@ railway domain add api.link-aturismomoz.com
 
 ## 🏃‍♂️ Execução em Desenvolvimento
 
+### ✅ **Build Funcionando**
+O backend agora compila corretamente e todos os imports estão organizados na estrutura shared.
+
 ### Backend
 ```bash
 cd backend
 npm install
-npm run dev  # Roda em localhost:3001
+npm run build  # ✅ Build funciona
+npm run dev    # Roda em localhost:3001
 ```
 
 ### Frontend - Múltiplas Apps
+Use o script de desenvolvimento para facilitar:
+
+```bash
+# Executar app específica
+./run-dev-apps.sh client   # App principal (porta 5000)
+./run-dev-apps.sh driver   # App motoristas (porta 5001)
+./run-dev-apps.sh hotel    # App hotéis (porta 5002)
+./run-dev-apps.sh event    # App eventos (porta 5003)
+./run-dev-apps.sh admin    # App administração (porta 5004)
+```
+
+### OU Manualmente:
 ```bash
 # Terminal 1 - App Principal
-cd frontend/client-app && npm run dev
+cd frontend/client-app && npm run dev --port 5000
 
 # Terminal 2 - App Motoristas  
-cd frontend/driver-app && npm run dev
+cd frontend/driver-app && npm run dev --port 5001
 
 # Terminal 3 - App Hotéis
-cd frontend/hotel-app && npm run dev
+cd frontend/hotel-app && npm run dev --port 5002
+
+# Terminal 4 - App Eventos
+cd frontend/event-app && npm run dev --port 5003
+
+# Terminal 5 - App Admin
+cd frontend/admin-app && npm run dev --port 5004
 ```
 
 ## ✅ Benefícios da Nova Estrutura
