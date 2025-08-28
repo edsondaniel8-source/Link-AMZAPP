@@ -5,6 +5,11 @@ import { storage } from "./storage";
 import { verifyFirebaseToken, type AuthenticatedRequest } from "./firebaseAuth";
 import { insertBookingSchema } from "@shared/schema";
 
+// Import route modules
+import searchRoutes from "./searchRoutes";
+import profileRoutes from "./profileRoutes";
+import blogRoutes from "./blogRoutes";
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
 
@@ -14,6 +19,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     storage: multer.memoryStorage(),
     limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
   });
+
+  // Mount route modules
+  app.use('/api/search', searchRoutes);
+  app.use('/api/profile', profileRoutes);
+  app.use('/api/blog', blogRoutes);
+  
+  // Import and mount test routes
+  const testRoutes = await import("./testRoutes");
+  app.use('/api/test', testRoutes.default);
 
   // Auth routes - Firebase Auth only
   app.get('/api/auth/user', verifyFirebaseToken, async (req, res) => {
