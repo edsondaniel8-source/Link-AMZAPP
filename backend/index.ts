@@ -84,7 +84,7 @@ app.use('/api/events', eventController);
 app.use('/api/admin', adminController);
 
 // Serve static files from React build (CSS, JS, images)
-app.use(express.static(path.join(__dirname, 'dist')));
+app.use(express.static(__dirname));
 
 // Global error handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -106,7 +106,7 @@ app.get('*', (req, res) => {
   }
   
   // For any other route, serve index.html (React SPA)
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 const server = createServer(app);
