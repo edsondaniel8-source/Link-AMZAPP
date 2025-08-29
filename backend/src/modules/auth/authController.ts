@@ -15,23 +15,39 @@ interface AuthenticatedRequest extends Request {
 }
 
 const verifyFirebaseToken = async (req: Request, res: Response, next: NextFunction) => {
-  // Por agora, simular autenticação para desenvolvimento
   const authHeader = req.headers.authorization;
   
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ message: "Token não fornecido" });
   }
   
-  // Simular usuário autenticado para desenvolvimento
-  (req as AuthenticatedRequest).user = {
-    claims: {
-      sub: "temp-user-id",
-      email: "user@example.com"
-    },
-    displayName: "Usuário Teste"
-  };
+  const token = authHeader.split(' ')[1];
   
-  next();
+  try {
+    // TODO: Implementar verificação real do Firebase Admin SDK
+    // Por agora, simular com dados básicos extraídos do token
+    console.log('🔐 Verificando token Firebase:', token.substring(0, 20) + '...');
+    
+    // Simular dados de usuário baseados no token (desenvolvimento)
+    const mockPayload = {
+      sub: `firebase-${Date.now()}`,
+      email: req.body.email || "user@linkamz.com",
+      name: req.body.displayName || "Usuário Link-A"
+    };
+    
+    (req as AuthenticatedRequest).user = {
+      claims: {
+        sub: mockPayload.sub,
+        email: mockPayload.email
+      },
+      displayName: mockPayload.name
+    };
+    
+    next();
+  } catch (error) {
+    console.error('Erro ao verificar token:', error);
+    return res.status(401).json({ message: "Token inválido" });
+  }
 };
 
 // Obter dados do usuário autenticado
@@ -109,11 +125,11 @@ router.post('/register', async (req, res) => {
 });
 
 // Configurar roles do usuário durante signup
-router.post('/setup-roles', verifyFirebaseToken, async (req, res) => {
+router.post('/setup-user-roles', verifyFirebaseToken, async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   try {
-    const userId = authReq.user?.claims?.sub;
-    const { roles, firstName, lastName, phone } = req.body;
+    const { uid, email, displayName, photoURL, roles } = req.body;
+    const userId = uid || authReq.user?.claims?.sub;
     
     if (!userId) {
       return res.status(401).json({ message: "Token inválido" });
@@ -123,22 +139,16 @@ router.post('/setup-roles', verifyFirebaseToken, async (req, res) => {
       return res.status(400).json({ message: "Pelo menos um role deve ser selecionado" });
     }
 
-    // Atualizar dados do usuário
+    // Criar/atualizar usuário com dados do Firebase
     let user = await storage.upsertUser({
       id: userId,
+      email: email,
+      firstName: displayName?.split(' ')[0] || null,
+      lastName: displayName?.split(' ').slice(1).join(' ') || null,
+      profileImageUrl: photoURL || null,
       userType: roles[0], // Usar o primeiro role como userType principal
       registrationCompleted: true
     });
-    
-    // Atualizar dados pessoais se fornecidos
-    if (firstName || lastName || phone) {
-      user = await storage.upsertUser({
-        id: userId,
-        firstName: firstName || user.firstName,
-        lastName: lastName || user.lastName,
-        registrationCompleted: true
-      });
-    }
     
     res.json({ 
       user: {

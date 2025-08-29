@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -7,7 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
+import AccountTypeSelector from "@/shared/components/AccountTypeSelector";
+import { onAuthStateChange, handleRedirectResult } from "@/lib/firebaseConfig";
+import type { User } from "firebase/auth";
 
 const signupSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -24,12 +27,47 @@ type SignupData = z.infer<typeof signupSchema>;
 export default function SignupPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [showRoleSelection, setShowRoleSelection] = useState(false);
+  const [, setLocation] = useLocation();
 
   const form = useForm<SignupData>({
     resolver: zodResolver(signupSchema),
   });
 
-  const onSubmit = async (data: SignupData) => {
+  useEffect(() => {
+    // Verificar se o utilizador foi redirecionado do Google
+    const checkRedirect = async () => {
+      try {
+        const user = await handleRedirectResult();
+        if (user) {
+          setCurrentUser(user);
+          setShowRoleSelection(true);
+        }
+      } catch (error) {
+        console.error('Erro ao processar redirect:', error);
+        toast({
+          title: "Erro no Login",
+          description: "Erro ao processar autenticação com Google",
+          variant: "destructive",
+        });
+      }
+    };
+
+    checkRedirect();
+
+    // Escutar mudanças no estado de autenticação
+    const unsubscribe = onAuthStateChange((user) => {
+      if (user && !showRoleSelection) {
+        setCurrentUser(user);
+        setShowRoleSelection(true);
+      }
+    });
+
+    return unsubscribe;
+  }, [showRoleSelection, toast]);
+
+  const onSubmit = async (_data: SignupData) => {
     setIsLoading(true);
     try {
       // TODO: Implement manual signup logic
@@ -71,6 +109,68 @@ export default function SignupPage() {
       });
     }
   };
+
+  const handleRoleSelectionComplete = async (selectedRoles: string[]) => {
+    if (!currentUser) return;
+
+    try {
+      // Enviar roles para o backend
+      const response = await fetch('/api/auth/setup-user-roles', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${await currentUser.getIdToken()}`
+        },
+        body: JSON.stringify({
+          uid: currentUser.uid,
+          email: currentUser.email,
+          displayName: currentUser.displayName,
+          photoURL: currentUser.photoURL,
+          roles: selectedRoles
+        })
+      });
+
+      if (response.ok) {
+        
+        toast({
+          title: "Conta Criada!",
+          description: `Bem-vindo ao Link-A! Sua conta foi configurada como ${selectedRoles.join(', ')}.`,
+        });
+
+        // Redirecionar baseado no primeiro role
+        const primaryRole = selectedRoles[0];
+        switch (primaryRole) {
+          case 'client':
+            setLocation('/dashboard');
+            break;
+          case 'event':
+            setLocation('/events/dashboard');
+            break;
+          default:
+            setLocation('/dashboard');
+        }
+      } else {
+        throw new Error('Falha ao configurar conta');
+      }
+    } catch (error) {
+      console.error('Erro ao configurar roles:', error);
+      toast({
+        title: "Erro na Configuração",
+        description: "Erro ao configurar sua conta. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Se o utilizador foi autenticado, mostrar seleção de roles
+  if (showRoleSelection && currentUser) {
+    return (
+      <AccountTypeSelector
+        userEmail={currentUser.email || ''}
+        onComplete={handleRoleSelectionComplete}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
