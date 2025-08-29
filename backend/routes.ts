@@ -1,15 +1,14 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
-import { storage } from "./storage";
-import { verifyFirebaseToken, type AuthenticatedRequest } from "./firebaseAuth";
+import { storage } from "./src/shared/storage";
+import { verifyFirebaseToken, type AuthenticatedRequest } from "./src/shared/firebaseAuth";
 import { insertBookingSchema } from "@shared/schema";
 
 // Import route modules
 import searchRoutes from "./searchRoutes";
 import profileRoutes from "./profileRoutes";
 import blogRoutes from "./blogRoutes";
-import adminRoutes from "./src/modules/admin/adminController";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -25,7 +24,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/search', searchRoutes);
   app.use('/api/profile', profileRoutes);
   app.use('/api/blog', blogRoutes);
-  app.use('/api/admin', adminRoutes);
+  
+  // Import and mount admin routes dynamically
+  const adminRoutes = await import("./src/modules/admin/adminController");
+  app.use('/api/admin', adminRoutes.default);
   
   // Import and mount test routes
   const testRoutes = await import("./testRoutes");
@@ -70,7 +72,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
-          roles: user.roles || [],
+          roles: roles,
           profileImageUrl: user.profileImageUrl,
           isVerified: user.isVerified || false
         }
