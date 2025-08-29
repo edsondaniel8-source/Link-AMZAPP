@@ -73,6 +73,48 @@ async function startServer() {
       res.sendFile(path.join(__dirname, 'index.html'));
     });
     
+    // Configurar graceful shutdown
+    const gracefulShutdown = (signal) => {
+      console.log(`🛑 Recebido sinal ${signal}. Iniciando shutdown elegante...`);
+      
+      server.close(() => {
+        console.log('✅ Backend servidor fechado com sucesso');
+        process.exit(0);
+      });
+
+      // Force kill após 5 segundos
+      setTimeout(() => {
+        console.log('⚡ Forçando encerramento do backend...');
+        process.exit(1);
+      }, 5000);
+    };
+
+    // Registrar handlers de shutdown
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+
+    // Tratamento de erro para porta em uso
+    server.on('error', (error) => {
+      if (error.code === 'EADDRINUSE') {
+        console.error(`❌ Porta ${PORT} já em uso. Use PORT=0 para auto-atribuição ou PORT=8001 para porta alternativa.`);
+        console.log('💡 Tentando porta alternativa em 2 segundos...');
+        
+        setTimeout(() => {
+          server.listen(0, '0.0.0.0', () => {
+            const actualPort = server.address().port;
+            console.log(`🌐 Link-A Backend Server running on port ${actualPort} (auto-atribuída)`);
+            console.log(`📱 Frontend: http://localhost:${actualPort}/`);
+            console.log(`🔌 API: http://localhost:${actualPort}/api/`);
+            console.log(`🏥 Health: http://localhost:${actualPort}/api/health`);
+            console.log('✅ Todas as APIs configuradas e funcionando');
+          });
+        }, 2000);
+      } else {
+        console.error('❌ Erro no servidor:', error);
+        process.exit(1);
+      }
+    });
+
     // Iniciar servidor
     server.listen(PORT, '0.0.0.0', () => {
       console.log(`🌐 Link-A Backend Server running on port ${PORT}`);
