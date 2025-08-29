@@ -18,16 +18,6 @@ export default function SimpleRoleSelector({ onRoleSelected, userEmail }: Simple
       description: 'Quero reservar viagens e hospedagem'
     },
     {
-      id: 'driver', 
-      title: '🚗 Motorista',
-      description: 'Quero oferecer serviços de transporte'
-    },
-    {
-      id: 'hotel',
-      title: '🏨 Hotel',
-      description: 'Quero gerir acomodações'
-    },
-    {
       id: 'event',
       title: '🎭 Organizador de Eventos', 
       description: 'Quero criar e gerir eventos'

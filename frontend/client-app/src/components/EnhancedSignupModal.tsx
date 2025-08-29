@@ -31,8 +31,6 @@ import { auth } from "../lib/firebaseConfig";
 const redirectBasedOnRole = (role: string) => {
   const domainMap: Record<string, string> = {
     client: 'https://client.link-aturismomoz.com',
-    driver: 'https://driver.link-aturismomoz.com',
-    hotel: 'https://hotel.link-aturismomoz.com',
     event: 'https://event.link-aturismomoz.com',
     admin: 'https://admin.link-aturismomoz.com'
   };

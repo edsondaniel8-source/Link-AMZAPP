@@ -34,34 +34,6 @@ const accountTypes = [
     recommended: true
   },
   {
-    id: "driver",
-    title: "🚗 Motorista",
-    description: "Quero oferecer serviços de transporte",
-    features: [
-      "Aceitar corridas",
-      "Gestão de veículo",
-      "Histórico de viagens",
-      "Ganhos e relatórios"
-    ],
-    icon: Car,
-    color: "bg-green-500",
-    requiresVerification: true
-  },
-  {
-    id: "hotel",
-    title: "🏨 Manager de Hotel",
-    description: "Quero gerir propriedades e acomodações",
-    features: [
-      "Gestão de quartos",
-      "Reservas e check-ins",
-      "Preços dinâmicos",
-      "Relatórios de ocupação"
-    ],
-    icon: Building,
-    color: "bg-purple-500",
-    requiresVerification: true
-  },
-  {
     id: "event",
     title: "🎭 Organizador de Eventos",
     description: "Quero criar e gerir eventos",
@@ -103,7 +75,7 @@ export default function AccountTypeSelector({ onComplete, userEmail }: AccountTy
   };
 
   const hasBusinessRoles = selectedRoles.some(role => 
-    ["driver", "hotel", "event"].includes(role)
+    ["event"].includes(role)
   );
 
   return (
@@ -123,7 +95,7 @@ export default function AccountTypeSelector({ onComplete, userEmail }: AccountTy
         </div>
 
         {/* Account Types Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 max-w-4xl mx-auto">
           {accountTypes.map((type) => {
             const isSelected = selectedRoles.includes(type.id);
             const isClient = type.id === "client";

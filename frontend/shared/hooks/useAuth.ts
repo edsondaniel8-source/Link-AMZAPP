@@ -147,8 +147,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const domains = getCurrentDomains();
     const domainMap = {
       client: domains.client,
-      driver: domains.driver,
-      hotel: domains.hotel,
       event: domains.event,
       admin: domains.admin
     };
