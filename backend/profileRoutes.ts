@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { storage } from "./storage";
-import { verifyFirebaseToken, type AuthenticatedRequest } from "./firebaseAuth";
+import { storage } from "./src/shared/storage";
+import { verifyFirebaseToken, type AuthenticatedRequest } from "./src/shared/firebaseAuth";
 import { eq } from "drizzle-orm";
 import { db } from "./db";
 import { users, driverDocuments } from "./shared/schema";
