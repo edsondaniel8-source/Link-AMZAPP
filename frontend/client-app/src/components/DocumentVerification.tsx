@@ -28,6 +28,37 @@ export default function DocumentVerification({
   verificationBadge,
   onSubmitDocuments
 }: DocumentVerificationProps) {
+  
+  // Se usuário já está verificado, mostrar status
+  if (isVerified) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="w-8 h-8 text-green-600" />
+            </div>
+            <CardTitle className="text-green-700">Conta Verificada</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            <p className="text-gray-600">
+              Seus documentos foram aprovados e sua conta está totalmente verificada.
+            </p>
+            <Badge className="bg-green-100 text-green-800">
+              {verificationBadge || "Verificado"}
+            </Badge>
+            <Button 
+              onClick={() => window.location.href = '/'}
+              className="w-full bg-orange-500 hover:bg-orange-600"
+            >
+              Continuar para Dashboard
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const [documents, setDocuments] = useState({
     // Basic user documents
     identityDocumentType: "bilhete_identidade",

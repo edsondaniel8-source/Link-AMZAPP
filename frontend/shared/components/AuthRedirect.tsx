@@ -1,6 +1,7 @@
-import { useEffect, ReactNode } from 'react';
+import React, { useEffect, ReactNode } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { getCurrentDomains } from '../utils/constants';
+import AccountTypeSelector from './AccountTypeSelector';
 
 interface AuthRedirectProps {
   children: ReactNode;
@@ -8,7 +9,7 @@ interface AuthRedirectProps {
 }
 
 export function AuthRedirect({ children, requiredRole }: AuthRedirectProps) {
-  const { user, loading } = useAuth();
+  const { user, loading, needsRoleSetup, setupUserRoles } = useAuth();
 
   useEffect(() => {
     const domains = getCurrentDomains();
@@ -40,6 +41,29 @@ export function AuthRedirect({ children, requiredRole }: AuthRedirectProps) {
       window.location.href = domains.client;
     }
   }, [user, loading, requiredRole]);
+
+  // Se usuário precisa configurar roles (apenas para novos usuários sem roles)
+  if (user && needsRoleSetup) {
+    return (
+      <AccountTypeSelector
+        userEmail={user.email}
+        onComplete={setupUserRoles}
+      />
+    );
+  }
+
+  // Se usuário com roles de negócio não está verificado, redirecionar para verificação
+  if (user && user.roles?.some(role => ['driver', 'hotel', 'event'].includes(role)) && !user.isVerified) {
+    const domains = getCurrentDomains();
+    if (window.location.pathname !== '/verification') {
+      window.location.href = `${domains.client}/verification`;
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-500"></div>
+        </div>
+      );
+    }
+  }
 
   if (loading) {
     return (

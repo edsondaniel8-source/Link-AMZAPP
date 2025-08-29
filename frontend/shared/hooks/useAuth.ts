@@ -17,6 +17,8 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   switchRole: (role: string) => Promise<void>;
+  setupUserRoles: (roles: string[]) => Promise<void>;
+  needsRoleSetup: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,6 +34,7 @@ export function useAuth() {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [needsRoleSetup, setNeedsRoleSetup] = useState(false);
 
   useEffect(() => {
     // Verificar se há token salvo
@@ -110,6 +113,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const setupUserRoles = async (roles: string[]) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const domains = getCurrentDomains();
+      
+      const response = await fetch(`${domains.api}/api/auth/setup-roles`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ roles })
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData.user);
+        setNeedsRoleSetup(false);
+        
+        // Redirecionar baseado no primeiro role
+        if (userData.user.roles && userData.user.roles.length > 0) {
+          redirectBasedOnRole(userData.user.roles[0]);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao configurar roles:', error);
+      throw error;
+    }
+  };
+
   const redirectBasedOnRole = (role: string) => {
     const domains = getCurrentDomains();
     const domainMap = {
@@ -127,7 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, switchRole }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, switchRole, setupUserRoles, needsRoleSetup }}>
       {children}
     </AuthContext.Provider>
   );
