@@ -31,17 +31,52 @@ export const isFirebaseConfigured = !!(
   firebaseConfig.appId
 );
 
-// Log configuration status for debugging
-console.log('🔥 Firebase Configuration Status:', {
+// Enhanced debugging for production
+console.log('🔥 Firebase Configuration Debug:', {
+  // Environment check
+  environment: import.meta.env.MODE || 'unknown',
+  isDev: import.meta.env.DEV,
+  isProd: import.meta.env.PROD,
+  
+  // Variable existence check
+  variables: {
+    VITE_FIREBASE_API_KEY: import.meta.env.VITE_FIREBASE_API_KEY ? '✅ Set' : '❌ Missing',
+    VITE_FIREBASE_PROJECT_ID: import.meta.env.VITE_FIREBASE_PROJECT_ID ? '✅ Set' : '❌ Missing', 
+    VITE_FIREBASE_APP_ID: import.meta.env.VITE_FIREBASE_APP_ID ? '✅ Set' : '❌ Missing',
+    VITE_FIREBASE_AUTH_DOMAIN: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ? '✅ Set' : '❌ Missing',
+    VITE_FIREBASE_STORAGE_BUCKET: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ? '✅ Set' : '❌ Missing',
+    VITE_FIREBASE_MESSAGING_SENDER_ID: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID ? '✅ Set' : '❌ Missing'
+  },
+  
+  // Final config status
   configured: isFirebaseConfigured,
-  projectId: firebaseConfig.projectId,
+  projectId: firebaseConfig.projectId || 'UNDEFINED',
   hasApiKey: !!firebaseConfig.apiKey,
   hasAppId: !!firebaseConfig.appId,
-  authDomain: firebaseConfig.authDomain
+  authDomain: firebaseConfig.authDomain || 'UNDEFINED',
+  
+  // Raw values (only first 10 chars for security)
+  rawValues: {
+    apiKey: firebaseConfig.apiKey ? firebaseConfig.apiKey.substring(0, 10) + '...' : 'UNDEFINED',
+    projectId: firebaseConfig.projectId || 'UNDEFINED',
+    appId: firebaseConfig.appId ? firebaseConfig.appId.substring(0, 15) + '...' : 'UNDEFINED'
+  }
 });
 
 if (!isFirebaseConfigured) {
   console.warn('⚠️ Firebase configuration is incomplete. Please check your environment variables.');
+  console.error('❌ FIREBASE SETUP REQUIRED:', {
+    message: 'Add these environment variables to your Railway deployment:',
+    required: [
+      'VITE_FIREBASE_API_KEY',
+      'VITE_FIREBASE_PROJECT_ID', 
+      'VITE_FIREBASE_APP_ID',
+      'VITE_FIREBASE_AUTH_DOMAIN',
+      'VITE_FIREBASE_STORAGE_BUCKET',
+      'VITE_FIREBASE_MESSAGING_SENDER_ID'
+    ],
+    note: 'After adding variables, redeploy the application'
+  });
 }
 
 // Initialize Firebase (ensure single instance)
