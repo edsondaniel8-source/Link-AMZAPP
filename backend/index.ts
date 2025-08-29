@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import { createServer } from "http";
+import path from "path";
+import { fileURLToPath } from "url";
 
 // Import modular controllers
 import authController from "./src/modules/auth/authController";
@@ -12,6 +14,10 @@ import adminController from "./src/modules/admin/adminController";
 
 const app = express();
 const PORT = process.env.PORT || 8000;
+
+// Get directory name for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Middleware - CORS configurado para Railway e Vercel
 app.use(cors({
@@ -77,6 +83,9 @@ app.use('/api/hotels', hotelController);
 app.use('/api/events', eventController);
 app.use('/api/admin', adminController);
 
+// Serve static files from React build (CSS, JS, images)
+app.use(express.static(path.join(__dirname, 'dist')));
+
 // Global error handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('Global error:', err);
@@ -86,12 +95,18 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   });
 });
 
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({
-    message: 'Endpoint não encontrado',
-    path: req.originalUrl
-  });
+// SPA Catch-all handler - serve index.html for all non-API routes
+app.get('*', (req, res) => {
+  // Don't intercept API routes
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ 
+      error: 'API endpoint não encontrado',
+      path: req.path 
+    });
+  }
+  
+  // For any other route, serve index.html (React SPA)
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
 const server = createServer(app);
