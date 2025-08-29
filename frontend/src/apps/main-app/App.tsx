@@ -13,7 +13,7 @@ import Chat from './pages/chat';
 import Notifications from './pages/notifications';
 import Profile from './pages/profile';
 import ProtectedRoute from '@/shared/components/ProtectedRoute';
-import NotFound from '@/pages/not-found';
+import NotFound from './pages/not-found';
 
 function MainApp() {
   return (
