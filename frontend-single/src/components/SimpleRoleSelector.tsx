@@ -4,12 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 interface SimpleRoleSelectorProps {
-  onRoleSelected: (role: string) => void;
+  onRoleSelected: (roles: string[]) => void;
   userEmail: string;
 }
 
 export default function SimpleRoleSelector({ onRoleSelected, userEmail }: SimpleRoleSelectorProps) {
   const [selectedRole, setSelectedRole] = useState<string>('client');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const roles = [
     {
@@ -30,26 +31,20 @@ export default function SimpleRoleSelector({ onRoleSelected, userEmail }: Simple
   ];
 
   const handleSubmit = async () => {
+    if (isLoading) return;
+    
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          email: userEmail, 
-          password: 'temp-password', // Em produção viria do Firebase
-          role: selectedRole 
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Registro concluído:', data);
-        onRoleSelected(selectedRole);
-      }
+      setIsLoading(true);
+      console.log('✅ Role selecionado:', selectedRole, 'para:', userEmail);
+      
+      // Simular um pequeno delay para feedback visual
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Chamar o callback com o role selecionado (como array)
+      onRoleSelected([selectedRole]);
     } catch (error) {
       console.error('❌ Erro no registro:', error);
+      setIsLoading(false);
     }
   };
 
@@ -89,9 +84,17 @@ export default function SimpleRoleSelector({ onRoleSelected, userEmail }: Simple
       <Button 
         onClick={handleSubmit}
         className="w-full"
+        disabled={isLoading}
         data-testid="button-confirm-role"
       >
-        Confirmar e Criar Conta
+        {isLoading ? (
+          <>
+            <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+            Criando conta...
+          </>
+        ) : (
+          'Confirmar e Criar Conta'
+        )}
       </Button>
     </div>
   );
