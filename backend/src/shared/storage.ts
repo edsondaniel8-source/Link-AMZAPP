@@ -5,7 +5,6 @@ import {
   bookings,
   type User,
   type UpsertUser,
-  type InsertUser,
   type Ride,
   type InsertRide,
   type Accommodation,
@@ -66,25 +65,27 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserRoles(id: string, roles: string[]): Promise<User> {
-    // Por agora, vamos simular um usuário com roles atualizados
-    // Em produção, esto seria atualizado no banco
     const existingUser = await this.getUser(id);
     
     if (!existingUser) {
       throw new Error(`User with id ${id} not found`);
     }
     
-    // Simular usuário com roles atualizados
-    const updatedUser = {
-      ...existingUser,
-      userType: roles.length > 0 ? roles[0] : 'user', // Usar primeiro role como userType
-      updatedAt: new Date(),
-      registrationCompleted: true
-    };
+    // Atualizar no banco de dados
+    const primaryRole = roles.length > 0 ? roles[0] : 'user';
+    const [updatedUser] = await db
+      .update(users)
+      .set({
+        userType: primaryRole,
+        registrationCompleted: true,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, id))
+      .returning();
     
-    console.log(`✅ User roles updated for ${id}:`, roles);
+    console.log(`✅ User roles updated in database for ${id}:`, roles);
     
-    return updatedUser as User;
+    return updatedUser;
   }
 
 

@@ -27,6 +27,30 @@ import { useAuth } from "../hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { auth } from "../lib/firebaseConfig";
 
+// Função de redirecionamento
+const redirectBasedOnRole = (role: string) => {
+  const domainMap: Record<string, string> = {
+    client: 'https://client.link-aturismomoz.com',
+    driver: 'https://driver.link-aturismomoz.com',
+    hotel: 'https://hotel.link-aturismomoz.com',
+    event: 'https://event.link-aturismomoz.com',
+    admin: 'https://admin.link-aturismomoz.com'
+  };
+  
+  // Em desenvolvimento, manter no localhost
+  if (window.location.hostname === 'localhost') {
+    console.log(`🔄 Redirecionamento simulado para role: ${role}`);
+    return;
+  }
+  
+  const targetDomain = domainMap[role];
+  if (targetDomain && window.location.origin !== targetDomain) {
+    setTimeout(() => {
+      window.location.href = targetDomain;
+    }, 2000); // Delay para mostrar o toast
+  }
+};
+
 interface EnhancedSignupModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -220,6 +244,10 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
           }
         }).join(', ')}`
       });
+      
+      // Redirecionar baseado no role principal selecionado
+      const primaryRole = formData.selectedRoles[0] || 'client';
+      redirectBasedOnRole(primaryRole);
       
       handleClose();
     } catch (error: any) {

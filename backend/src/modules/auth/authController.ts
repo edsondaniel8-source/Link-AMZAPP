@@ -47,6 +47,37 @@ router.get('/user', verifyFirebaseToken, async (req, res) => {
   }
 });
 
+// Endpoint tradicional de registro com role específico
+router.post('/register', async (req, res) => {
+  try {
+    const { email, password, role = 'client' } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ 
+        message: "Email e senha são obrigatórios" 
+      });
+    }
+
+    // TODO: Implementar criação no Firebase Auth aqui
+    console.log(`📝 Registro solicitado: ${email} com role: ${role}`);
+    
+    res.status(201).json({
+      success: true,
+      message: "Registro realizado com sucesso",
+      user: { 
+        id: "temp-id", 
+        email, 
+        role: role 
+      }
+    });
+  } catch (error) {
+    console.error("Registration error:", error);
+    res.status(500).json({ 
+      message: "Erro ao realizar registro" 
+    });
+  }
+});
+
 // Configurar roles do usuário durante signup
 router.post('/setup-roles', verifyFirebaseToken, async (req, res) => {
   const authReq = req as AuthenticatedRequest;
