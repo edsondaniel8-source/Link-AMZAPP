@@ -16,6 +16,7 @@ import BookingsPage from "@/pages/bookings";
 import Events from "@/pages/events";
 import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/login";
+import SignupPage from "@/pages/signup";
 function Router() {
   const { loading, user } = useAuth();
   const { needsRoleSetup, setupUserRoles, userEmail, loading: setupLoading } = useUserSetup();
@@ -56,6 +57,7 @@ function Router() {
         }
       />
       <Route path="/login" component={LoginPage} />
+      <Route path="/signup" component={SignupPage} />
       
       {/* Protected Routes - require authentication */}
       <Route path="/dashboard">

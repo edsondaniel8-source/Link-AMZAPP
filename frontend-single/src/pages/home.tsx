@@ -50,7 +50,7 @@ export default function Home() {
                 <Link href="/login">
                   <Button variant="ghost">Entrar</Button>
                 </Link>
-                <Link href="/login">
+                <Link href="/signup">
                   <Button variant="default">Registar</Button>
                 </Link>
               </>

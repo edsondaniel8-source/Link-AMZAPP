@@ -9,34 +9,39 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 
-const loginSchema = z.object({
-  phone: z.string().min(9, "Número de telefone deve ter pelo menos 9 dígitos"),
+const signupSchema = z.object({
+  email: z.string().email("Email inválido"),
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
+  confirmPassword: z.string(),
+  fullName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Senhas não coincidem",
+  path: ["confirmPassword"],
 });
 
-type LoginData = z.infer<typeof loginSchema>;
+type SignupData = z.infer<typeof signupSchema>;
 
-export default function LoginPage() {
+export default function SignupPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<LoginData>({
-    resolver: zodResolver(loginSchema),
+  const form = useForm<SignupData>({
+    resolver: zodResolver(signupSchema),
   });
 
-  const onSubmit = async (data: LoginData) => {
+  const onSubmit = async (data: SignupData) => {
     setIsLoading(true);
     try {
-      // TODO: Implement manual login logic
+      // TODO: Implement manual signup logic
       toast({
         title: "Em Desenvolvimento",
-        description: "Sistema de login manual ainda não implementado. Use Google para entrar.",
+        description: "Sistema de registro manual ainda não implementado. Use Google para criar conta.",
         variant: "destructive",
       });
     } catch (error) {
       toast({
-        title: "Erro no Login",
-        description: "Erro ao fazer login",
+        title: "Erro no Registro",
+        description: "Erro ao criar conta",
         variant: "destructive",
       });
     } finally {
@@ -44,7 +49,7 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleSignup = async () => {
     try {
       const { signInWithGoogle, isFirebaseConfigured } = await import('../lib/firebaseConfig');
       
@@ -60,8 +65,8 @@ export default function LoginPage() {
       await signInWithGoogle();
     } catch (error) {
       toast({
-        title: "Erro no Login",
-        description: "Erro ao inicializar login com Google",
+        title: "Erro no Registro",
+        description: "Erro ao inicializar registro com Google",
         variant: "destructive",
       });
     }
@@ -72,18 +77,18 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl text-center">
-            Entrar no Link-A
+            Registar no Link-A
           </CardTitle>
           <p className="text-center text-gray-600 dark:text-gray-400">
-            Trazendo o Futuro do turismo para Moçambique
+            Crie sua conta e comece sua jornada
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Google Login Button */}
+          {/* Google Signup Button */}
           <button
-            onClick={handleGoogleLogin}
+            onClick={handleGoogleSignup}
             className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-semibold py-3 px-6 rounded-lg transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center gap-2"
-            data-testid="button-google-login"
+            data-testid="button-google-signup"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -91,7 +96,7 @@ export default function LoginPage() {
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
-            Entrar com Google
+            Registar com Google
           </button>
 
           <div className="relative">
@@ -105,19 +110,33 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Manual Login Form */}
+          {/* Manual Signup Form */}
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <Label htmlFor="phone">Número de Telefone</Label>
+              <Label htmlFor="fullName">Nome Completo</Label>
               <Input
-                id="phone"
-                type="tel"
-                placeholder="+258 84 123 4567"
-                {...form.register("phone")}
-                data-testid="input-phone-login"
+                id="fullName"
+                type="text"
+                placeholder="Seu nome completo"
+                {...form.register("fullName")}
+                data-testid="input-fullname-signup"
               />
-              {form.formState.errors.phone && (
-                <p className="text-sm text-red-500">{form.formState.errors.phone.message}</p>
+              {form.formState.errors.fullName && (
+                <p className="text-sm text-red-500">{form.formState.errors.fullName.message}</p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="seu.email@exemplo.com"
+                {...form.register("email")}
+                data-testid="input-email-signup"
+              />
+              {form.formState.errors.email && (
+                <p className="text-sm text-red-500">{form.formState.errors.email.message}</p>
               )}
             </div>
 
@@ -126,11 +145,26 @@ export default function LoginPage() {
               <Input
                 id="password"
                 type="password"
+                placeholder="Mínimo 6 caracteres"
                 {...form.register("password")}
-                data-testid="input-password-login"
+                data-testid="input-password-signup"
               />
               {form.formState.errors.password && (
                 <p className="text-sm text-red-500">{form.formState.errors.password.message}</p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="confirmPassword">Confirmar Senha</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="Repita sua senha"
+                {...form.register("confirmPassword")}
+                data-testid="input-confirm-password-signup"
+              />
+              {form.formState.errors.confirmPassword && (
+                <p className="text-sm text-red-500">{form.formState.errors.confirmPassword.message}</p>
               )}
             </div>
 
@@ -138,17 +172,17 @@ export default function LoginPage() {
               type="submit" 
               className="w-full"
               disabled={isLoading}
-              data-testid="button-manual-login"
+              data-testid="button-manual-signup"
             >
-              {isLoading ? "Entrando..." : "Entrar"}
+              {isLoading ? "Criando Conta..." : "Criar Conta"}
             </Button>
           </form>
 
           <div className="text-center text-sm text-gray-600 dark:text-gray-400">
             <p>
-              Não tem conta?{" "}
-              <Link href="/signup" className="text-primary hover:underline">
-                Criar uma conta
+              Já tem conta?{" "}
+              <Link href="/login" className="text-primary hover:underline">
+                Fazer login
               </Link>
             </p>
           </div>
