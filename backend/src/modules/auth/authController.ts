@@ -1,8 +1,38 @@
-import { Router } from "express";
-// import { verifyFirebaseToken, type AuthenticatedRequest } from "../../shared/firebaseAuth";
+import { Router, Request, Response, NextFunction } from "express";
 import { storage } from "../../shared/storage";
 
 const router = Router();
+
+// Middleware temporário de autenticação (substituir com Firebase em produção)
+interface AuthenticatedRequest extends Request {
+  user?: {
+    claims?: {
+      sub?: string;
+      email?: string;
+    };
+    displayName?: string;
+  };
+}
+
+const verifyFirebaseToken = async (req: Request, res: Response, next: NextFunction) => {
+  // Por agora, simular autenticação para desenvolvimento
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: "Token não fornecido" });
+  }
+  
+  // Simular usuário autenticado para desenvolvimento
+  (req as AuthenticatedRequest).user = {
+    claims: {
+      sub: "temp-user-id",
+      email: "user@example.com"
+    },
+    displayName: "Usuário Teste"
+  };
+  
+  next();
+};
 
 // Obter dados do usuário autenticado
 router.get('/user', verifyFirebaseToken, async (req, res) => {
