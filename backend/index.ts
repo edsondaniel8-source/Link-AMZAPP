@@ -11,21 +11,17 @@ import eventController from "./src/modules/events/eventController";
 import adminController from "./src/modules/admin/adminController";
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 8000;
 
 // Middleware
 app.use(cors({
   origin: [
     'https://link-aturismomoz.com',
-    'https://driver.link-aturismomoz.com',
-    'https://hotel.link-aturismomoz.com', 
-    'https://event.link-aturismomoz.com',
-    'https://admin.link-aturismomoz.com',
     'https://link-amzapp.vercel.app',
     'https://link-amzapp-git-main-brunooliveira3s-projects.vercel.app',
     /https:\/\/link-amzapp-.*\.vercel\.app$/,
-    'http://localhost:5000', // Para desenvolvimento
-    'http://localhost:3000'
+    'http://localhost:3000', // Frontend separado
+    'http://localhost:5000'  // Development fallback
   ],
   credentials: true
 }));
