@@ -7,13 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { 
   Shield, 
   Mail, 
   Lock, 
   User, 
   Phone, 
-  MapPin, 
   FileText, 
   Camera, 
   Upload,
@@ -96,7 +97,7 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
   const totalSteps = 5; // Adicionando step de seleção de roles
   const progress = (currentStep / totalSteps) * 100;
 
-  const handleInputChange = (field: keyof FormData, value: string | File | null) => {
+  const handleInputChange = (field: keyof FormData, value: string | File | null | string[]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value

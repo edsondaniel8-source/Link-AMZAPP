@@ -27,16 +27,29 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginData) => {
     setIsLoading(true);
     try {
-      // TODO: Implement manual login logic
+      const { signInWithEmail, isFirebaseConfigured } = await import('../lib/firebaseConfig');
+      
+      if (!isFirebaseConfigured) {
+        toast({
+          title: "Firebase Não Configurado",
+          description: "Configure as chaves do Firebase para usar autenticação",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Usar o telefone como email temporariamente ou implementar busca por telefone
+      // Por enquanto, mostrar mensagem para usar Google
       toast({
-        title: "Em Desenvolvimento",
-        description: "Sistema de login manual ainda não implementado. Use Google para entrar.",
-        variant: "destructive",
+        title: "Login com Email",
+        description: "Use a opção 'Entrar com Google' para acesso mais rápido e seguro.",
+        variant: "default",
       });
+      
     } catch (error) {
       toast({
         title: "Erro no Login",
-        description: "Erro ao fazer login",
+        description: "Erro ao fazer login. Verifique suas credenciais.",
         variant: "destructive",
       });
     } finally {

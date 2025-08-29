@@ -99,9 +99,16 @@ if (isFirebaseConfigured) {
     db = getFirestore(app);
     googleProvider = new GoogleAuthProvider();
     
-    // Configure Google provider
+    // Configure Google provider with Web Client ID
+    googleProvider.setCustomParameters({
+      'client_id': '1058402037541-8mu67hl8s62krmgnsrr6qiu07n302alm.apps.googleusercontent.com',
+      'prompt': 'select_account'
+    });
+    
+    // Configure scopes
     googleProvider.addScope('email');
     googleProvider.addScope('profile');
+    googleProvider.addScope('openid');
     
     console.log('✅ Firebase initialized successfully');
   } catch (error) {
@@ -115,29 +122,53 @@ export { app, auth, db, googleProvider };
 // Authentication functions
 export const signInWithGoogle = async (): Promise<void> => {
   if (!auth || !googleProvider) {
-    throw new Error('Firebase not configured');
+    throw new Error('Firebase não configurado. Verifique as variáveis de ambiente.');
   }
   
   try {
-    console.log('🔄 Starting Google sign-in...');
-    // Use popup for development, redirect for production
-    if (window.location.hostname === 'localhost') {
-      await signInWithPopup(auth, googleProvider);
-    } else {
-      await signInWithRedirect(auth, googleProvider);
+    console.log('🔄 Iniciando login com Google...');
+    console.log('🌐 Domain:', window.location.hostname);
+    console.log('🔧 Provider configurado:', googleProvider);
+    
+    // Use popup sempre para melhor UX
+    const result = await signInWithPopup(auth, googleProvider);
+    
+    if (result.user) {
+      console.log('✅ Login com Google bem-sucedido:', result.user.email);
     }
+    
   } catch (error: any) {
-    console.error('❌ Google sign-in failed:', error);
+    console.error('❌ Erro no login com Google:', error);
+    console.error('Código do erro:', error?.code);
+    console.error('Mensagem:', error?.message);
     
-    if (error?.code === 'auth/unauthorized-domain') {
-      throw new Error('Domínio não autorizado. Adicione o domínio nas configurações do Firebase.');
-    } else if (error?.code === 'auth/operation-not-allowed') {
-      throw new Error('Login com Google não está habilitado no Firebase.');
-    } else if (error?.code === 'auth/popup-blocked') {
-      throw new Error('Pop-up bloqueado pelo navegador.');
+    // Tratar erros específicos do Google OAuth
+    switch (error?.code) {
+      case 'auth/unauthorized-domain':
+        throw new Error('Domínio não autorizado. Verifique as configurações do Firebase Console.');
+      case 'auth/operation-not-allowed':
+        throw new Error('Login com Google não está habilitado no projeto Firebase.');
+      case 'auth/popup-blocked':
+        throw new Error('Pop-up foi bloqueado pelo navegador. Permita pop-ups para este site.');
+      case 'auth/popup-closed-by-user':
+        throw new Error('Login cancelado pelo usuário.');
+      case 'auth/cancelled-popup-request':
+        throw new Error('Tentativa de login anterior cancelada.');
+      case 'auth/network-request-failed':
+        throw new Error('Erro de rede. Verifique sua conexão com a internet.');
+      case 'auth/too-many-requests':
+        throw new Error('Muitas tentativas de login. Tente novamente em alguns minutos.');
+      case 'auth/invalid-api-key':
+        throw new Error('Chave de API inválida. Verifique a configuração do Firebase.');
+      case 'auth/app-not-authorized':
+        throw new Error('Aplicação não autorizada. Verifique o Web Client ID.');
+      default:
+        // Se for um erro não específico, mostrar mensagem mais amigável
+        if (error?.message?.includes('client_id')) {
+          throw new Error('Erro de configuração do Google OAuth. Verifique o Web Client ID.');
+        }
+        throw new Error(`Erro no login: ${error?.message || 'Erro desconhecido'}`);
     }
-    
-    throw error;
   }
 };
 

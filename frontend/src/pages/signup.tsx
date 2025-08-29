@@ -67,19 +67,33 @@ export default function SignupPage() {
     return unsubscribe;
   }, [showRoleSelection, toast]);
 
-  const onSubmit = async (_data: SignupData) => {
+  const onSubmit = async (data: SignupData) => {
     setIsLoading(true);
     try {
-      // TODO: Implement manual signup logic
+      const { signUpWithEmail, isFirebaseConfigured } = await import('../lib/firebaseConfig');
+      
+      if (!isFirebaseConfigured) {
+        toast({
+          title: "Firebase Não Configurado",
+          description: "Configure as chaves do Firebase para usar autenticação",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Implementar registro com email/senha
+      await signUpWithEmail(data.email, data.password);
+      
       toast({
-        title: "Em Desenvolvimento",
-        description: "Sistema de registro manual ainda não implementado. Use Google para criar conta.",
-        variant: "destructive",
+        title: "Conta Criada!",
+        description: "Sua conta foi criada com sucesso. Faça login para continuar.",
+        variant: "default",
       });
-    } catch (error) {
+      
+    } catch (error: any) {
       toast({
         title: "Erro no Registro",
-        description: "Erro ao criar conta",
+        description: error.message || "Erro ao criar conta. Tente novamente.",
         variant: "destructive",
       });
     } finally {
