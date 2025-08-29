@@ -4,6 +4,8 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import RideOfferForm from "@/components/RideOfferForm";
+import AccommodationManager from "@/components/AccommodationManager";
 import { CalendarDays, MapPin, Users, Star, Car, Hotel, Calendar } from "lucide-react";
 
 export default function Home() {
@@ -12,11 +14,26 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState({ from: "", to: "", date: "" });
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [activeService, setActiveService] = useState<'rides' | 'stays'>('rides');
+  const [showAccommodationManager, setShowAccommodationManager] = useState(false);
   
 
   const handleSearch = () => {
     console.log('Search:', { type: searchType, ...searchQuery });
     // TODO: Implementar busca
+  };
+
+  const handleOfferRide = () => {
+    if (!user) {
+      alert('Precisa fazer login para oferecer boleia');
+      return;
+    }
+    setShowOfferModal(true);
+  };
+
+  const handleRideOfferSubmit = (rideData: any) => {
+    console.log('Nova oferta de boleia:', rideData);
+    setShowOfferModal(false);
+    alert('Oferta de boleia publicada com sucesso!');
   };
 
   return (
@@ -31,11 +48,14 @@ export default function Home() {
           <nav className="hidden md:flex items-center space-x-6">
             {user ? (
               <>
+                <Button variant="ghost" onClick={handleOfferRide}>
+                  🚗 Oferecer Boleia
+                </Button>
+                <Button variant="ghost" onClick={() => setShowAccommodationManager(true)}>
+                  🏨 Gerir Alojamento
+                </Button>
                 <Link href="/dashboard">
                   <Button variant="ghost">Dashboard</Button>
-                </Link>
-                <Link href="/bookings">
-                  <Button variant="ghost">Minhas Reservas</Button>
                 </Link>
                 <Link href="/profile">
                   <Button variant="outline">Perfil</Button>
@@ -203,6 +223,127 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Ofertas do Dia Section */}
+      <section className="py-16 bg-gradient-to-r from-orange-50 to-red-50">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">🔥 Ofertas do Dia</h2>
+            <p className="text-lg text-gray-600">As melhores promoções disponíveis hoje</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+            {/* Oferta de Boleia */}
+            <Card className="bg-white border-2 border-orange-200 hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="bg-orange-100 text-orange-600 px-2 py-1 rounded text-sm font-medium">
+                    🚗 Boleia
+                  </div>
+                  <div className="bg-red-100 text-red-600 px-2 py-1 rounded text-sm font-medium">
+                    -25%
+                  </div>
+                </div>
+                <CardTitle className="text-lg">Maputo → Beira</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex items-center text-sm text-gray-600">
+                    <CalendarDays className="w-4 h-4 mr-2" />
+                    Hoje, 14:00
+                  </div>
+                  <div className="flex items-center text-sm text-gray-600">
+                    <Users className="w-4 h-4 mr-2" />
+                    2 lugares disponíveis
+                  </div>
+                  <div className="flex items-center justify-between mt-4">
+                    <div>
+                      <span className="text-lg font-bold text-orange-600">900 MT</span>
+                      <span className="text-sm text-gray-500 line-through ml-2">1200 MT</span>
+                    </div>
+                    <Button size="sm" className="bg-orange-600 hover:bg-orange-700">
+                      Reservar
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Oferta de Hotel */}
+            <Card className="bg-white border-2 border-blue-200 hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="bg-blue-100 text-blue-600 px-2 py-1 rounded text-sm font-medium">
+                    🏨 Hotel
+                  </div>
+                  <div className="bg-red-100 text-red-600 px-2 py-1 rounded text-sm font-medium">
+                    -30%
+                  </div>
+                </div>
+                <CardTitle className="text-lg">Hotel Polana</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex items-center text-sm text-gray-600">
+                    <MapPin className="w-4 h-4 mr-2" />
+                    Maputo Centro
+                  </div>
+                  <div className="flex items-center text-sm text-gray-600">
+                    <Star className="w-4 h-4 mr-2 fill-yellow-400 text-yellow-400" />
+                    4.8 (124 avaliações)
+                  </div>
+                  <div className="flex items-center justify-between mt-4">
+                    <div>
+                      <span className="text-lg font-bold text-blue-600">2800 MT</span>
+                      <span className="text-sm text-gray-500 line-through ml-2">4000 MT</span>
+                      <div className="text-xs text-gray-500">por noite</div>
+                    </div>
+                    <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                      Ver Mais
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Oferta de Evento */}
+            <Card className="bg-white border-2 border-green-200 hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="bg-green-100 text-green-600 px-2 py-1 rounded text-sm font-medium">
+                    🎉 Evento
+                  </div>
+                  <div className="bg-red-100 text-red-600 px-2 py-1 rounded text-sm font-medium">
+                    Últimos ingressos
+                  </div>
+                </div>
+                <CardTitle className="text-lg">Festival de Marrabenta</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex items-center text-sm text-gray-600">
+                    <CalendarDays className="w-4 h-4 mr-2" />
+                    15 Set, 19:00
+                  </div>
+                  <div className="flex items-center text-sm text-gray-600">
+                    <MapPin className="w-4 h-4 mr-2" />
+                    Centro Cultural Franco-Moçambicano
+                  </div>
+                  <div className="flex items-center justify-between mt-4">
+                    <div>
+                      <span className="text-lg font-bold text-green-600">350 MT</span>
+                      <div className="text-xs text-gray-500">ingresso</div>
+                    </div>
+                    <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                      Comprar
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="py-16">
         <div className="max-w-6xl mx-auto px-4">
@@ -250,6 +391,39 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Modais */}
+      {/* Modal para Oferta de Boleia */}
+      {showOfferModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <RideOfferForm 
+              onSubmit={handleRideOfferSubmit}
+              onCancel={() => setShowOfferModal(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Modal para Gestão de Alojamentos */}
+      {showAccommodationManager && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="w-full max-w-6xl max-h-[90vh] overflow-y-auto bg-white rounded-lg">
+            <div className="p-4 border-b flex items-center justify-between">
+              <h2 className="text-xl font-bold">Gestão de Alojamentos</h2>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowAccommodationManager(false)}
+              >
+                ✕ Fechar
+              </Button>
+            </div>
+            <div className="p-4">
+              <AccommodationManager />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Mobile Navigation - Home specific with service toggle */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">

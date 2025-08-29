@@ -13,9 +13,10 @@ interface HeaderProps {
   activeService: "rides" | "stays";
   onServiceChange: (service: "rides" | "stays") => void;
   onOfferRide?: () => void;
+  onManageAccommodation?: () => void;
 }
 
-export default function Header({ activeService, onServiceChange, onOfferRide }: HeaderProps) {
+export default function Header({ activeService, onServiceChange, onOfferRide, onManageAccommodation }: HeaderProps) {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showServicesMenu, setShowServicesMenu] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -132,6 +133,9 @@ export default function Header({ activeService, onServiceChange, onOfferRide }: 
                       if (!isVerified) {
                         window.location.href = "/profile/verification";
                         return;
+                      }
+                      if (onManageAccommodation) {
+                        onManageAccommodation();
                       }
                       setShowServicesMenu(false);
                     }}
