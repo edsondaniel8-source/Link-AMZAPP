@@ -38,10 +38,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const authReq = req as AuthenticatedRequest;
     try {
       const userId = authReq.user?.claims?.sub;
+      const userEmail = authReq.user?.claims?.email;
+      
       if (!userId) {
         return res.status(401).json({ message: "User ID not found" });
       }
-      const user = await storage.getUser(userId);
+      
+      // Verificar se usuário existe no banco, se não, criar
+      let user = await storage.getUser(userId);
+      
+      if (!user) {
+        console.log(`Creating new user for Firebase UID: ${userId}`);
+        // Criar usuário no banco com dados do Firebase
+        user = await storage.upsertUser({
+          id: userId,
+          email: userEmail || null,
+          firstName: authReq.user?.displayName?.split(' ')[0] || null,
+          lastName: authReq.user?.displayName?.split(' ').slice(1).join(' ') || null,
+          profileImageUrl: null,
+          isVerified: false,
+          userType: 'user',
+          registrationCompleted: false
+        });
+      }
+      
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -72,7 +92,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
-          roles: roles,
+          roles: roles, // Retornar os roles selecionados
+          userType: user.userType,
           profileImageUrl: user.profileImageUrl,
           isVerified: user.isVerified || false
         }

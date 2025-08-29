@@ -1,128 +1,83 @@
-import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
+import express from "express";
 import cors from "cors";
+import { createServer } from "http";
+
+// Import modular controllers
+import authController from "./src/modules/auth/authController";
+import clientController from "./src/modules/clients/clientController";
+import driverController from "./src/modules/drivers/driverController";
+import hotelController from "./src/modules/hotels/hotelController";
+import eventController from "./src/modules/events/eventController";
+import adminController from "./src/modules/admin/adminController";
 
 const app = express();
+const PORT = process.env.PORT || 3001;
 
-const log = (message: string) => {
-  const timestamp = new Date().toLocaleTimeString();
-  console.log(`${timestamp} [express] ${message}`);
-};
-
-// CORS middleware
-app.use(
-  cors({
-    origin: [
-      "https://link-aturismomoz.com",
-      "https://link-amzapp.vercel.app",
-      "https://link-amzapp-git-main-brunooliveira3s-projects.vercel.app",
-      /https:\/\/link-amzapp-.*\.vercel\.app$/,
-      "http://localhost:3000",
-      "http://localhost:5173",
-      "http://localhost:5000",
-    ],
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: [
-      "Origin",
-      "X-Requested-With",
-      "Content-Type",
-      "Accept",
-      "Authorization",
-    ],
-  }),
-);
+// Middleware
+app.use(cors({
+  origin: [
+    'https://link-aturismomoz.com',
+    'https://driver.link-aturismomoz.com',
+    'https://hotel.link-aturismomoz.com', 
+    'https://event.link-aturismomoz.com',
+    'https://admin.link-aturismomoz.com',
+    'https://link-amzapp.vercel.app',
+    'https://link-amzapp-git-main-brunooliveira3s-projects.vercel.app',
+    /https:\/\/link-amzapp-.*\.vercel\.app$/,
+    'http://localhost:5000', // Para desenvolvimento
+    'http://localhost:3000'
+  ],
+  credentials: true
+}));
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
 
-app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
-      console.log(logLine); // ← FIXED: Changed log() to console.log()
-    }
-  }); // ← FIXED: Added missing closing parenthesis for res.on("finish")
-
-  next();
-});
-
-// 🚨 ADD THESE BASIC ROUTES IMMEDIATELY 🚨
-app.get("/health", (req: Request, res: Response) => {
-  res.json({
-    status: "OK",
-    message: "Backend is working!",
+// Health check
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    message: 'Link-A API Backend funcionando',
     timestamp: new Date().toISOString(),
-    database: process.env.DATABASE_URL ? "Connected" : "Missing",
+    version: '2.0.0-hybrid'
   });
 });
 
-app.get("/api/health", (req: Request, res: Response) => {
-  res.json({
-    status: "API is healthy",
-    environment: process.env.NODE_ENV || "development",
+// Mount modular routes
+app.use('/api/auth', authController);
+app.use('/api/clients', clientController);  
+app.use('/api/drivers', driverController);
+app.use('/api/hotels', hotelController);
+app.use('/api/events', eventController);
+app.use('/api/admin', adminController);
+
+// Global error handler
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('Global error:', err);
+  res.status(500).json({
+    message: 'Erro interno do servidor',
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
 });
 
-app.get("/api/users", (req: Request, res: Response) => {
-  res.json({
-    users: [],
-    message: "Users endpoint ready",
-    total: 0,
-  });
-});
-
-app.get("/api/auth", (req: Request, res: Response) => {
-  res.json({
-    auth: "Authentication endpoint ready",
-    message: "Add authentication logic here",
-  });
-});
-
-// Handle undefined routes - return JSON instead of HTML
-app.use("*", (req: Request, res: Response) => {
+// 404 handler
+app.use('*', (req, res) => {
   res.status(404).json({
-    error: "Route not found",
-    path: req.originalUrl,
-    method: req.method,
-    message: "The requested endpoint does not exist",
-    availableEndpoints: ["/health", "/api/health", "/api/users", "/api/auth"],
+    message: 'Endpoint não encontrado',
+    path: req.originalUrl
   });
 });
 
-(async () => {
-  const server = await registerRoutes(app);
+const server = createServer(app);
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+server.listen(PORT, () => {
+  console.log(`🚀 Link-A Backend API running on port ${PORT}`);
+  console.log(`📱 Client API: http://localhost:${PORT}/api/clients`);
+  console.log(`🚗 Driver API: http://localhost:${PORT}/api/drivers`);
+  console.log(`🏨 Hotel API: http://localhost:${PORT}/api/hotels`);
+  console.log(`🎪 Event API: http://localhost:${PORT}/api/events`);
+  console.log(`⚙️ Admin API: http://localhost:${PORT}/api/admin`);
+  console.log(`🔐 Auth API: http://localhost:${PORT}/api/auth`);
+});
 
-    res.status(status).json({ message });
-    console.error("Error:", err);
-  });
-
-  // Backend API only - no static file serving
-  const port = parseInt(process.env.PORT || "5000", 10);
-  server.listen(port, "0.0.0.0", () => {
-    log(`Backend API serving on port ${port}`);
-  });
-})();
+export default app;
