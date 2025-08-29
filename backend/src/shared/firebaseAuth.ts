@@ -3,10 +3,19 @@ import { Request, Response, NextFunction } from "express";
 
 // Initialize Firebase Admin if not already initialized
 if (!admin.apps.length) {
-  // For development - use service account key or default credentials
-  admin.initializeApp({
-    credential: admin.credential.applicationDefault(),
-  });
+  try {
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID!,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY!.replace(/\\n/g, '\n'),
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
+      }),
+      projectId: process.env.FIREBASE_PROJECT_ID!,
+    });
+    console.log('✅ Firebase Admin inicializado com sucesso');
+  } catch (error) {
+    console.error('❌ Erro ao inicializar Firebase Admin:', error);
+  }
 }
 
 export interface AuthenticatedRequest extends Request {

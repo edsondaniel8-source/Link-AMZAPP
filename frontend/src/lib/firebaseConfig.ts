@@ -105,6 +105,12 @@ if (isFirebaseConfigured) {
       'prompt': 'select_account'
     });
     
+    // Force popup mode to avoid multiple windows
+    googleProvider.setCustomParameters({ 
+      'login_hint': '',
+      'access_type': 'online'
+    });
+    
     // Configure scopes
     googleProvider.addScope('email');
     googleProvider.addScope('profile');
