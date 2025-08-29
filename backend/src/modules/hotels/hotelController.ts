@@ -1,8 +1,204 @@
-import { Router } from "express";
-import { verifyFirebaseToken, type AuthenticatedRequest } from "../../shared/firebaseAuth";
-import { storage } from "../../shared/storage";
+import { Router, Request, Response, NextFunction } from "express";
+import { storage, insertAccommodationSchema } from "../../shared/storage";
+import { z } from "zod";
 
 const router = Router();
+
+// Middleware de autenticação temporário
+interface AuthenticatedRequest extends Request {
+  user?: {
+    claims?: {
+      sub?: string;
+      email?: string;
+    };
+  };
+}
+
+const verifyFirebaseToken = async (req: Request, res: Response, next: NextFunction) => {
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: "Token não fornecido" });
+  }
+  
+  // Mock validation - replace with real Firebase verification
+  (req as AuthenticatedRequest).user = {
+    claims: { sub: `firebase-${Date.now()}`, email: "test@linkamz.com" }
+  };
+  
+  next();
+};
+
+// GET /api/hotels - Lista todas as acomodações com filtros
+router.get("/", async (req, res) => {
+  try {
+    const { 
+      type, 
+      address, 
+      isAvailable, 
+      minPrice,
+      maxPrice,
+      sortBy = 'rating',
+      page = 1, 
+      limit = 20 
+    } = req.query;
+
+    const filters: any = {};
+    
+    if (type) filters.type = type;
+    if (address) filters.address = address;
+    if (isAvailable !== undefined) filters.isAvailable = isAvailable === 'true';
+    if (minPrice) filters.minPrice = minPrice;
+    if (maxPrice) filters.maxPrice = maxPrice;
+
+    let accommodations = await storage.getAccommodations(filters);
+    
+    // Ordenação personalizada
+    if (sortBy === 'price_asc') {
+      accommodations = accommodations.sort((a, b) => Number(a.pricePerNight) - Number(b.pricePerNight));
+    } else if (sortBy === 'price_desc') {
+      accommodations = accommodations.sort((a, b) => Number(b.pricePerNight) - Number(a.pricePerNight));
+    } else if (sortBy === 'rating') {
+      accommodations = accommodations.sort((a, b) => Number(b.rating || 0) - Number(a.rating || 0));
+    }
+    
+    // Aplicar paginação
+    const startIndex = (Number(page) - 1) * Number(limit);
+    const endIndex = startIndex + Number(limit);
+    const paginatedAccommodations = accommodations.slice(startIndex, endIndex);
+
+    res.json({
+      success: true,
+      data: {
+        accommodations: paginatedAccommodations,
+        total: accommodations.length,
+        page: Number(page),
+        totalPages: Math.ceil(accommodations.length / Number(limit))
+      }
+    });
+  } catch (error) {
+    console.error("Erro ao listar acomodações:", error);
+    res.status(500).json({
+      success: false,
+      message: "Erro interno do servidor",
+      error: "Failed to fetch accommodations"
+    });
+  }
+});
+
+// GET /api/hotels/:id - Obter acomodação específica
+router.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const accommodation = await storage.getAccommodation(id);
+
+    if (!accommodation) {
+      return res.status(404).json({
+        success: false,
+        message: "Acomodação não encontrada"
+      });
+    }
+
+    res.json({
+      success: true,
+      data: { accommodation }
+    });
+  } catch (error) {
+    console.error("Erro ao buscar acomodação:", error);
+    res.status(500).json({
+      success: false,
+      message: "Erro interno do servidor"
+    });
+  }
+});
+
+// POST /api/hotels - Criar nova acomodação (apenas anfitriões)
+router.post("/", verifyFirebaseToken, async (req, res) => {
+  const authReq = req as AuthenticatedRequest;
+  
+  try {
+    const userId = authReq.user?.claims?.sub;
+    if (!userId) {
+      return res.status(401).json({ message: "Usuário não autenticado" });
+    }
+
+    // Validar dados com Zod
+    const createAccommodationSchema = insertAccommodationSchema.omit({
+      id: true
+    });
+
+    const validatedData = createAccommodationSchema.parse({
+      ...req.body,
+      hostId: userId
+    });
+
+    const newAccommodation = await storage.createAccommodation(validatedData);
+
+    res.status(201).json({
+      success: true,
+      message: "Acomodação criada com sucesso",
+      data: { accommodation: newAccommodation }
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        success: false,
+        message: "Dados inválidos",
+        errors: error.errors
+      });
+    }
+
+    console.error("Erro ao criar acomodação:", error);
+    res.status(500).json({
+      success: false,
+      message: "Erro interno do servidor"
+    });
+  }
+});
+
+// PUT /api/hotels/:id - Atualizar acomodação
+router.put("/:id", verifyFirebaseToken, async (req, res) => {
+  const authReq = req as AuthenticatedRequest;
+  
+  try {
+    const userId = authReq.user?.claims?.sub;
+    const { id } = req.params;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Usuário não autenticado" });
+    }
+
+    // Verificar se a acomodação existe e pertence ao usuário
+    const existingAccommodation = await storage.getAccommodation(id);
+    if (!existingAccommodation) {
+      return res.status(404).json({
+        success: false,
+        message: "Acomodação não encontrada"
+      });
+    }
+
+    if (existingAccommodation.hostId !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: "Sem permissão para editar esta acomodação"
+      });
+    }
+
+    const updatedAccommodation = await storage.updateAccommodation(id, req.body);
+
+    res.json({
+      success: true,
+      message: "Acomodação atualizada com sucesso",
+      data: { accommodation: updatedAccommodation }
+    });
+  } catch (error) {
+    console.error("Erro ao atualizar acomodação:", error);
+    res.status(500).json({
+      success: false,
+      message: "Erro interno do servidor"
+    });
+  }
+});
 
 // Dashboard do hotel
 router.get('/dashboard', verifyFirebaseToken, async (req, res) => {

@@ -4,12 +4,15 @@ import { createServer } from "http";
 import path from "path";
 import { fileURLToPath } from "url";
 
-// Import modular controllers
+// Import all controllers
 import authController from "./src/modules/auth/authController";
 import clientController from "./src/modules/clients/clientController";
 import driverController from "./src/modules/drivers/driverController";
 import hotelController from "./src/modules/hotels/hotelController";
 import eventController from "./src/modules/events/eventController";
+import bookingController from "./src/modules/bookings/bookingController";
+import userController from "./src/modules/users/userController";
+import rideController from "./src/modules/rides/rideController";
 import adminController from "./src/modules/admin/adminController";
 
 const app = express();
@@ -66,21 +69,27 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
     availableRoutes: [
       '/api/auth',
+      '/api/users',
       '/api/clients',
-      '/api/drivers', 
+      '/api/drivers',
+      '/api/rides',
       '/api/hotels',
       '/api/events',
+      '/api/bookings',
       '/api/admin'
     ]
   });
 });
 
-// Mount modular routes
+// Mount all API routes
 app.use('/api/auth', authController);
 app.use('/api/clients', clientController);  
 app.use('/api/drivers', driverController);
+app.use('/api/rides', rideController);
 app.use('/api/hotels', hotelController);
 app.use('/api/events', eventController);
+app.use('/api/bookings', bookingController);
+app.use('/api/users', userController);
 app.use('/api/admin', adminController);
 
 // Serve static files from React build (CSS, JS, images)
