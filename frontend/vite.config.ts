@@ -30,7 +30,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      "@": path.resolve(__dirname, "./client-app/src"),
       "@assets": path.resolve(__dirname, "../attached_assets"),
     },
   },

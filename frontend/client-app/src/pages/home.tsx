@@ -10,6 +10,13 @@ export default function Home() {
   const { user } = useAuth();
   const [searchType, setSearchType] = useState<"rides" | "stays" | "events">("rides");
   const [searchQuery, setSearchQuery] = useState({ from: "", to: "", date: "" });
+  const [showOfferModal, setShowOfferModal] = useState(false);
+  const [activeService, setActiveService] = useState<'rides' | 'stays'>('rides');
+  
+  const handleSubmitOffer = () => {
+    console.log('Oferecer viagem');
+    setShowOfferModal(false);
+  };
 
   const handleSearch = () => {
     console.log('Search:', { type: searchType, ...searchQuery });
@@ -248,25 +255,6 @@ export default function Home() {
         </div>
       </section>
 
-            <div className="bg-white rounded-xl p-6 text-center shadow-md">
-              <div className="w-16 h-16 bg-secondary bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i className="fas fa-calendar-check text-secondary text-2xl"></i>
-              </div>
-              <h3 className="text-xl font-semibold text-dark mb-2">Sync Bookings</h3>
-              <p className="text-gray-medium">Coordinate arrival times with your check-in schedule</p>
-            </div>
-
-            <div className="bg-white rounded-xl p-6 text-center shadow-md">
-              <div className="w-16 h-16 bg-success bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i className="fas fa-piggy-bank text-success text-2xl"></i>
-              </div>
-              <h3 className="text-xl font-semibold text-dark mb-2">Bundle Savings</h3>
-              <p className="text-gray-medium">Get discounts when booking rides and stays together</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Mobile Navigation - Home specific with service toggle */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
         <div className="grid grid-cols-5 h-16">
@@ -318,11 +306,15 @@ export default function Home() {
       </div>
 
       {/* Ride Offer Modal */}
-      <RideOfferModal
-        isOpen={showOfferModal}
-        onClose={() => setShowOfferModal(false)}
-        onSubmit={handleSubmitOffer}
-      />
+      {showOfferModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">Oferecer Viagem</h3>
+            <p className="text-gray-600 mb-4">Esta funcionalidade será implementada em breve.</p>
+            <Button onClick={() => setShowOfferModal(false)}>Fechar</Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

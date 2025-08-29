@@ -43,8 +43,12 @@ function Router() {
       {/* Public Routes - accessible to everyone */}
       <Route path="/" component={Home} />
       <Route path="/events" component={Events} />
-      <Route path="/partnerships" component={Partnerships} />
-      <Route path="/blog" component={Blog} />
+      <Route path="/partnerships">
+        {() => import("@/pages/partnerships").then((m) => ({ default: m.default }))}
+      </Route>
+      <Route path="/blog">
+        {() => import("@/pages/blog").then((m) => ({ default: m.default }))}
+      </Route>
       <Route
         path="/blog/:id"
         component={() =>
