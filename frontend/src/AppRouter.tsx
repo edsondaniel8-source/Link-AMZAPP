@@ -2,6 +2,7 @@ import { Route, Switch } from 'wouter';
 
 // Importar componentes das aplicações
 import MainAppHome from './apps/main-app/pages/home';
+import BookingsPage from './apps/main-app/pages/bookings';
 import DriversApp from './apps/drivers-app/App';
 import HotelsApp from './apps/hotels-app/App';
 import AdminApp from './shared/admin/AdminApp';
@@ -17,6 +18,7 @@ function AppRouter() {
       {/* Rotas da aplicação principal (clientes) */}
       <Route path="/" component={MainAppHome} />
       <Route path="/home" component={MainAppHome} />
+      <Route path="/bookings" component={BookingsPage} />
       
       {/* Rotas de autenticação */}
       <Route path="/login" component={LoginPage} />

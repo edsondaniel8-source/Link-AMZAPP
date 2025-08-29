@@ -1,8 +1,8 @@
 import { Route, Switch } from "wouter";
 import { Toaster } from "@/shared/components/ui/toaster";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import Header from "@/shared/components/Header";
-import MobileNavigation from "@/shared/components/MobileNavigation";
+import DriversHeader from "./components/DriversHeader";
+import DriversMobileNav from "./components/DriversMobileNav";
 import NotFound from "./pages/not-found";
 import Dashboard from "./pages/dashboard";
 import RoutePublisher from "./pages/route-publisher";
@@ -16,7 +16,7 @@ export default function DriversApp() {
   return (
     <QueryClientProvider client={queryClient}>
       <div className="min-h-screen bg-gray-50">
-        <Header appType="drivers" />
+        <DriversHeader />
         
         <main className="pb-20 md:pb-0">
           <Switch>
@@ -29,7 +29,7 @@ export default function DriversApp() {
           </Switch>
         </main>
         
-        <MobileNavigation appType="drivers" />
+        <DriversMobileNav />
         <Toaster />
       </div>
     </QueryClientProvider>
