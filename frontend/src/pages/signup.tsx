@@ -9,7 +9,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Link, useLocation } from "wouter";
 import AccountTypeSelector from "@/shared/components/AccountTypeSelector";
-import { onAuthStateChange, handleRedirectResult } from "@/lib/firebaseConfig";
+import { setupAuthListener, checkRedirectResult } from "@/lib/firebaseConfig";
 import type { User } from "firebase/auth";
 
 const signupSchema = z.object({
@@ -39,7 +39,7 @@ export default function SignupPage() {
     // Verificar se o utilizador foi redirecionado do Google
     const checkRedirect = async () => {
       try {
-        const user = await handleRedirectResult();
+        const user = await checkRedirectResult();
         if (user) {
           setCurrentUser(user);
           setShowRoleSelection(true);
@@ -57,7 +57,7 @@ export default function SignupPage() {
     checkRedirect();
 
     // Escutar mudanças no estado de autenticação
-    const unsubscribe = onAuthStateChange((user) => {
+    const unsubscribe = setupAuthListener((user) => {
       if (user && !showRoleSelection) {
         setCurrentUser(user);
         setShowRoleSelection(true);
