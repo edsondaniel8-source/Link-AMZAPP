@@ -28,7 +28,8 @@ export const useUserSetup = () => {
     const checkUserSetup = async () => {
       try {
         const token = await user.getIdToken();
-        const response = await fetch('/api/auth/user', {
+        const apiUrl = import.meta.env.VITE_API_URL || 'https://link-amzapp-production.up.railway.app';
+        const response = await fetch(`${apiUrl}/api/auth/user`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -70,7 +71,8 @@ export const useUserSetup = () => {
     
     try {
       const token = await user.getIdToken();
-      const response = await fetch('/api/auth/setup-roles', {
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://link-amzapp-production.up.railway.app';
+      const response = await fetch(`${apiUrl}/api/auth/setup-roles`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
