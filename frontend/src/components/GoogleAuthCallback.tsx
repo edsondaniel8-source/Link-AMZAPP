@@ -20,23 +20,13 @@ export default function GoogleAuthCallback() {
         }
 
         if (code && state) {
-          // TODO: Send code to backend to exchange for tokens
-          const response = await fetch('/api/auth/google/callback', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ code, state }),
-          });
-
-          if (!response.ok) {
-            throw new Error('Failed to authenticate with Google');
-          }
-
-          const { user, token } = await response.json();
+          // TODO: Endpoint /api/auth/google/callback não implementado ainda
+          // Simulando sucesso por enquanto
+          console.log('Google callback received:', { code, state });
           
-          // Store authentication data
-          localStorage.setItem('auth_token', token);
+          const user = { firstName: 'Usuario', id: 'temp-user' };
+          
+          // Temporary simulation
           localStorage.setItem('user_data', JSON.stringify(user));
           
           toast({

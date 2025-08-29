@@ -155,6 +155,7 @@ export const useUserRoles = (): UseUserRolesReturn => {
 
       // Optional: Send role switch event to backend for analytics
       try {
+        /* Analytics endpoint não implementado ainda
         await fetch('/api/analytics/role-switch', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -165,6 +166,7 @@ export const useUserRoles = (): UseUserRolesReturn => {
             timestamp: new Date().toISOString()
           })
         });
+        */
       } catch (analyticsError) {
         // Don't fail the role switch if analytics fails
         console.warn('Failed to log role switch:', analyticsError);

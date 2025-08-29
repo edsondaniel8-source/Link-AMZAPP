@@ -115,7 +115,7 @@ export default function SignupPage() {
 
     try {
       // Enviar roles para o backend
-      const response = await fetch('/api/auth/setup-user-roles', {
+      const response = await fetch('/api/auth/setup-roles', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

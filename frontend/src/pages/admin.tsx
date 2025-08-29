@@ -65,48 +65,69 @@ export default function AdminPanel() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterUserType, setFilterUserType] = useState<string>("all");
 
-  // Fetch users from API
+  // TODO: Endpoints de admin não implementados ainda - usando dados mock
   const { data: usersData, isLoading: isLoadingUsers, refetch: refetchUsers } = useQuery({
     queryKey: ['/api/admin/users', { search: searchTerm, status: filterStatus, userType: filterUserType }],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (searchTerm) params.append('search', searchTerm);
-      if (filterStatus !== 'all') params.append('status', filterStatus);
-      if (filterUserType !== 'all') params.append('userType', filterUserType);
+      // Simular delay de rede
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      const response = await fetch(`/api/admin/users?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch users');
-      return response.json();
+      // Dados mock para desenvolvimento
+      return {
+        users: [
+          {
+            id: '1',
+            name: 'João Silva',
+            email: 'joao@example.com',
+            userType: 'driver',
+            rating: 4.8,
+            totalReviews: 45,
+            isVerified: true,
+            isBlocked: false,
+            joinDate: '2024-01-15',
+            lastActive: '2024-08-28',
+            violations: 0,
+            status: 'active',
+            avatar: '/avatars/01.png'
+          }
+        ]
+      };
     },
   });
 
   const adminUsers = usersData?.users || [];
 
-  // Fetch price regulations from API
+  // TODO: Endpoint de regulamentações de preços não implementado
   const { data: priceRegulations, isLoading: isLoadingPricing, refetch: refetchPricing } = useQuery({
     queryKey: ['/api/admin/price-regulations'],
     queryFn: async () => {
-      const response = await fetch('/api/admin/price-regulations');
-      if (!response.ok) throw new Error('Failed to fetch price regulations');
-      return response.json();
+      // Simular delay de rede
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Dados mock para desenvolvimento
+      return [
+        {
+          id: '1',
+          rideType: 'economy',
+          minPricePerKm: 15,
+          maxPricePerKm: 25,
+          baseFare: 50,
+          isActive: true,
+          lastUpdated: '2024-08-20'
+        }
+      ];
     },
   });
 
   const penaltyMutation = useMutation({
     mutationFn: async (data: { userId: string; action: string; reason: string; duration?: number; notes?: string }) => {
-      const response = await fetch(`/api/admin/users/${data.userId}/actions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+      // TODO: Endpoint de ações de penalidade não implementado
+      // Simular processamento
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
-      if (!response.ok) {
-        throw new Error('Failed to apply penalty');
-      }
+      console.log('Simulating penalty action:', data);
       
-      return response.json();
+      return { success: true, actionId: 'pen-' + Date.now() };
     },
     onSuccess: () => {
       toast({
