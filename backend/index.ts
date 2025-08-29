@@ -13,17 +13,25 @@ import adminController from "./src/modules/admin/adminController";
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-// Middleware
+// Middleware - CORS configurado para Railway e Vercel
 app.use(cors({
   origin: [
+    // Domínios de produção
     'https://link-aturismomoz.com',
+    'https://www.link-aturismomoz.com',
     'https://link-amzapp.vercel.app',
     'https://link-amzapp-git-main-brunooliveira3s-projects.vercel.app',
+    // Todos os deploys do Vercel
     /https:\/\/link-amzapp-.*\.vercel\.app$/,
-    'http://localhost:3000', // Frontend separado
-    'http://localhost:5000'  // Development fallback
+    // Railway backend URL
+    process.env.CORS_ORIGIN || 'https://link-amzapp-production.up.railway.app',
+    // Desenvolvimento
+    'http://localhost:3000',
+    'http://localhost:5000'
   ],
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 app.use(express.json());
@@ -35,7 +43,29 @@ app.get('/health', (req, res) => {
     status: 'OK', 
     message: 'Link-A API Backend funcionando',
     timestamp: new Date().toISOString(),
-    version: '2.0.0-hybrid'
+    version: '2.0.0-hybrid',
+    environment: process.env.NODE_ENV || 'development',
+    port: PORT,
+    cors: {
+      origin: process.env.CORS_ORIGIN || 'Railway auto-configured'
+    }
+  });
+});
+
+// API Health check específico
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'OK',
+    message: 'Link-A API routes funcionando',
+    timestamp: new Date().toISOString(),
+    availableRoutes: [
+      '/api/auth',
+      '/api/clients',
+      '/api/drivers', 
+      '/api/hotels',
+      '/api/events',
+      '/api/admin'
+    ]
   });
 });
 
