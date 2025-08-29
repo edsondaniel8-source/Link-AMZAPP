@@ -17,9 +17,6 @@ import Events from "@/pages/events";
 import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/login";
 import SignupPage from "@/pages/signup";
-import TransportHub from "@/modules/transport/pages/TransportHub";
-import AccommodationHub from "@/modules/accommodation/pages/AccommodationHub";
-import EventsHub from "@/modules/events/pages/EventsHub";
 function Router() {
   const { loading, user } = useAuth();
   const { needsRoleSetup, setupUserRoles, userEmail, loading: setupLoading } = useUserSetup();
@@ -46,18 +43,19 @@ function Router() {
     <Switch>
       {/* Public Routes - accessible to everyone */}
       <Route path="/" component={Home} />
-      
-      {/* Module Routes */}
-      <Route path="/transport" component={TransportHub} />
-      <Route path="/accommodation" component={AccommodationHub} />
-      <Route path="/events-hub" component={EventsHub} />
       <Route path="/events" component={Events} />
-      <Route path="/modules" component={() => import("@/pages/modules")} />
-      
-      {/* Other Public Routes */}
-      <Route path="/partnerships" component={() => import("@/pages/partnerships")} />
-      <Route path="/blog" component={() => import("@/pages/blog")} />
-      <Route path="/blog/:id" component={() => import("@/pages/blog-post")} />
+      <Route path="/partnerships">
+        {() => import("@/pages/partnerships").then((m) => ({ default: m.default }))}
+      </Route>
+      <Route path="/blog">
+        {() => import("@/pages/blog").then((m) => ({ default: m.default }))}
+      </Route>
+      <Route
+        path="/blog/:id"
+        component={() =>
+          import("@/pages/blog-post").then((m) => ({ default: m.default }))
+        }
+      />
       <Route path="/login" component={LoginPage} />
       <Route path="/signup" component={SignupPage} />
       
