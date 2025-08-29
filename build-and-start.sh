@@ -7,8 +7,9 @@ cd frontend
 npm run build
 cd ..
 
-# 2. Copiar build para backend/dist (sobrescrever tudo)
-echo "📁 Copiando build para backend/dist..."
+# 2. Criar pasta backend/dist e copiar build
+echo "📁 Criando pasta backend/dist e copiando build..."
+mkdir -p backend/dist
 rm -rf backend/dist/*
 cp -r frontend/dist/* backend/dist/
 

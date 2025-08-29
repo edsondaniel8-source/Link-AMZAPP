@@ -5,7 +5,8 @@ echo "🚀 Railway: Building Link-A..."
 cd frontend && npm install && npm run build
 cd ..
 
-# Copy to backend
+# Create backend/dist and copy
+mkdir -p backend/dist
 cp -r frontend/dist/* backend/dist/
 
 # Build backend  
