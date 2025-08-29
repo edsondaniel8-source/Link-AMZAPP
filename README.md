@@ -57,4 +57,4 @@ npm run build
 *Última atualização: ${new Date().toLocaleDateString()}*
 - **Backend**: Railway (from `backend/` directory)
 - **Database**: PostgreSQL (Neon)
-- **Auth**: Firebase
+- **Auth**: Firebase.
