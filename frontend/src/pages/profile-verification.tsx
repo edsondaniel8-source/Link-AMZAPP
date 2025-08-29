@@ -2,9 +2,9 @@ import { useState } from "react";
 import { Link } from "wouter";
 import PageHeader from "@/components/PageHeader";
 import DocumentVerification from "@/components/DocumentVerification";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { Badge } from "@/shared/components/ui/badge";
+import { Button } from "@/shared/components/ui/button";
 import { AlertTriangle, Shield, CheckCircle } from "lucide-react";
 
 export default function ProfileVerification() {
