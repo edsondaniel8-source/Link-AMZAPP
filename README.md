@@ -38,6 +38,23 @@ npm run build
 ## Deployment
 
 - **Frontend**: Vercel (from `frontend/` directory)
+- # Link-A Mozambique Tourism Platform
+
+🌍 Viaje por todo Moçambique - Viagens, hospedagem e eventos numa só plataforma
+
+## 🚀 Deploy Status
+- **Frontend**: React + Vite
+- **Backend**: Node.js + Express
+- **Database**: PostgreSQL
+- **Hosting**: Railway
+- **Authentication**: Firebase
+
+## 📞 Contact
+- Website: https://link-aturismomoz.com
+- Email: info@link-aturismomoz.com
+
+---
+*Última atualização: ${new Date().toLocaleDateString()}*
 - **Backend**: Railway (from `backend/` directory)
 - **Database**: PostgreSQL (Neon)
 - **Auth**: Firebase
