@@ -5,9 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { AlertTriangle, Shield, CheckCircle, XCircle, Upload, FileText, Camera, Car } from "lucide-react";
+import { AlertTriangle, Shield, CheckCircle, XCircle, Upload, FileText } from "lucide-react";
 import { getTodayHTML } from "@/lib/dateUtils";
 import FileUploadButton from "./FileUploadButton";
 
@@ -21,7 +20,6 @@ interface DocumentVerificationProps {
 }
 
 export default function DocumentVerification({
-  userId,
   userType = "user",
   currentVerificationStatus = "pending",
   isVerified = false,
@@ -312,7 +310,7 @@ export default function DocumentVerification({
             {userType === "driver" && (
               <div className="space-y-4 border-t pt-6">
                 <h3 className="font-semibold text-lg flex items-center space-x-2">
-                  <Car className="w-5 h-5" />
+                  <FileText className="w-5 h-5" />
                   <span>Documentos de Motorista</span>
                 </h3>
                 

@@ -118,6 +118,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Alias para action-roles (compatibilidade)
+  app.post('/api/auth/action-roles', verifyFirebaseToken, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    try {
+      const { roles } = req.body;
+      if (!roles || !Array.isArray(roles)) {
+        return res.status(400).json({ error: 'Roles devem ser fornecidos como array' });
+      }
+
+      const userId = authReq.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "User ID not found" });
+      }
+
+      // Atualizar roles do usuário na base de dados
+      const user = await storage.updateUserRoles(userId, roles);
+      
+      res.json({ 
+        success: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          roles: roles,
+          userType: user.userType,
+          profileImageUrl: user.profileImageUrl,
+          isVerified: user.isVerified || false
+        }
+      });
+    } catch (error) {
+      console.error('Erro ao configurar action-roles:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
   // Registration completion endpoint
   app.post('/api/auth/complete-registration', upload.fields([
     { name: 'profilePhoto', maxCount: 1 },

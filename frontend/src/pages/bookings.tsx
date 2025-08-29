@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import BookingStatusCard from "@/components/BookingStatusCard";
 import PageHeader from "@/components/PageHeader";
-import { Calendar, Clock, User, Car, Bed, CalendarDays } from "lucide-react";
+import { Calendar, Clock, User, Car as CarIcon, Bed, CalendarDays } from "lucide-react";
 
 // Mock current user - in real app this would come from auth context
 const mockCurrentUser = {
@@ -64,7 +63,7 @@ export default function BookingsPage() {
               Como Cliente
             </TabsTrigger>
             <TabsTrigger value="provider" className="flex items-center gap-2">
-              <Car className="w-4 h-4" />
+              <CarIcon className="w-4 h-4" />
               Como Prestador
             </TabsTrigger>
           </TabsList>
@@ -161,7 +160,7 @@ export default function BookingsPage() {
             {!mockCurrentUser.isProvider ? (
               <Card>
                 <CardContent className="text-center py-8">
-                  <Car className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <CarIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-gray-600 mb-2">
                     Torne-se um Prestador de Serviços
                   </h3>
