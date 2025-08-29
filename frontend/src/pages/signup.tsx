@@ -9,7 +9,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/shared/components/ui
 import { useToast } from "@/shared/hooks/use-toast";
 import { Link, useLocation } from "wouter";
 import AccountTypeSelector from "@/shared/components/AccountTypeSelector";
-import { setupAuthListener, checkRedirectResult } from "@/lib/firebaseConfig";
+import { setupAuthListener, checkRedirectResult } from "@/shared/lib/firebaseConfig";
 import type { User } from "firebase/auth";
 
 const signupSchema = z.object({
@@ -70,7 +70,7 @@ export default function SignupPage() {
   const onSubmit = async (data: SignupData) => {
     setIsLoading(true);
     try {
-      const { signUpWithEmail, isFirebaseConfigured } = await import('../lib/firebaseConfig');
+      const { signUpWithEmail, isFirebaseConfigured } = await import('../shared/lib/firebaseConfig');
       
       if (!isFirebaseConfigured) {
         toast({
@@ -103,7 +103,7 @@ export default function SignupPage() {
 
   const handleGoogleSignup = async () => {
     try {
-      const { signInWithGoogle, isFirebaseConfigured } = await import('../lib/firebaseConfig');
+      const { signInWithGoogle, isFirebaseConfigured } = await import('../shared/lib/firebaseConfig');
       
       if (!isFirebaseConfigured) {
         toast({

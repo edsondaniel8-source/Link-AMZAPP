@@ -5,7 +5,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/shared/components/ui/dropdown-menu";
-import { Star, Car, Hotel, Calendar, Search, TrendingUp, Menu, UserCircle, LogOut, Shield, Settings } from "lucide-react";
+import { Star, Car, Hotel, Calendar, Search, TrendingUp, Menu, UserCircle, LogOut, Shield, Settings, Sparkles, ArrowRight, Users, MapPin } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 interface RideHighlight {
@@ -52,7 +52,7 @@ export default function Home() {
 
   const handleSearch = () => {
     console.log('Busca:', { type: searchType, ...searchQuery });
-    // TODO: Implementar busca
+    // TODO: Implementar busca funcional
   };
 
   const handleLogout = () => {
@@ -153,21 +153,87 @@ export default function Home() {
                 </DropdownMenu>
               </>
             ) : (
-              <Link href="/login" data-testid="link-login">
-                <Button>Entrar</Button>
-              </Link>
+              /* Auth buttons para utilizadores não registados - MUITO PROEMINENTE */
+              <div className="flex items-center space-x-3">
+                <Link href="/login" data-testid="link-login">
+                  <Button variant="outline" className="border-orange-500 text-orange-600 hover:bg-orange-50">
+                    Entrar
+                  </Button>
+                </Link>
+                <Link href="/signup" data-testid="link-signup">
+                  <Button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg">
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Registar Grátis
+                  </Button>
+                </Link>
+              </div>
             )}
           </div>
         </div>
       </header>
 
+      {/* Hero Section for non-authenticated users */}
+      {!user && (
+        <section className="bg-gradient-to-br from-orange-500 via-red-500 to-pink-600 text-white py-16">
+          <div className="max-w-7xl mx-auto px-4 text-center">
+            <h2 className="text-5xl font-bold mb-6">
+              Bem-vindo ao Futuro do Turismo em Moçambique
+            </h2>
+            <p className="text-xl mb-8 max-w-3xl mx-auto opacity-90">
+              Encontre boleias, alojamentos e eventos incríveis. Conecte-se com motoristas e anfitriões verificados. 
+              Desfrute de descontos exclusivos e uma experiência única de viagem.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+              <Link href="/signup" data-testid="hero-signup-button">
+                <Button size="lg" className="bg-white text-orange-600 hover:bg-gray-100 text-lg px-8 py-4 shadow-xl">
+                  <Users className="w-5 h-5 mr-2" />
+                  Criar Conta Gratuita
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+              </Link>
+              <Link href="/login" data-testid="hero-login-button">
+                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-orange-600 text-lg px-8 py-4">
+                  Já tenho conta
+                </Button>
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+              <div className="flex flex-col items-center">
+                <div className="bg-white bg-opacity-20 rounded-full p-4 mb-4">
+                  <Car className="w-8 h-8" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Boleias Seguras</h3>
+                <p className="opacity-90">Motoristas verificados e viagens com segurança garantida</p>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="bg-white bg-opacity-20 rounded-full p-4 mb-4">
+                  <Hotel className="w-8 h-8" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Alojamentos Únicos</h3>
+                <p className="opacity-90">Hotéis, pousadas e casas com os melhores preços</p>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="bg-white bg-opacity-20 rounded-full p-4 mb-4">
+                  <Calendar className="w-8 h-8" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Eventos Exclusivos</h3>
+                <p className="opacity-90">Festivais, feiras e eventos culturais moçambicanos</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Search Section */}
-        <Card className="mb-8">
+        <Card className={`mb-8 ${!user ? 'border-orange-200 shadow-lg' : ''}`}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Search className="w-5 h-5" />
-              Encontrar Ofertas
+              {user ? 'Encontrar Ofertas' : 'Explorar Ofertas Disponíveis'}
+              {!user && <span className="text-sm text-orange-600 font-normal">(Registe-se para reservar)</span>}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -233,10 +299,29 @@ export default function Home() {
               <div className="flex items-end">
                 <Button onClick={handleSearch} className="w-full" data-testid="button-search">
                   <Search className="w-4 h-4 mr-2" />
-                  Buscar
+                  {user ? 'Buscar' : 'Ver Disponibilidade'}
                 </Button>
               </div>
             </div>
+            
+            {/* Call to action para não registados */}
+            {!user && (
+              <div className="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-orange-600" />
+                    <span className="text-orange-800">
+                      Para fazer reservas, precisa de criar uma conta primeiro
+                    </span>
+                  </div>
+                  <Link href="/signup" data-testid="search-signup-cta">
+                    <Button size="sm" className="bg-orange-600 hover:bg-orange-700">
+                      Registar Agora
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -246,6 +331,7 @@ export default function Home() {
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5" />
               Destaques da Semana
+              {!user && <span className="text-sm text-gray-500 font-normal ml-2">- Veja o que está disponível</span>}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -268,9 +354,17 @@ export default function Home() {
                             <span>{ride.rating}</span>
                           </div>
                         </div>
-                        <Button className="w-full mt-4" size="sm" data-testid={`button-book-ride-${index}`}>
-                          Reservar Boleia
-                        </Button>
+                        {user ? (
+                          <Button className="w-full mt-4" size="sm" data-testid={`button-book-ride-${index}`}>
+                            Reservar Boleia
+                          </Button>
+                        ) : (
+                          <Link href="/signup" className="block w-full mt-4">
+                            <Button className="w-full bg-orange-600 hover:bg-orange-700" size="sm" data-testid={`button-signup-ride-${index}`}>
+                              Registar para Reservar
+                            </Button>
+                          </Link>
+                        )}
                       </CardContent>
                     </Card>
                   ))}
@@ -294,9 +388,17 @@ export default function Home() {
                             <span>{stay.rating}</span>
                           </div>
                         </div>
-                        <Button className="w-full mt-4" size="sm" data-testid={`button-book-stay-${index}`}>
-                          Reservar Estadia
-                        </Button>
+                        {user ? (
+                          <Button className="w-full mt-4" size="sm" data-testid={`button-book-stay-${index}`}>
+                            Reservar Estadia
+                          </Button>
+                        ) : (
+                          <Link href="/signup" className="block w-full mt-4">
+                            <Button className="w-full bg-orange-600 hover:bg-orange-700" size="sm" data-testid={`button-signup-stay-${index}`}>
+                              Registar para Reservar
+                            </Button>
+                          </Link>
+                        )}
                       </CardContent>
                     </Card>
                   ))}
@@ -317,9 +419,17 @@ export default function Home() {
                           <p>📍 {event.location}</p>
                           <p>📅 {event.date}</p>
                         </div>
-                        <Button className="w-full mt-4" size="sm" data-testid={`button-book-event-${index}`}>
-                          Reservar Ingresso
-                        </Button>
+                        {user ? (
+                          <Button className="w-full mt-4" size="sm" data-testid={`button-book-event-${index}`}>
+                            Reservar Ingresso
+                          </Button>
+                        ) : (
+                          <Link href="/signup" className="block w-full mt-4">
+                            <Button className="w-full bg-orange-600 hover:bg-orange-700" size="sm" data-testid={`button-signup-event-${index}`}>
+                              Registar para Reservar
+                            </Button>
+                          </Link>
+                        )}
                       </CardContent>
                     </Card>
                   ))}
@@ -328,6 +438,51 @@ export default function Home() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Benefits section para não registados */}
+        {!user && (
+          <Card className="mt-8 bg-gradient-to-r from-orange-50 to-red-50 border-orange-200">
+            <CardHeader>
+              <CardTitle className="text-center text-orange-800">
+                Porque se Registar no Link-A?
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-center">
+                <div className="p-4">
+                  <div className="text-orange-600 mb-2">✅</div>
+                  <h4 className="font-semibold text-orange-800">Grátis para Sempre</h4>
+                  <p className="text-sm text-orange-700">Registo e uso básico completamente gratuito</p>
+                </div>
+                <div className="p-4">
+                  <div className="text-orange-600 mb-2">🛡️</div>
+                  <h4 className="font-semibold text-orange-800">Segurança Total</h4>
+                  <p className="text-sm text-orange-700">Utilizadores verificados e transações seguras</p>
+                </div>
+                <div className="p-4">
+                  <div className="text-orange-600 mb-2">💰</div>
+                  <h4 className="font-semibold text-orange-800">Melhor Preço</h4>
+                  <p className="text-sm text-orange-700">Descontos exclusivos e ofertas especiais</p>
+                </div>
+                <div className="p-4">
+                  <div className="text-orange-600 mb-2">📱</div>
+                  <h4 className="font-semibold text-orange-800">Tudo num Sítio</h4>
+                  <p className="text-sm text-orange-700">Boleias, hotéis e eventos numa só plataforma</p>
+                </div>
+              </div>
+              
+              <div className="text-center mt-6">
+                <Link href="/signup" data-testid="benefits-signup-button">
+                  <Button size="lg" className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-3">
+                    <Users className="w-5 h-5 mr-2" />
+                    Criar Conta Gratuita Agora
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

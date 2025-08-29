@@ -27,7 +27,7 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginData) => {
     setIsLoading(true);
     try {
-      const { signInWithEmail, isFirebaseConfigured } = await import('../lib/firebaseConfig');
+      const { signInWithEmail, isFirebaseConfigured } = await import('../shared/lib/firebaseConfig');
       
       if (!isFirebaseConfigured) {
         toast({
@@ -59,7 +59,7 @@ export default function LoginPage() {
 
   const handleGoogleLogin = async () => {
     try {
-      const { signInWithGoogle, isFirebaseConfigured } = await import('../lib/firebaseConfig');
+      const { signInWithGoogle, isFirebaseConfigured } = await import('../shared/lib/firebaseConfig');
       
       if (!isFirebaseConfigured) {
         toast({

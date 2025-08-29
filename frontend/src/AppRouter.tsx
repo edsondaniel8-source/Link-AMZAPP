@@ -1,60 +1,43 @@
-import { useLocation } from 'wouter';
+import { Route, Switch } from 'wouter';
+
+// Importar componentes das aplicações
+import MainAppHome from './apps/main-app/pages/home';
+import DriversApp from './apps/drivers-app/App';
+import HotelsApp from './apps/hotels-app/App';
+import AdminApp from './shared/admin/AdminApp';
+
+// Importar páginas individuais
+import LoginPage from './pages/login';
+import SignupPage from './pages/signup';
+import NotFoundPage from './pages/not-found';
 
 function AppRouter() {
-  const [location] = useLocation();
-
-  console.log('Current location:', location);
-
-  // Route to admin app
-  if (location.startsWith('/admin')) {
-    return (
-      <div className="p-8">
-        <h1 className="text-2xl font-bold text-blue-600">Painel Administrativo</h1>
-        <p>Aplicação admin em {location}</p>
-      </div>
-    );
-  }
-  
-  // Route to hotels app
-  if (location.startsWith('/hotels')) {
-    return (
-      <div className="p-8">
-        <h1 className="text-2xl font-bold text-green-600">Aplicação Alojamentos</h1>
-        <p>Aplicação hotéis em {location}</p>
-      </div>
-    );
-  }
-  
-  // Route to drivers app
-  if (location.startsWith('/drivers')) {
-    return (
-      <div className="p-8">
-        <h1 className="text-2xl font-bold text-purple-600">Aplicação Motoristas</h1>
-        <p>Aplicação condutores em {location}</p>
-      </div>
-    );
-  }
-  
-  // Default to main app (clients)
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold text-orange-600">Aplicação Clientes - Link-A</h1>
-      <p>Localização atual: {location}</p>
-      <div className="mt-4 space-x-4">
-        <a href="/drivers" className="text-blue-500 underline">Ir para Motoristas</a>
-        <a href="/hotels" className="text-blue-500 underline">Ir para Alojamentos</a>
-        <a href="/admin" className="text-blue-500 underline">Ir para Admin</a>
-      </div>
-      <div className="mt-8 bg-gray-100 p-4 rounded">
-        <h2 className="text-lg font-semibold mb-2">Funcionalidades dos Clientes:</h2>
-        <ul className="list-disc list-inside space-y-1">
-          <li>🔍 Buscar transportes e alojamentos</li>
-          <li>📅 Fazer reservas</li>
-          <li>❌ Cancelar reservas</li>
-          <li>💬 Chat básico com prestadores</li>
-        </ul>
-      </div>
-    </div>
+    <Switch>
+      {/* Rotas da aplicação principal (clientes) */}
+      <Route path="/" component={MainAppHome} />
+      <Route path="/home" component={MainAppHome} />
+      
+      {/* Rotas de autenticação */}
+      <Route path="/login" component={LoginPage} />
+      <Route path="/signup" component={SignupPage} />
+      
+      {/* Rotas das outras aplicações */}
+      <Route path="/drivers/:rest*">
+        {() => <DriversApp />}
+      </Route>
+      
+      <Route path="/hotels/:rest*">
+        {() => <HotelsApp />}
+      </Route>
+      
+      <Route path="/admin/:rest*">
+        {() => <AdminApp />}
+      </Route>
+      
+      {/* Rota 404 */}
+      <Route component={NotFoundPage} />
+    </Switch>
   );
 }
 
