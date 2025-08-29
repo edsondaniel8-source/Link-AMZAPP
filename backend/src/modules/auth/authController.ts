@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { verifyFirebaseToken, type AuthenticatedRequest } from "../../shared/firebaseAuth";
+// import { verifyFirebaseToken, type AuthenticatedRequest } from "../../shared/firebaseAuth";
 import { storage } from "../../shared/storage";
 
 const router = Router();
@@ -94,18 +94,20 @@ router.post('/setup-roles', verifyFirebaseToken, async (req, res) => {
     }
 
     // Atualizar dados do usuário
-    let user = await storage.updateUserRoles(userId, roles);
+    let user = await storage.upsertUser({
+      id: userId,
+      userType: roles[0], // Usar o primeiro role como userType principal
+      registrationCompleted: true
+    });
     
-    // Atualizar dados pessoais através do storage se fornecidos
+    // Atualizar dados pessoais se fornecidos
     if (firstName || lastName || phone) {
-      const updatedUser = await storage.upsertUser({
+      user = await storage.upsertUser({
         id: userId,
         firstName: firstName || user.firstName,
         lastName: lastName || user.lastName,
-        phone: phone || user.phone,
         registrationCompleted: true
       });
-      user = updatedUser;
     }
     
     res.json({ 

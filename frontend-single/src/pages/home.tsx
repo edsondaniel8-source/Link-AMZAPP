@@ -13,10 +13,6 @@ export default function Home() {
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [activeService, setActiveService] = useState<'rides' | 'stays'>('rides');
   
-  const handleSubmitOffer = () => {
-    console.log('Oferecer viagem');
-    setShowOfferModal(false);
-  };
 
   const handleSearch = () => {
     console.log('Search:', { type: searchType, ...searchQuery });
