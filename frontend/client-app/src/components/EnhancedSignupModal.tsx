@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { auth } from "../lib/firebaseConfig";
 
 interface EnhancedSignupModalProps {
   open: boolean;
@@ -41,6 +42,7 @@ interface FormData {
   city: string;
   profilePhoto: File | null;
   documentPhoto: File | null;
+  selectedRoles: string[];
 }
 
 const mozambicanCities = [
@@ -62,13 +64,14 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
     idDocumentNumber: '',
     city: '',
     profilePhoto: null,
-    documentPhoto: null
+    documentPhoto: null,
+    selectedRoles: ['client'] // Cliente sempre incluído por padrão
   });
   const [formError, setFormError] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState({ profile: 0, document: 0 });
   const { toast } = useToast();
 
-  const totalSteps = 4;
+  const totalSteps = 5; // Adicionando step de seleção de roles
   const progress = (currentStep / totalSteps) * 100;
 
   const handleInputChange = (field: keyof FormData, value: string | File | null) => {
@@ -152,6 +155,13 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
           return false;
         }
         break;
+      
+      case 5:
+        if (!formData.selectedRoles || formData.selectedRoles.length === 0) {
+          setFormError('Por favor, selecione pelo menos um tipo de conta.');
+          return false;
+        }
+        break;
     }
     
     return true;
@@ -174,12 +184,41 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
       // First create the Firebase account
       await signUpEmail(formData.email, formData.password);
       
-      // Here you would typically save the additional user data to your database
-      // and upload the photos to cloud storage
+      // Extract names from fullName
+      const nameParts = formData.fullName.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+      
+      // Send roles and additional data to backend
+      const response = await fetch('/api/auth/setup-roles', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${await auth.currentUser?.getIdToken()}`
+        },
+        body: JSON.stringify({
+          roles: formData.selectedRoles,
+          firstName,
+          lastName,
+          phone: formData.phoneNumber
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao configurar conta');
+      }
       
       toast({
         title: "Conta Criada com Sucesso!",
-        description: "Sua conta foi criada. Você pode fazer login agora."
+        description: `Conta criada com os tipos: ${formData.selectedRoles.map(role => {
+          switch(role) {
+            case 'client': return 'Cliente';
+            case 'driver': return 'Motorista';
+            case 'hotel': return 'Hotel Manager';
+            case 'event': return 'Organizador de Eventos';
+            default: return role;
+          }
+        }).join(', ')}`
       });
       
       handleClose();
@@ -217,7 +256,8 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
       idDocumentNumber: '',
       city: '',
       profilePhoto: null,
-      documentPhoto: null
+      documentPhoto: null,
+      selectedRoles: ['client']
     });
     setFormError(null);
     setUploadProgress({ profile: 0, document: 0 });
@@ -508,6 +548,113 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
           </div>
         );
 
+      case 5:
+        // Seleção de Tipos de Conta
+        const accountTypes = [
+          {
+            id: "client",
+            title: "🧳 Cliente",
+            description: "Quero reservar viagens, hospedagem e eventos",
+            features: ["Reservar transportes", "Booking de hotéis", "Comprar bilhetes para eventos"],
+            color: "bg-blue-500",
+            disabled: true // Cliente sempre selecionado
+          },
+          {
+            id: "driver",
+            title: "🚗 Motorista",
+            description: "Quero oferecer serviços de transporte",
+            features: ["Aceitar corridas", "Gestão de veículo", "Histórico de viagens"],
+            color: "bg-green-500"
+          },
+          {
+            id: "hotel",
+            title: "🏨 Manager de Hotel",
+            description: "Quero gerir propriedades e acomodações",
+            features: ["Gestão de quartos", "Reservas e check-ins", "Preços dinâmicos"],
+            color: "bg-purple-500"
+          },
+          {
+            id: "event",
+            title: "🎭 Organizador de Eventos",
+            description: "Quero criar e gerir eventos",
+            features: ["Criar eventos", "Venda de bilhetes", "Gestão de participantes"],
+            color: "bg-orange-500"
+          }
+        ];
+
+        const handleRoleToggle = (roleId: string) => {
+          if (roleId === "client") return; // Cliente sempre selecionado
+          
+          const updatedRoles = formData.selectedRoles.includes(roleId) 
+            ? formData.selectedRoles.filter(r => r !== roleId)
+            : [...formData.selectedRoles, roleId];
+          
+          handleInputChange('selectedRoles', updatedRoles);
+        };
+
+        return (
+          <div className="space-y-6">
+            <div className="text-center space-y-2">
+              <h3 className="text-lg font-semibold">Que tipo de serviços quer usar?</h3>
+              <p className="text-sm text-gray-600">
+                Selecione os tipos de conta que pretende ter. Pode sempre adicionar mais tipos mais tarde.
+              </p>
+            </div>
+
+            <div className="grid gap-4">
+              {accountTypes.map((type) => {
+                const isSelected = formData.selectedRoles.includes(type.id);
+                const isDisabled = type.disabled;
+                
+                return (
+                  <Card 
+                    key={type.id}
+                    className={`cursor-pointer transition-all border-2 ${
+                      isSelected 
+                        ? 'border-primary bg-primary/5' 
+                        : 'border-gray-200 hover:border-gray-300'
+                    } ${isDisabled ? 'opacity-75' : ''}`}
+                    onClick={() => !isDisabled && handleRoleToggle(type.id)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 space-y-2">
+                          <div className="flex items-center gap-3">
+                            <Checkbox 
+                              checked={isSelected}
+                              disabled={isDisabled}
+                              onChange={() => !isDisabled && handleRoleToggle(type.id)}
+                            />
+                            <h4 className="font-semibold text-sm">{type.title}</h4>
+                            {type.id === "client" && (
+                              <Badge variant="secondary" className="text-xs">Incluído</Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-600">{type.description}</p>
+                          <div className="flex flex-wrap gap-1">
+                            {type.features.map((feature, idx) => (
+                              <Badge key={idx} variant="outline" className="text-xs px-2 py-1">
+                                {feature}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                <strong>Nota:</strong> Todos os utilizadores têm acesso às funcionalidades de cliente. 
+                Os outros tipos de conta requerem verificação adicional dos documentos.
+              </p>
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }
@@ -519,6 +666,7 @@ export function EnhancedSignupModal({ open, onOpenChange }: EnhancedSignupModalP
       case 2: return "Informações Pessoais";
       case 3: return "Documento de Identificação";
       case 4: return "Verificação Fotográfica";
+      case 5: return "Tipos de Conta";
       default: return "";
     }
   };

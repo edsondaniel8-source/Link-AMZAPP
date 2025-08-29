@@ -4,137 +4,95 @@ import { storage } from "../../shared/storage";
 
 const router = Router();
 
-// Login simplificado - sem verificação redundante
-router.post('/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({ 
-        message: "Email e senha são obrigatórios" 
-      });
-    }
-
-    // TODO: Implementar autenticação com Firebase
-    // Por enquanto, mock da resposta
-    const user = {
-      id: "user-123",
-      email,
-      firstName: "João",
-      lastName: "Silva", 
-      roles: ["driver"], // Papéis do usuário
-      isVerified: true,
-      profileImageUrl: null
-    };
-
-    const token = "mock-jwt-token";
-
-    res.json({
-      success: true,
-      message: "Login realizado com sucesso",
-      token,
-      user
-    });
-  } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({ 
-      message: "Erro interno do servidor" 
-    });
-  }
-});
-
-// Validar token
-router.get('/validate', verifyFirebaseToken, async (req, res) => {
+// Obter dados do usuário autenticado
+router.get('/user', verifyFirebaseToken, async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   try {
     const userId = authReq.user?.claims?.sub;
+    const userEmail = authReq.user?.claims?.email;
+    
     if (!userId) {
       return res.status(401).json({ message: "Token inválido" });
     }
 
-    const user = await storage.getUser(userId);
+    // Verificar se usuário existe na base de dados
+    let user = await storage.getUser(userId);
+    
     if (!user) {
-      return res.status(404).json({ message: "Usuário não encontrado" });
-    }
-
-    res.json({
-      success: true,
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        roles: [user.userType], // Converter userType para array de roles
-        isVerified: user.isVerified,
-        profileImageUrl: user.profileImageUrl
-      }
-    });
-  } catch (error) {
-    console.error("Token validation error:", error);
-    res.status(500).json({ message: "Erro ao validar token" });
-  }
-});
-
-// Registro simplificado - sem verificação redundante
-router.post('/register', async (req, res) => {
-  try {
-    const {
-      email,
-      password,
-      firstName,
-      lastName,
-      phone,
-      userType = 'client',
-      profileImageUrl,
-      identityDocumentUrl
-    } = req.body;
-
-    if (!email || !password || !firstName || !lastName) {
-      return res.status(400).json({ 
-        message: "Dados obrigatórios não fornecidos" 
+      // Criar usuário automaticamente se não existir
+      user = await storage.upsertUser({
+        id: userId,
+        email: userEmail || null,
+        firstName: authReq.user?.displayName?.split(' ')[0] || null,
+        lastName: authReq.user?.displayName?.split(' ').slice(1).join(' ') || null,
+        profileImageUrl: null,
+        userType: 'user'
       });
     }
 
-    // Criar usuário já verificado (documentos foram enviados no registro)
-    const userData = {
-      email,
-      firstName,
-      lastName,
-      phone,
-      userType,
-      profileImageUrl,
-      identityDocumentUrl,
-      registrationCompleted: true,
-      isVerified: true, // Já verificado
-      verificationStatus: "verified", // Já verificado
-      verificationDate: new Date(),
-      canOfferServices: userType !== 'client' // Permite serviços se não for cliente
-    };
+    res.json({
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      roles: [user.userType], // Converter userType para array de roles
+      isVerified: user.isVerified || false,
+      profileImageUrl: user.profileImageUrl,
+      registrationCompleted: user.registrationCompleted || false,
+      needsRoleSelection: !user.registrationCompleted
+    });
+  } catch (error) {
+    console.error('Erro ao obter dados do usuário:', error);
+    res.status(500).json({ message: 'Erro interno do servidor' });
+  }
+});
 
-    const user = await storage.upsertUser(userData);
+// Configurar roles do usuário durante signup
+router.post('/setup-roles', verifyFirebaseToken, async (req, res) => {
+  const authReq = req as AuthenticatedRequest;
+  try {
+    const userId = authReq.user?.claims?.sub;
+    const { roles, firstName, lastName, phone } = req.body;
     
-    // TODO: Criar usuário no Firebase Auth
-    const token = "mock-jwt-token";
+    if (!userId) {
+      return res.status(401).json({ message: "Token inválido" });
+    }
+    
+    if (!roles || !Array.isArray(roles) || roles.length === 0) {
+      return res.status(400).json({ message: "Pelo menos um role deve ser selecionado" });
+    }
 
-    res.status(201).json({
-      success: true,
-      message: "Registro realizado com sucesso",
-      token,
+    // Atualizar dados do usuário
+    let user = await storage.updateUserRoles(userId, roles);
+    
+    // Atualizar dados pessoais através do storage se fornecidos
+    if (firstName || lastName || phone) {
+      const updatedUser = await storage.upsertUser({
+        id: userId,
+        firstName: firstName || user.firstName,
+        lastName: lastName || user.lastName,
+        phone: phone || user.phone,
+        registrationCompleted: true
+      });
+      user = updatedUser;
+    }
+    
+    res.json({ 
       user: {
         id: user.id,
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        roles: [user.userType],
-        isVerified: true,
-        profileImageUrl: user.profileImageUrl
+        roles: roles,
+        userType: user.userType,
+        profileImageUrl: user.profileImageUrl,
+        isVerified: user.isVerified || false,
+        registrationCompleted: true
       }
     });
   } catch (error) {
-    console.error("Registration error:", error);
-    res.status(500).json({ 
-      message: "Erro ao realizar registro" 
-    });
+    console.error('Erro ao configurar roles:', error);
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 });
 
