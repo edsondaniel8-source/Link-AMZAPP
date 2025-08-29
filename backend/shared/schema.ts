@@ -23,7 +23,8 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   phone: text("phone").unique(), // Optional - can be filled later during registration
-  userType: text("user_type").default("user"), // user, driver, host, restaurant
+  userType: text("user_type").default("client"), // client, driver, hotel_manager, admin
+  roles: text("roles").array().default(sql`'{client}'`), // Array of roles: client, driver, hotel_manager, admin
   canOfferServices: boolean("can_offer_services").default(false), // Only verified users can offer rides/accommodations
   avatar: text("avatar"),
   rating: decimal("rating", { precision: 3, scale: 2 }).default("0.00"),

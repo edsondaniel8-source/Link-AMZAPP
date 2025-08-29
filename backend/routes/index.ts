@@ -1,112 +1,79 @@
 import express from 'express';
-import type { Express } from 'express';
-import { createServer, type Server } from 'http';
+import { createServer } from 'http';
+import authRoutes from './auth.js';
+import ridesRoutes from './rides.js';
+import hotelsRoutes from './hotels.js';
+import eventsRoutes from './events.js';
+import bookingsRoutes from './bookings.js';
 
-// Import route modules
-import clientBookingsRouter from './client/bookings';
-import clientProfileRouter from './client/profile';
-import providerDashboardRouter from './provider/dashboard';
-import providerRidesRouter from './provider/rides';
+export async function registerRoutes(app: express.Express) {
+  // Centralizar todas as rotas da API
+  app.use('/api/auth', authRoutes);
+  app.use('/api/rides', ridesRoutes);
+  app.use('/api/hotels', hotelsRoutes);
+  app.use('/api/events', eventsRoutes);
+  app.use('/api/bookings', bookingsRoutes);
 
-// Import shared routes (auth, search, etc.)
-import { verifyFirebaseToken } from '../middleware/role-auth';
-
-export async function registerRoutes(app: Express): Promise<Server> {
-  
-  // Routes de autenticação (públicas)
-  app.post('/api/auth/action-roles', async (req, res) => {
+  // API de destaque para homepage
+  app.get('/api/highlights', async (req, res) => {
     try {
-      const { roles } = req.body;
-      
-      if (!roles || !Array.isArray(roles)) {
-        return res.status(400).json({ 
-          error: 'Campo roles é obrigatório e deve ser um array' 
-        });
-      }
-      
-      // Mock response - implementar lógica real
+      // Buscar dados em paralelo para a homepage
+      const [featuredEvents, topRides, topHotels] = await Promise.all([
+        // Eventos em destaque (será implementado com dados reais)
+        Promise.resolve([
+          { id: '1', name: 'Festival de Marrabenta', location: 'Maputo', date: '2024-02-10', price: 500, image: '🎵' },
+          { id: '2', name: 'Feira Artesanal', location: 'Beira', date: '2024-02-15', price: 200, image: '🎨' },
+          { id: '3', name: 'Concerto de Música', location: 'Nampula', date: '2024-02-20', price: 750, image: '🎤' }
+        ]),
+        
+        // Melhores ofertas de viagens da semana
+        Promise.resolve([
+          { id: '1', from: 'Maputo', to: 'Beira', price: 1500, date: '2024-01-15', driver: 'João M.', rating: 4.8 },
+          { id: '2', from: 'Nampula', to: 'Nacala', price: 800, date: '2024-01-16', driver: 'Maria S.', rating: 4.9 },
+          { id: '3', from: 'Tete', to: 'Chimoio', price: 1200, date: '2024-01-17', driver: 'Carlos A.', rating: 4.7 }
+        ]),
+        
+        // Melhores ofertas de alojamento da semana
+        Promise.resolve([
+          { id: '1', name: 'Hotel Marisol', location: 'Maputo', price: 3500, rating: 4.6, image: '🏨' },
+          { id: '2', name: 'Pensão Oceano', location: 'Beira', price: 2200, rating: 4.4, image: '🏖️' },
+          { id: '3', name: 'Lodge Safari', location: 'Gorongosa', price: 4800, rating: 4.9, image: '🦁' }
+        ])
+      ]);
+
       res.json({
-        success: true,
-        message: 'Roles configurados com sucesso',
-        roles
+        featuredEvents,
+        topRides,
+        topHotels,
+        popularDestinations: [
+          'Maputo', 'Beira', 'Nampula', 'Tete', 'Chimoio', 'Nacala'
+        ]
       });
     } catch (error) {
-      console.error('Erro ao configurar roles:', error);
+      console.error('Erro ao buscar destaques:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });
-  
-  // Routes públicas de busca
-  app.get('/api/search/rides', async (req, res) => {
+
+  // Rota de estatísticas para o painel admin
+  app.get('/api/admin/stats', async (req, res) => {
     try {
-      const { from, to, date, passengers } = req.query;
-      
-      // Mock data
-      const rides = [
-        {
-          id: '1',
-          from: from || 'Maputo',
-          to: to || 'Matola',
-          date: date || '2025-01-15',
-          time: '08:00',
-          driver: 'João Silva',
-          vehicle: 'Toyota Hiace',
-          price: 350,
-          availableSeats: 5
-        }
-      ];
-      
-      res.json(rides);
+      // TODO: Implementar com dados reais da base de dados
+      res.json({
+        totalUsers: 1250,
+        totalRides: 89,
+        totalHotels: 23,
+        totalEvents: 12,
+        pendingApprovals: 5,
+        monthlyRevenue: 45000,
+        activeBookings: 156
+      });
     } catch (error) {
-      console.error('Erro na busca de viagens:', error);
+      console.error('Erro ao buscar estatísticas:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });
-  
-  app.get('/api/search/accommodations', async (req, res) => {
-    try {
-      const { location, checkin, checkout, guests } = req.query;
-      
-      // Mock data
-      const accommodations = [
-        {
-          id: '1',
-          name: 'Hotel Exemplo',
-          location: location || 'Maputo',
-          price: 2500,
-          rating: 4.5,
-          amenities: ['WiFi', 'Piscina', 'Restaurante']
-        }
-      ];
-      
-      res.json(accommodations);
-    } catch (error) {
-      console.error('Erro na busca de hospedagem:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-  });
-  
-  // Routes de cliente (protegidas)
-  app.use('/api/client/bookings', clientBookingsRouter);
-  app.use('/api/client/profile', clientProfileRouter);
-  
-  // Routes de prestador (protegidas)  
-  app.use('/api/provider/dashboard', providerDashboardRouter);
-  app.use('/api/provider/rides', providerRidesRouter);
-  
-  // Route de teste de autenticação
-  app.get('/api/auth/me', verifyFirebaseToken, async (req, res) => {
-    try {
-      const user = req.user;
-      res.json(user);
-    } catch (error) {
-      console.error('Erro ao obter dados do usuário:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-  });
-  
-  // Criar servidor HTTP
+
   const httpServer = createServer(app);
-  
   return httpServer;
 }
