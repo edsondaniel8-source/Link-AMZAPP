@@ -4,7 +4,9 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "./hooks/useAuth";
+import { useUserSetup } from "./hooks/useUserSetup";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import AccountTypeSelector from "../../shared/components/AccountTypeSelector";
 import Home from "@/pages/home";
 import Dashboard from "@/pages/dashboard";
 import Profile from "@/pages/profile";
@@ -15,7 +17,18 @@ import Events from "@/pages/events";
 import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/login";
 function Router() {
-  const { loading } = useAuth();
+  const { loading, user } = useAuth();
+  const { needsRoleSetup, setupUserRoles, userEmail, loading: setupLoading } = useUserSetup();
+
+  // Se usuário logado precisa configurar roles
+  if (user && needsRoleSetup && !setupLoading) {
+    return (
+      <AccountTypeSelector
+        userEmail={userEmail}
+        onComplete={setupUserRoles}
+      />
+    );
+  }
 
   if (loading) {
     return (
