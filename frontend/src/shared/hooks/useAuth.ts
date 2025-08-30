@@ -168,13 +168,19 @@ export const useAuth = (): UseAuthReturn => {
     
     try {
       await signOutUser();
+      // Force clear the auth state immediately
+      setAuthState({
+        user: null,
+        loading: false,
+        error: null,
+      });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Sign out failed';
-      setAuthState(prev => ({
-        ...prev,
+      setAuthState({
+        user: null, // Still clear user even on error
         loading: false,
         error: errorMessage,
-      }));
+      });
       throw error;
     }
   };
