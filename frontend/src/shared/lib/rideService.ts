@@ -2,15 +2,19 @@
 import { api } from "./api";
 
 export interface RideData {
+  type?: string;
   fromAddress: string;
   toAddress: string;
   departureDate: string;
   price: number;
   maxPassengers: number;
-  vehicleType: string;
+  vehicleType?: string;
   description?: string;
   pickupPoint?: string;
   dropoffPoint?: string;
+  driverId?: string;
+  allowNegotiation?: boolean;
+  isRoundTrip?: boolean;
 }
 
 export interface SearchParams {

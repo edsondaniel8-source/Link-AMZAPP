@@ -71,16 +71,14 @@ export default function RoutePublisher() {
       const departureDate = `${formData.date}T${formData.time}:00`;
 
       const rideData = {
+        type: formData.vehicleType || "UberX", // Mapeando vehicleType para type
         fromAddress: formData.fromAddress,
         toAddress: formData.toAddress,
-        departureDate: departureDate, // Use o campo combinado
+        departureDate: departureDate,
         price: Number(formData.price),
         maxPassengers: Number(formData.maxPassengers),
-        vehicleType: formData.vehicleType,
-        description: formData.description,
         allowNegotiation: false,
         isRoundTrip: false,
-        driverId: user.uid, // Adicionar o ID do motorista
       };
 
       console.log("A publicar rota:", rideData);
