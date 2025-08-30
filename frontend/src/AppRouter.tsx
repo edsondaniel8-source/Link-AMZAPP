@@ -5,10 +5,9 @@ import MainAppHome from './apps/main-app/pages/home';
 import BookingsPage from './apps/main-app/pages/bookings';
 import ProfilePage from './apps/main-app/pages/profile';
 import BlogPage from './apps/main-app/pages/blog';
-import MapPage from './apps/main-app/pages/map';
 import DriversApp from './apps/drivers-app/App';
 import HotelsApp from './apps/hotels-app/App';
-import AdminApp from './shared/admin/AdminApp';
+import AdminApp from './apps/admin-app/App';
 
 // Importar páginas individuais
 import LoginPage from './pages/login';
@@ -30,17 +29,14 @@ function AppRouter() {
       <Route path="/signup" component={SignupPage} />
       
       {/* Rotas das outras aplicações */}
-      <Route path="/drivers/:rest*">
-        {() => <DriversApp />}
-      </Route>
+      <Route path="/drivers" component={DriversApp} />
+      <Route path="/drivers/:rest*" component={DriversApp} />
       
-      <Route path="/hotels/:rest*">
-        {() => <HotelsApp />}
-      </Route>
+      <Route path="/hotels" component={HotelsApp} />
+      <Route path="/hotels/:rest*" component={HotelsApp} />
       
-      <Route path="/admin/:rest*">
-        {() => <AdminApp />}
-      </Route>
+      <Route path="/admin" component={AdminApp} />
+      <Route path="/admin/:rest*" component={AdminApp} />
       
       {/* Rota 404 */}
       <Route component={NotFoundPage} />
