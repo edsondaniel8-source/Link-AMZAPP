@@ -57,6 +57,11 @@ export default function RoutePublisher() {
   };
 
   const handlePublish = async () => {
+    if (!user) {
+      setError("Deve estar autenticado para publicar uma rota.");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     setSuccess(false);
@@ -75,6 +80,7 @@ export default function RoutePublisher() {
         description: formData.description,
         allowNegotiation: false,
         isRoundTrip: false,
+        driverId: user.uid, // Adicionar o ID do motorista
       };
 
       console.log("A publicar rota:", rideData);
