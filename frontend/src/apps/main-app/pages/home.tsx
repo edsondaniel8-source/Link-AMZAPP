@@ -339,27 +339,41 @@ export default function Home() {
               {searchType === "rides" && (
                 <>
                   {weeklyHighlights.topRides.map((ride, index) => (
-                    <Card key={index} className="border-l-4 border-l-blue-500">
-                      <CardContent className="pt-6">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Car className="w-4 h-4 text-blue-600" />
-                          <span className="font-medium">{ride.from} → {ride.to}</span>
+                    <Card key={index} className="border-l-4 border-l-blue-500 overflow-hidden">
+                      {/* Espaço para foto do veículo */}
+                      <div className="h-48 bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center border-b">
+                        <div className="text-center">
+                          <Car className="w-16 h-16 text-blue-600 mb-2" />
+                          <span className="text-sm text-gray-600">Foto do veículo</span>
                         </div>
-                        <p className="text-2xl font-bold text-green-600 mb-2">{ride.price} MZN</p>
-                        <div className="space-y-1 text-sm text-gray-600">
-                          <p>📅 {ride.date}</p>
-                          <p>👨‍💼 {ride.driver}</p>
+                      </div>
+                      <CardContent className="pt-4">
+                        <div className="mb-2">
+                          <h3 className="font-semibold text-lg flex items-center gap-2">
+                            <span>{ride.from} → {ride.to}</span>
+                          </h3>
+                          <p className="text-sm text-gray-600 flex items-center gap-1">
+                            <Users className="w-3 h-3" />
+                            Motorista: {ride.driver}
+                          </p>
+                        </div>
+                        <div className="flex items-center justify-between mb-3">
+                          <p className="text-2xl font-bold text-green-600">{ride.price} MZN</p>
                           <div className="flex items-center gap-1">
-                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                            <span>{ride.rating}</span>
+                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                            <span className="font-medium">{ride.rating}</span>
                           </div>
                         </div>
+                        <p className="text-sm text-gray-600 mb-3 flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {ride.date}
+                        </p>
                         {user ? (
-                          <Button className="w-full mt-4" size="sm" data-testid={`button-book-ride-${index}`}>
+                          <Button className="w-full" size="sm" data-testid={`button-book-ride-${index}`}>
                             Reservar Boleia
                           </Button>
                         ) : (
-                          <Link href="/signup" className="block w-full mt-4">
+                          <Link href="/signup" className="block w-full">
                             <Button className="w-full bg-orange-600 hover:bg-orange-700" size="sm" data-testid={`button-signup-ride-${index}`}>
                               Registar para Reservar
                             </Button>
@@ -374,26 +388,35 @@ export default function Home() {
               {searchType === "stays" && (
                 <>
                   {weeklyHighlights.topHotels.map((stay, index) => (
-                    <Card key={index} className="border-l-4 border-l-green-500">
-                      <CardContent className="pt-6">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-2xl">{stay.image}</span>
-                          <span className="font-medium">{stay.name}</span>
+                    <Card key={index} className="border-l-4 border-l-green-500 overflow-hidden">
+                      {/* Espaço para foto do hotel */}
+                      <div className="h-48 bg-gradient-to-br from-green-100 to-blue-100 flex items-center justify-center border-b">
+                        <div className="text-center">
+                          <span className="text-4xl mb-2 block">{stay.image}</span>
+                          <span className="text-sm text-gray-600">Foto do alojamento</span>
                         </div>
-                        <p className="text-2xl font-bold text-green-600 mb-2">{stay.price} MZN/noite</p>
-                        <div className="space-y-1 text-sm text-gray-600">
-                          <p>📍 {stay.location}</p>
+                      </div>
+                      <CardContent className="pt-4">
+                        <div className="mb-2">
+                          <h3 className="font-semibold text-lg">{stay.name}</h3>
+                          <p className="text-sm text-gray-600 flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            {stay.location}
+                          </p>
+                        </div>
+                        <div className="flex items-center justify-between mb-3">
+                          <p className="text-2xl font-bold text-green-600">{stay.price} MZN/noite</p>
                           <div className="flex items-center gap-1">
-                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                            <span>{stay.rating}</span>
+                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                            <span className="font-medium">{stay.rating}</span>
                           </div>
                         </div>
                         {user ? (
-                          <Button className="w-full mt-4" size="sm" data-testid={`button-book-stay-${index}`}>
+                          <Button className="w-full" size="sm" data-testid={`button-book-stay-${index}`}>
                             Reservar Estadia
                           </Button>
                         ) : (
-                          <Link href="/signup" className="block w-full mt-4">
+                          <Link href="/signup" className="block w-full">
                             <Button className="w-full bg-orange-600 hover:bg-orange-700" size="sm" data-testid={`button-signup-stay-${index}`}>
                               Registar para Reservar
                             </Button>
@@ -408,23 +431,35 @@ export default function Home() {
               {searchType === "events" && (
                 <>
                   {weeklyHighlights.featuredEvents.map((event, index) => (
-                    <Card key={index} className="border-l-4 border-l-purple-500">
-                      <CardContent className="pt-6">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-2xl">{event.image}</span>
-                          <span className="font-medium">{event.name}</span>
+                    <Card key={index} className="border-l-4 border-l-purple-500 overflow-hidden">
+                      {/* Espaço para foto do evento */}
+                      <div className="h-48 bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center border-b">
+                        <div className="text-center">
+                          <span className="text-4xl mb-2 block">{event.image}</span>
+                          <span className="text-sm text-gray-600">Foto do evento</span>
                         </div>
-                        <p className="text-2xl font-bold text-green-600 mb-2">{event.price} MZN</p>
-                        <div className="space-y-1 text-sm text-gray-600">
-                          <p>📍 {event.location}</p>
-                          <p>📅 {event.date}</p>
+                      </div>
+                      <CardContent className="pt-4">
+                        <div className="mb-2">
+                          <h3 className="font-semibold text-lg">{event.name}</h3>
+                          <p className="text-sm text-gray-600 flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            {event.location}
+                          </p>
+                        </div>
+                        <div className="flex items-center justify-between mb-3">
+                          <p className="text-2xl font-bold text-green-600">{event.price} MZN</p>
+                          <p className="text-sm text-gray-600 flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {event.date}
+                          </p>
                         </div>
                         {user ? (
-                          <Button className="w-full mt-4" size="sm" data-testid={`button-book-event-${index}`}>
+                          <Button className="w-full" size="sm" data-testid={`button-book-event-${index}`}>
                             Reservar Ingresso
                           </Button>
                         ) : (
-                          <Link href="/signup" className="block w-full mt-4">
+                          <Link href="/signup" className="block w-full">
                             <Button className="w-full bg-orange-600 hover:bg-orange-700" size="sm" data-testid={`button-signup-event-${index}`}>
                               Registar para Reservar
                             </Button>

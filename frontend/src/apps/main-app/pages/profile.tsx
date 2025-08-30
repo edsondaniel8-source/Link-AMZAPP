@@ -7,11 +7,11 @@ import { Label } from "@/shared/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
 import { Badge } from "@/shared/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar";
-import { User, Settings, CreditCard, Star, MapPin, Phone, Mail, Camera } from "lucide-react";
+import { User, Settings, CreditCard, Star, MapPin, Phone, Mail, Camera, LogOut, Car, Building2, Shield } from "lucide-react";
 import { Link } from "wouter";
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState({
     firstName: user?.firstName || "",
@@ -44,9 +44,26 @@ export default function Profile() {
             </Link>
             <h1 className="text-2xl font-bold text-gray-900">Meu Perfil</h1>
           </div>
-          <Link href="/dashboard">
-            <Button variant="outline">Dashboard</Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link href="/dashboard">
+              <Button variant="outline">Dashboard</Button>
+            </Link>
+            <Button 
+              variant="destructive" 
+              size="sm" 
+              onClick={async () => {
+                try {
+                  await signOut();
+                } catch (error) {
+                  console.error('Erro ao sair:', error);
+                }
+              }}
+              className="flex items-center gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              Sair
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -400,7 +417,7 @@ export default function Profile() {
                         <p className="text-sm text-gray-600">10 pontos por viagem</p>
                       </div>
                       <div className="text-center p-4 border rounded-lg">
-                        <Hotel className="w-8 h-8 text-orange-600 mx-auto mb-2" />
+                        <Building2 className="w-8 h-8 text-orange-600 mx-auto mb-2" />
                         <p className="font-medium">Hospedagem</p>
                         <p className="text-sm text-gray-600">50 pontos por noite</p>
                       </div>

@@ -7,6 +7,35 @@ import { eq, and, gte, lte, like, or } from 'drizzle-orm';
 
 const router = Router();
 
+// Função para obter termos de proximidade para busca mais flexível
+function getProximityTerms(location: string): string[] {
+  const term = location.toLowerCase().trim();
+  const proximityMap: Record<string, string[]> = {
+    'malanga': ['malanga', 'zimpeto', 'maputo', 'matola'],
+    'zimpeto': ['zimpeto', 'malanga', 'maputo', 'matola'],
+    'maputo': ['maputo', 'matola', 'zimpeto', 'malanga', 'costa do sol'],
+    'matola': ['matola', 'maputo', 'zimpeto', 'malanga'],
+    'bilene': ['bilene', 'xai-xai', 'manhiça', 'palmeira'],
+    'xai-xai': ['xai-xai', 'bilene', 'manhiça', 'chokwe'],
+    'beira': ['beira', 'dondo', 'sofala'],
+    'nampula': ['nampula', 'nacala', 'ilha de moçambique'],
+    'tete': ['tete', 'cahora bassa', 'moatize'],
+    'inhambane': ['inhambane', 'tofo', 'vilanculos', 'maxixe'],
+    'pemba': ['pemba', 'montepuez', 'cabo delgado'],
+    'quelimane': ['quelimane', 'mocuba', 'zambézia']
+  };
+  
+  // Procurar correspondências exatas primeiro
+  for (const [key, values] of Object.entries(proximityMap)) {
+    if (term.includes(key) || values.some(v => term.includes(v))) {
+      return values;
+    }
+  }
+  
+  // Se não encontrar correspondência, retornar o termo original
+  return [term];
+}
+
 // Schema para criar nova viagem
 const createRideSchema = z.object({
   type: z.string(),
@@ -47,12 +76,21 @@ router.get('/search', async (req, res) => {
     
     let whereConditions: any = [eq(rides.isActive, true)];
     
+    // Implementar busca por proximidade - encontrar resultados aproximados
     if (query.from) {
-      whereConditions.push(like(rides.fromAddress, `%${query.from}%`));
+      const proximityTerms = getProximityTerms(query.from);
+      const fromConditions = proximityTerms.map(term => 
+        like(rides.fromAddress, `%${term}%`)
+      );
+      whereConditions.push(or(...fromConditions));
     }
     
     if (query.to) {
-      whereConditions.push(like(rides.toAddress, `%${query.to}%`));
+      const proximityTerms = getProximityTerms(query.to);
+      const toConditions = proximityTerms.map(term => 
+        like(rides.toAddress, `%${term}%`)
+      );
+      whereConditions.push(or(...toConditions));
     }
     
     if (query.date) {

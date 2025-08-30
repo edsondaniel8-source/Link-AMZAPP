@@ -3,9 +3,36 @@ import { z } from 'zod';
 import { db } from '../db.js';
 import { accommodations, hotelRooms, partnershipProposals } from '../shared/schema.js';
 import { verifyFirebaseToken, verifyRole } from './auth.js';
-import { eq, and, gte, lte, like } from 'drizzle-orm';
+import { eq, and, gte, lte, like, or } from 'drizzle-orm';
 
 const router = Router();
+
+// Função para obter termos de proximidade para busca mais flexível
+function getProximityTerms(location: string): string[] {
+  const term = location.toLowerCase().trim();
+  const proximityMap: Record<string, string[]> = {
+    'malanga': ['malanga', 'zimpeto', 'maputo', 'matola'],
+    'zimpeto': ['zimpeto', 'malanga', 'maputo', 'matola'],
+    'maputo': ['maputo', 'matola', 'zimpeto', 'malanga', 'costa do sol'],
+    'matola': ['matola', 'maputo', 'zimpeto', 'malanga'],
+    'bilene': ['bilene', 'xai-xai', 'manhiça', 'palmeira'],
+    'xai-xai': ['xai-xai', 'bilene', 'manhiça', 'chokwe'],
+    'beira': ['beira', 'dondo', 'sofala'],
+    'nampula': ['nampula', 'nacala', 'ilha de moçambique'],
+    'tete': ['tete', 'cahora bassa', 'moatize'],
+    'inhambane': ['inhambane', 'tofo', 'vilanculos', 'maxixe'],
+    'pemba': ['pemba', 'montepuez', 'cabo delgado'],
+    'quelimane': ['quelimane', 'mocuba', 'zambézia']
+  };
+  
+  for (const [key, values] of Object.entries(proximityMap)) {
+    if (term.includes(key) || values.some(v => term.includes(v))) {
+      return values;
+    }
+  }
+  
+  return [term];
+}
 
 // Schema para buscar alojamentos
 const searchHotelsSchema = z.object({
@@ -69,8 +96,13 @@ router.get('/search', async (req, res) => {
     
     let whereConditions: any = [eq(accommodations.isAvailable, true)];
     
+    // Implementar busca por proximidade para alojamentos
     if (query.location) {
-      whereConditions.push(like(accommodations.address, `%${query.location}%`));
+      const proximityTerms = getProximityTerms(query.location);
+      const locationConditions = proximityTerms.map(term => 
+        like(accommodations.address, `%${term}%`)
+      );
+      whereConditions.push(or(...locationConditions));
     }
     
     if (query.type) {
