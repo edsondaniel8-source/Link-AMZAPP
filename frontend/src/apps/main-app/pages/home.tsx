@@ -5,7 +5,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/shared/components/ui/dropdown-menu";
-import { Star, Car, Hotel, Calendar, Search, TrendingUp, Menu, UserCircle, LogOut, Shield, Settings, Sparkles, ArrowRight, Users, MapPin } from "lucide-react";
+import { Star, Car, Hotel, Calendar, Search, TrendingUp, Menu, UserCircle, LogOut, Shield, Settings, Sparkles, ArrowRight, Users, MapPin, BookOpen, Map } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 interface RideHighlight {
@@ -126,6 +126,18 @@ export default function Home() {
 
             {user ? (
               <>
+                <Link href="/map" data-testid="link-map">
+                  <Button variant="ghost">
+                    <Map className="w-4 h-4 mr-2" />
+                    Mapa
+                  </Button>
+                </Link>
+                <Link href="/blog" data-testid="link-blog">
+                  <Button variant="ghost">
+                    <BookOpen className="w-4 h-4 mr-2" />
+                    Blog
+                  </Button>
+                </Link>
                 <Link href="/bookings" data-testid="link-bookings">
                   <Button variant="ghost">📋 Minhas Reservas</Button>
                 </Link>

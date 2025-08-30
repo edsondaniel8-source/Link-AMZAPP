@@ -4,6 +4,8 @@ import { Route, Switch } from 'wouter';
 import MainAppHome from './apps/main-app/pages/home';
 import BookingsPage from './apps/main-app/pages/bookings';
 import ProfilePage from './apps/main-app/pages/profile';
+import BlogPage from './apps/main-app/pages/blog';
+import MapPage from './apps/main-app/pages/map';
 import DriversApp from './apps/drivers-app/App';
 import HotelsApp from './apps/hotels-app/App';
 import AdminApp from './shared/admin/AdminApp';
@@ -21,6 +23,8 @@ function AppRouter() {
       <Route path="/home" component={MainAppHome} />
       <Route path="/bookings" component={BookingsPage} />
       <Route path="/profile" component={ProfilePage} />
+      <Route path="/blog" component={BlogPage} />
+      <Route path="/map" component={MapPage} />
       
       {/* Rotas de autenticação */}
       <Route path="/login" component={LoginPage} />
