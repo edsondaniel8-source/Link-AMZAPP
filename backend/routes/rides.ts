@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { db } from '../db.js';
-import { rides, bookings, users } from '../shared/schema.js';
-import { verifyFirebaseToken, verifyRole } from './auth.js';
+import { db } from '../db';
+import { rides, bookings, users } from '../shared/schema';
+import { verifyFirebaseToken, verifyRole } from './auth';
 import { eq, and, gte, lte, like, or } from 'drizzle-orm';
 
 const router = Router();
@@ -168,14 +168,26 @@ router.post('/', verifyFirebaseToken, verifyRole(['driver', 'admin']), async (re
     const driverUser = req.dbUser;
 
     const [newRide] = await db.insert(rides).values({
-      ...rideData,
-      driverId,
-      driverName: `${driverUser.firstName} ${driverUser.lastName}`.trim(),
-      departureDate: new Date(rideData.departureDate),
-      returnDate: rideData.returnDate ? new Date(rideData.returnDate) : null,
+      type: rideData.type,
+      fromAddress: rideData.fromAddress,
+      toAddress: rideData.toAddress,
+      fromLat: rideData.fromLat?.toString(),
+      fromLng: rideData.fromLng?.toString(),
+      toLat: rideData.toLat?.toString(),
+      toLng: rideData.toLng?.toString(),
       price: rideData.price.toString(),
+      maxPassengers: rideData.maxPassengers,
+      availableSeats: rideData.availableSeats,
+      route: rideData.route,
+      allowPickupEnRoute: rideData.allowPickupEnRoute,
+      allowNegotiation: rideData.allowNegotiation,
+      isRoundTrip: rideData.isRoundTrip,
       minPrice: rideData.minPrice?.toString(),
       maxPrice: rideData.maxPrice?.toString(),
+      departureDate: new Date(rideData.departureDate),
+      returnDate: rideData.returnDate ? new Date(rideData.returnDate) : null,
+      driverId,
+      driverName: `${driverUser.firstName} ${driverUser.lastName}`.trim(),
     }).returning();
 
     res.status(201).json({
@@ -225,16 +237,29 @@ router.put('/:rideId', verifyFirebaseToken, verifyRole(['driver', 'admin']), asy
       }
     }
 
+    const updateFields: any = {};
+    if (updateData.type) updateFields.type = updateData.type;
+    if (updateData.fromAddress) updateFields.fromAddress = updateData.fromAddress;
+    if (updateData.toAddress) updateFields.toAddress = updateData.toAddress;
+    if (updateData.fromLat) updateFields.fromLat = updateData.fromLat.toString();
+    if (updateData.fromLng) updateFields.fromLng = updateData.fromLng.toString();
+    if (updateData.toLat) updateFields.toLat = updateData.toLat.toString();
+    if (updateData.toLng) updateFields.toLng = updateData.toLng.toString();
+    if (updateData.price) updateFields.price = updateData.price.toString();
+    if (updateData.maxPassengers) updateFields.maxPassengers = updateData.maxPassengers;
+    if (updateData.availableSeats) updateFields.availableSeats = updateData.availableSeats;
+    if (updateData.route) updateFields.route = updateData.route;
+    if (updateData.allowPickupEnRoute !== undefined) updateFields.allowPickupEnRoute = updateData.allowPickupEnRoute;
+    if (updateData.allowNegotiation !== undefined) updateFields.allowNegotiation = updateData.allowNegotiation;
+    if (updateData.isRoundTrip !== undefined) updateFields.isRoundTrip = updateData.isRoundTrip;
+    if (updateData.minPrice) updateFields.minPrice = updateData.minPrice.toString();
+    if (updateData.maxPrice) updateFields.maxPrice = updateData.maxPrice.toString();
+    if (updateData.departureDate) updateFields.departureDate = new Date(updateData.departureDate);
+    if (updateData.returnDate) updateFields.returnDate = new Date(updateData.returnDate);
+
     const [updatedRide] = await db
       .update(rides)
-      .set({
-        ...updateData,
-        departureDate: updateData.departureDate ? new Date(updateData.departureDate) : undefined,
-        returnDate: updateData.returnDate ? new Date(updateData.returnDate) : undefined,
-        price: updateData.price?.toString(),
-        minPrice: updateData.minPrice?.toString(),
-        maxPrice: updateData.maxPrice?.toString(),
-      })
+      .set(updateFields)
       .where(eq(rides.id, rideId))
       .returning();
 

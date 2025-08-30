@@ -4,7 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 // Import routes function
-import { registerRoutes } from "./routes/index.js";
+import { registerRoutes } from "./routes/index";
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '8000', 10);
@@ -74,7 +74,7 @@ async function startServer() {
     });
     
     // Configurar graceful shutdown
-    const gracefulShutdown = (signal) => {
+    const gracefulShutdown = (signal: string) => {
       console.log(`🛑 Recebido sinal ${signal}. Iniciando shutdown elegante...`);
       
       server.close(() => {
@@ -94,14 +94,15 @@ async function startServer() {
     process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 
     // Tratamento de erro para porta em uso
-    server.on('error', (error) => {
+    server.on('error', (error: any) => {
       if (error.code === 'EADDRINUSE') {
         console.error(`❌ Porta ${PORT} já em uso. Use PORT=0 para auto-atribuição ou PORT=8001 para porta alternativa.`);
         console.log('💡 Tentando porta alternativa em 2 segundos...');
         
         setTimeout(() => {
           server.listen(0, '0.0.0.0', () => {
-            const actualPort = server.address().port;
+            const address = server.address();
+            const actualPort = address && typeof address === 'object' ? address.port : 'unknown';
             console.log(`🌐 Link-A Backend Server running on port ${actualPort} (auto-atribuída)`);
             console.log(`📱 Frontend: http://localhost:${actualPort}/`);
             console.log(`🔌 API: http://localhost:${actualPort}/api/`);

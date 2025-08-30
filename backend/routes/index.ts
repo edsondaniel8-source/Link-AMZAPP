@@ -1,15 +1,15 @@
 import express from 'express';
 import { createServer } from 'http';
-import authRoutes from './auth.js';
-import ridesRoutes from './rides.js';
-import hotelsRoutes from './hotels.js';
-import eventsRoutes from './events.js';
-import bookingsRoutes from './bookings.js';
-import highlightsRoutes from './highlights.js';
-import billingRoutes from './billing.js';
-import chatRoutes from './chat.js';
-import pmsRoutes from './pms.js';
-import { initializeChatService } from '../services/chatService.js';
+import authRoutes from './auth';
+import ridesRoutes from './rides';
+import hotelsRoutes from './hotels';
+import eventsRoutes from './events';
+import bookingsRoutes from './bookings';
+import highlightsRoutes from './highlights';
+import billingRoutes from './billing';
+import chatRoutes from './chat';
+import pmsRoutes from './pms';
+import { initializeChatService } from '../services/chatService';
 
 export async function registerRoutes(app: express.Express) {
   // Centralizar todas as rotas da API
