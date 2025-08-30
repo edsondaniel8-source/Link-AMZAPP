@@ -8,6 +8,7 @@ import bookingsRoutes from './bookings.js';
 import highlightsRoutes from './highlights.js';
 import billingRoutes from './billing.js';
 import chatRoutes from './chat.js';
+import pmsRoutes from './pms.js';
 import { initializeChatService } from '../services/chatService.js';
 
 export async function registerRoutes(app: express.Express) {
@@ -19,6 +20,7 @@ export async function registerRoutes(app: express.Express) {
   app.use('/api/bookings', bookingsRoutes);
   app.use('/api/billing', billingRoutes);
   app.use('/api/chat', chatRoutes);
+  app.use('/api/pms', pmsRoutes);
   app.use('/', highlightsRoutes);
 
   // Rota delegada para highlights (implementada em highlights.ts)
