@@ -24,8 +24,11 @@
     "concurrently": "^9.2.1",
     "cors": "^2.8.5",
     "firebase-admin": "^13.5.0",
+    "geolib": "^3.3.4",
     "memoizee": "^0.4.17",
     "openid-client": "^6.7.0",
-    "stripe": "^18.5.0"
+    "socket.io": "^4.8.1",
+    "stripe": "^18.5.0",
+    "ws": "^8.18.3"
   }
 }

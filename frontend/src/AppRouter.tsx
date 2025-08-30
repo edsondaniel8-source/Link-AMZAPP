@@ -24,7 +24,6 @@ function AppRouter() {
       <Route path="/bookings" component={BookingsPage} />
       <Route path="/profile" component={ProfilePage} />
       <Route path="/blog" component={BlogPage} />
-      <Route path="/map" component={MapPage} />
       
       {/* Rotas de autenticação */}
       <Route path="/login" component={LoginPage} />

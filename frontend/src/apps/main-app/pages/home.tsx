@@ -126,12 +126,6 @@ export default function Home() {
 
             {user ? (
               <>
-                <Link href="/map" data-testid="link-map">
-                  <Button variant="ghost">
-                    <Map className="w-4 h-4 mr-2" />
-                    Mapa
-                  </Button>
-                </Link>
                 <Link href="/blog" data-testid="link-blog">
                   <Button variant="ghost">
                     <BookOpen className="w-4 h-4 mr-2" />
