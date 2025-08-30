@@ -7,10 +7,11 @@ import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/shared/components/ui/card";
 import { useToast } from "@/shared/hooks/use-toast";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
+import { Home, ArrowLeft } from "lucide-react";
 
 const loginSchema = z.object({
-  phone: z.string().min(9, "Número de telefone deve ter pelo menos 9 dígitos"),
+  email: z.string().email("Email inválido"),
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
 });
 
@@ -19,6 +20,7 @@ type LoginData = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [, setLocation] = useLocation();
 
   const form = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
@@ -38,13 +40,17 @@ export default function LoginPage() {
         return;
       }
 
-      // Usar o telefone como email temporariamente ou implementar busca por telefone
-      // Por enquanto, mostrar mensagem para usar Google
+      // Implementar login com email/senha
+      await signInWithEmail(data.email, data.password);
+      
       toast({
-        title: "Login com Email",
-        description: "Use a opção 'Entrar com Google' para acesso mais rápido e seguro.",
+        title: "Login Realizado!",
+        description: "Bem-vindo de volta ao Link-A!",
         variant: "default",
       });
+      
+      // Redirecionar para página principal
+      setLocation('/');
       
     } catch (error) {
       toast({
@@ -71,6 +77,11 @@ export default function LoginPage() {
       }
 
       await signInWithGoogle();
+      
+      // Redirecionar para página principal após login Google
+      setTimeout(() => {
+        setLocation('/');
+      }, 1000);
     } catch (error) {
       toast({
         title: "Erro no Login",
@@ -82,6 +93,16 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      {/* Botão Homepage no topo */}
+      <div className="absolute top-4 left-4">
+        <Link href="/">
+          <Button variant="outline" size="sm" className="flex items-center gap-2" data-testid="button-home">
+            <Home className="h-4 w-4" />
+            Ir para Homepage
+          </Button>
+        </Link>
+      </div>
+      
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl text-center">
@@ -121,16 +142,16 @@ export default function LoginPage() {
           {/* Manual Login Form */}
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <Label htmlFor="phone">Número de Telefone</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
-                id="phone"
-                type="tel"
-                placeholder="+258 84 123 4567"
-                {...form.register("phone")}
-                data-testid="input-phone-login"
+                id="email"
+                type="email"
+                placeholder="seu.email@exemplo.com"
+                {...form.register("email")}
+                data-testid="input-email-login"
               />
-              {form.formState.errors.phone && (
-                <p className="text-sm text-red-500">{form.formState.errors.phone.message}</p>
+              {form.formState.errors.email && (
+                <p className="text-sm text-red-500">{form.formState.errors.email.message}</p>
               )}
             </div>
 

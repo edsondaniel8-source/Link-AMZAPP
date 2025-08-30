@@ -8,6 +8,7 @@ import { Label } from "@/shared/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/shared/components/ui/card";
 import { useToast } from "@/shared/hooks/use-toast";
 import { Link, useLocation } from "wouter";
+import { Home, ArrowLeft } from "lucide-react";
 import AccountTypeSelector from "@/shared/components/AccountTypeSelector";
 import { setupAuthListener, checkRedirectResult } from "@/shared/lib/firebaseConfig";
 import type { User } from "firebase/auth";
@@ -151,18 +152,8 @@ export default function SignupPage() {
           description: `Bem-vindo ao Link-A! Sua conta foi configurada como ${selectedRoles.join(', ')}.`,
         });
 
-        // Redirecionar baseado no primeiro role
-        const primaryRole = selectedRoles[0];
-        switch (primaryRole) {
-          case 'client':
-            setLocation('/dashboard');
-            break;
-          case 'event':
-            setLocation('/events/dashboard');
-            break;
-          default:
-            setLocation('/dashboard');
-        }
+        // Sempre redirecionar para a homepage (página dos clientes)
+        setLocation('/');
       } else {
         throw new Error('Falha ao configurar conta');
       }
@@ -188,6 +179,16 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      {/* Botão Homepage no topo */}
+      <div className="absolute top-4 left-4">
+        <Link href="/">
+          <Button variant="outline" size="sm" className="flex items-center gap-2" data-testid="button-home">
+            <Home className="h-4 w-4" />
+            Ir para Homepage
+          </Button>
+        </Link>
+      </div>
+      
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl text-center">
