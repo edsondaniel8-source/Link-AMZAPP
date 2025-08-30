@@ -1,53 +1,155 @@
 import { useState } from "react";
 import { useAuth } from "@/shared/hooks/useAuth";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
-import { MapPin, Calendar, Clock, Users, DollarSign, Car, Plus } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
+import {
+  MapPin,
+  Calendar,
+  Clock,
+  Users,
+  DollarSign,
+  Car,
+  Plus,
+} from "lucide-react";
+import rideService from "@/shared/lib/rideService";
 
 export default function RoutePublisher() {
   const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null); // 2. Especificar o tipo como string | null
+  const [success, setSuccess] = useState(false);
+
+  // 3. CORREÇÃO: Adicione os campos 'date' e 'time' ao estado
   const [formData, setFormData] = useState({
-    from: "",
-    to: "",
-    date: "",
-    time: "",
-    totalSeats: 4,
-    price: "",
+    fromAddress: "",
+    toAddress: "",
+    date: "", // Campo separado para data
+    time: "", // Campo separado para hora
+    departureDate: "", // Isto será combinado de date + time
+    price: 0,
+    maxPassengers: 4,
     vehicleType: "",
     description: "",
     pickupPoint: "",
-    dropoffPoint: ""
+    dropoffPoint: "",
   });
 
   const handleInputChange = (field: string, value: string | number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
-  const handlePublish = () => {
-    console.log("Publicar rota:", formData);
-    // TODO: Implementar publicação da rota
-    alert("Rota publicada com sucesso!");
+  const handlePublish = async () => {
+    setIsLoading(true);
+    setError(null);
+    setSuccess(false);
+
+    try {
+      // 4. Combine date e time para criar departureDate
+      const departureDate = `${formData.date}T${formData.time}:00`;
+
+      const rideData = {
+        fromAddress: formData.fromAddress,
+        toAddress: formData.toAddress,
+        departureDate: departureDate, // Use o campo combinado
+        price: Number(formData.price),
+        maxPassengers: Number(formData.maxPassengers),
+        vehicleType: formData.vehicleType,
+        description: formData.description,
+        allowNegotiation: false,
+        isRoundTrip: false,
+      };
+
+      console.log("A publicar rota:", rideData);
+
+      const result = await rideService.createRide(rideData);
+
+      console.log("✅ Rota publicada com sucesso!", result);
+      setSuccess(true);
+
+      // Reset form
+      setFormData({
+        fromAddress: "",
+        toAddress: "",
+        date: "",
+        time: "",
+        departureDate: "",
+        price: 0,
+        maxPassengers: 4,
+        vehicleType: "",
+        description: "",
+        pickupPoint: "",
+        dropoffPoint: "",
+      });
+    } catch (error) {
+      // 5. CORREÇÃO: Tratar o erro desconhecido
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Erro ao publicar a rota. Tente novamente.";
+      console.error("❌ Erro ao publicar rota:", error);
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const cities = [
-    "Maputo", "Matola", "Beira", "Nampula", "Chimoio", "Nacala", "Quelimane", 
-    "Tete", "Xai-Xai", "Inhambane", "Pemba", "Lichinga", "Angoche", "Maxixe"
+    "Maputo",
+    "Matola",
+    "Beira",
+    "Nampula",
+    "Chimoio",
+    "Nacala",
+    "Quelimane",
+    "Tete",
+    "Xai-Xai",
+    "Inhambane",
+    "Pemba",
+    "Lichinga",
+    "Angoche",
+    "Maxixe",
   ];
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto p-4">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Publicar Nova Rota</h1>
-          <p className="text-gray-600">Ofereça lugares na sua viagem e ganhe dinheiro</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Publicar Nova Rota
+          </h1>
+          <p className="text-gray-600">
+            Ofereça lugares na sua viagem e ganhe dinheiro
+          </p>
         </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-4">
+            {error}
+          </div>
+        )}
+        {success && (
+          <div className="bg-green-50 border border-green-200 text-green-700 p-4 rounded-lg mb-4">
+            Rota publicada com sucesso!
+          </div>
+        )}
 
         <Card>
           <CardHeader>
@@ -64,13 +166,19 @@ export default function RoutePublisher() {
                   <MapPin className="w-4 h-4 text-orange-600" />
                   De onde
                 </Label>
-                <Select onValueChange={(value) => handleInputChange("from", value)}>
+                <Select
+                  onValueChange={(value) =>
+                    handleInputChange("fromAddress", value)
+                  }
+                >
                   <SelectTrigger data-testid="select-from">
                     <SelectValue placeholder="Cidade de origem" />
                   </SelectTrigger>
                   <SelectContent>
-                    {cities.map(city => (
-                      <SelectItem key={city} value={city}>{city}</SelectItem>
+                    {cities.map((city) => (
+                      <SelectItem key={city} value={city}>
+                        {city}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -81,13 +189,19 @@ export default function RoutePublisher() {
                   <MapPin className="w-4 h-4 text-blue-600" />
                   Para onde
                 </Label>
-                <Select onValueChange={(value) => handleInputChange("to", value)}>
+                <Select
+                  onValueChange={(value) =>
+                    handleInputChange("toAddress", value)
+                  }
+                >
                   <SelectTrigger data-testid="select-to">
                     <SelectValue placeholder="Cidade de destino" />
                   </SelectTrigger>
                   <SelectContent>
-                    {cities.map(city => (
-                      <SelectItem key={city} value={city}>{city}</SelectItem>
+                    {cities.map((city) => (
+                      <SelectItem key={city} value={city}>
+                        {city}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -106,7 +220,7 @@ export default function RoutePublisher() {
                   type="date"
                   value={formData.date}
                   onChange={(e) => handleInputChange("date", e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
+                  min={new Date().toISOString().split("T")[0]}
                   data-testid="input-date"
                 />
               </div>
@@ -133,7 +247,11 @@ export default function RoutePublisher() {
                   <Users className="w-4 h-4 text-indigo-600" />
                   Lugares Disponíveis
                 </Label>
-                <Select onValueChange={(value) => handleInputChange("totalSeats", parseInt(value))}>
+                <Select
+                  onValueChange={(value) =>
+                    handleInputChange("maxPassengers", parseInt(value))
+                  }
+                >
                   <SelectTrigger data-testid="select-seats">
                     <SelectValue placeholder="Quantos lugares" />
                   </SelectTrigger>
@@ -168,7 +286,11 @@ export default function RoutePublisher() {
                   <Car className="w-4 h-4 text-red-600" />
                   Tipo de Veículo
                 </Label>
-                <Select onValueChange={(value) => handleInputChange("vehicleType", value)}>
+                <Select
+                  onValueChange={(value) =>
+                    handleInputChange("vehicleType", value)
+                  }
+                >
                   <SelectTrigger data-testid="select-vehicle">
                     <SelectValue placeholder="Seu veículo" />
                   </SelectTrigger>
@@ -195,7 +317,9 @@ export default function RoutePublisher() {
                   id="pickup"
                   placeholder="Ex: Shopping Maputo Sul, entrada principal"
                   value={formData.pickupPoint}
-                  onChange={(e) => handleInputChange("pickupPoint", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("pickupPoint", e.target.value)
+                  }
                   data-testid="input-pickup"
                 />
               </div>
@@ -209,7 +333,9 @@ export default function RoutePublisher() {
                   id="dropoff"
                   placeholder="Ex: Terminal Rodoviário de Beira"
                   value={formData.dropoffPoint}
-                  onChange={(e) => handleInputChange("dropoffPoint", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("dropoffPoint", e.target.value)
+                  }
                   data-testid="input-dropoff"
                 />
               </div>
@@ -224,7 +350,9 @@ export default function RoutePublisher() {
                 id="description"
                 placeholder="Ex: Aceito bagagem extra por 100 MZN, não fumadores, etc."
                 value={formData.description}
-                onChange={(e) => handleInputChange("description", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("description", e.target.value)
+                }
                 rows={3}
                 data-testid="textarea-description"
               />
@@ -236,15 +364,22 @@ export default function RoutePublisher() {
                 onClick={handlePublish}
                 className="flex-1"
                 size="lg"
-                disabled={!formData.from || !formData.to || !formData.date || !formData.time || !formData.price}
+                disabled={
+                  !formData.fromAddress ||
+                  !formData.toAddress ||
+                  !formData.date ||
+                  !formData.time ||
+                  !formData.price ||
+                  isLoading
+                }
                 data-testid="button-publish"
               >
-                <Plus className="w-4 h-4 mr-2" />
-                Publicar Rota
+                {isLoading ? "A Publicar..." : "Publicar Rota"}
+                {!isLoading && <Plus className="w-4 h-4 ml-2" />}
               </Button>
-              
-              <Button 
-                variant="outline" 
+
+              <Button
+                variant="outline"
                 size="lg"
                 onClick={() => window.history.back()}
                 data-testid="button-cancel"
@@ -254,9 +389,13 @@ export default function RoutePublisher() {
             </div>
 
             <div className="bg-blue-50 p-4 rounded-lg">
-              <h3 className="font-medium text-blue-900 mb-2">💡 Dicas para uma boa oferta:</h3>
+              <h3 className="font-medium text-blue-900 mb-2">
+                💡 Dicas para uma boa oferta:
+              </h3>
               <ul className="text-sm text-blue-800 space-y-1">
-                <li>• Defina pontos de encontro conhecidos e de fácil acesso</li>
+                <li>
+                  • Defina pontos de encontro conhecidos e de fácil acesso
+                </li>
                 <li>• Seja claro sobre regras (bagagem, fumar, etc.)</li>
                 <li>• Defina preços justos e competitivos</li>
                 <li>• Mantenha seu perfil e avaliações atualizadas</li>
