@@ -42,21 +42,8 @@ export default function PaymentModal({ isOpen, onClose, booking, onPaymentSucces
 
   const paymentMutation = useMutation({
     mutationFn: async (paymentData: any) => {
-      // TODO: Endpoint /api/payments/process não implementado ainda
-      // Simulando processamento de pagamento
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      console.log('Simulating payment:', {
-        bookingId: booking.id,
-        serviceType: booking.serviceType,
-        subtotal: booking.subtotal,
-        platformFee,
-        total,
-        paymentMethod,
-        ...paymentData,
-      });
-      
-      return { success: true, transactionId: 'sim-' + Date.now() };
+      // Real payment processing endpoint required
+      throw new Error('Payment processing requires real Stripe/M-Pesa integration');
     },
     onSuccess: () => {
       toast({

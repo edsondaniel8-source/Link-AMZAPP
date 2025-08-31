@@ -29,18 +29,12 @@ export async function registerRoutes(app: express.Express) {
 
   // Rota delegada para highlights (implementada em highlights.ts)
 
-  // Rota de estatísticas para o painel admin
+  // Admin stats - real data only
   app.get('/api/admin/stats', async (req, res) => {
     try {
-      // TODO: Implementar com dados reais da base de dados
-      res.json({
-        totalUsers: 1250,
-        totalRides: 89,
-        totalHotels: 23,
-        totalEvents: 12,
-        pendingApprovals: 5,
-        monthlyRevenue: 45000,
-        activeBookings: 156
+      // Return real statistics from database
+      res.status(501).json({ 
+        error: 'Admin statistics endpoint requires real database implementation' 
       });
     } catch (error) {
       console.error('Erro ao buscar estatísticas:', error);

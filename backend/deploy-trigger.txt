@@ -1,3 +1,0 @@
-Deploy triggered at: 2025-08-29 11:14 UTC
-Frontend build integrated with backend
-SPA serving configured
