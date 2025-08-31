@@ -5,97 +5,39 @@ import { storage } from "./src/shared/storage";
 import { verifyFirebaseToken, type AuthenticatedRequest } from "./src/shared/firebaseAuth";
 import { insertBookingSchema } from "@shared/schema";
 
+// Import all controllers
+import rideController from "./src/modules/rides/rideController";
+import hotelController from "./src/modules/hotels/hotelController";
+import eventController from "./src/modules/events/eventController";
+import bookingController from "./src/modules/bookings/bookingController";
+import userController from "./src/modules/users/userController";
+
+// Import route modules
+import searchRoutes from "./searchRoutes";
+import profileRoutes from "./profileRoutes";
+import blogRoutes from "./blogRoutes";
+
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Auth middleware
+
+
   // Configure multer for file uploads
   const upload = multer({ 
     storage: multer.memoryStorage(),
     limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
   });
 
-  // RIDES API ROUTES - Implementação direta para evitar problemas de import
-  
-  // GET /api/rides - Lista todas as viagens
-  app.get('/api/rides', async (req, res) => {
-    try {
-      const rides = await storage.getRides();
-      res.json({
-        success: true,
-        data: { rides, total: rides.length }
-      });
-    } catch (error) {
-      console.error("Erro ao buscar viagens:", error);
-      res.status(500).json({
-        success: false,
-        message: "Erro interno do servidor"
-      });
-    }
-  });
+  // Mount all new controllers
+  app.use('/api/rides', rideController);
+  app.use('/api/hotels', hotelController);
+  app.use('/api/events', eventController);
+  app.use('/api/bookings', bookingController);
+  app.use('/api/users', userController);
 
-  // POST /api/rides - Cria nova viagem
-  app.post('/api/rides', async (req, res) => {
-    try {
-      const rideData = req.body;
-      
-      if (!rideData.fromAddress || !rideData.toAddress || !rideData.price) {
-        return res.status(400).json({
-          success: false,
-          message: "Campos obrigatórios: fromAddress, toAddress, price"
-        });
-      }
-
-      const newRide = {
-        ...rideData,
-        driverId: `driver-${Date.now()}`,
-        isActive: true,
-        createdAt: new Date().toISOString()
-      };
-
-      const createdRide = await storage.createRide(newRide);
-
-      res.status(201).json({
-        success: true,
-        data: createdRide,
-        message: "Viagem criada com sucesso"
-      });
-    } catch (error) {
-      console.error("Erro ao criar viagem:", error);
-      res.status(500).json({
-        success: false,
-        message: "Erro interno do servidor"
-      });
-    }
-  });
-
-  // GET /api/rides/:id - Busca viagem por ID
-  app.get('/api/rides/:id', async (req, res) => {
-    try {
-      const { id } = req.params;
-      const ride = await storage.getRide(id);
-
-      if (!ride) {
-        return res.status(404).json({
-          success: false,
-          message: "Viagem não encontrada"
-        });
-      }
-
-      res.json({
-        success: true,
-        data: ride
-      });
-    } catch (error) {
-      console.error("Erro ao buscar viagem:", error);
-      res.status(500).json({
-        success: false,
-        message: "Erro interno do servidor"
-      });
-    }
-  });
-
-  // Legacy routes - comentados por enquanto
-  // app.use('/api/search', searchRoutes);
-  // app.use('/api/profile', profileRoutes);
-  // app.use('/api/blog', blogRoutes);
+  // Mount route modules (legacy)
+  app.use('/api/search', searchRoutes);
+  app.use('/api/profile', profileRoutes);
+  app.use('/api/blog', blogRoutes);
   
   // Import and mount admin routes dynamically
   const adminController = await import("./src/modules/admin/adminController");

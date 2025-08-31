@@ -4,7 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 // Import routes function
-import { registerRoutes } from "./simple-routes";
+import { registerRoutes } from "./routes/index";
 
 const app = express();
 const PORT = parseInt(process.env.PORT || "8000", 10);
