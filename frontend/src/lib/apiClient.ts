@@ -48,7 +48,7 @@ export class ApiClient {
     return await MockApiService.createRide(rideData);
   }
   
-  static async searchRides(params: { from?: string; to?: string; passengers?: string }) {
+  static async searchRides(params: { from?: string; to?: string; passengers?: string; date?: string }) {
     console.log('🔍 API: Buscar viagens', params);
     
     try {
@@ -64,7 +64,14 @@ export class ApiClient {
       this.useBackend = false;
     }
     
-    return await MockApiService.searchRides(params);
+    // Usar mock service com melhor estrutura de resposta
+    const result = await MockApiService.searchRides(params);
+    return {
+      success: true,
+      rides: result.rides,
+      message: `Encontradas ${result.rides.length} viagens disponíveis`,
+      pagination: result.pagination
+    };
   }
   
   // ===== ACCOMMODATIONS API =====

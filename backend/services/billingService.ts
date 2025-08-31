@@ -1,5 +1,5 @@
 import { db } from '../db';
-import { systemSettings, bookings, transactions } from '../shared/schema';
+import { bookings, payments } from '../shared/schema';
 import { eq, and } from 'drizzle-orm';
 import { calculateDistance } from './distanceService';
 
@@ -28,13 +28,8 @@ export class BillingService {
    */
   async getPlatformFeePercentage(): Promise<number> {
     try {
-      const [setting] = await db
-        .select()
-        .from(systemSettings)
-        .where(eq(systemSettings.key, 'platform_fee_percentage'))
-        .limit(1);
-      
-      return setting ? parseFloat(setting.value) : 11.0; // 11% por defeito
+      // Retorna taxa padrão de 11% (pode ser configurada no futuro)
+      return 11;
     } catch (error) {
       console.error('Erro ao obter taxa da plataforma:', error);
       return 11.0;
