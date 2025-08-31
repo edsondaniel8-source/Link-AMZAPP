@@ -1,0 +1,124 @@
+~/workspace$ ./start-dev.sh
+bash: ./start-dev.sh: Permission denied
+~/workspace$ ./start-dev.sh
+🚀 Iniciando Link-A Development Server...
+📡 Iniciando Backend na porta 3001...
+
+> link-a-backend@1.0.0 dev
+> NODE_ENV=development tsx index.ts
+
+🚀 Inicializando Link-A Backend...
+❌ Porta 3001 já em uso. Use PORT=0 para auto-atribuição ou PORT=8001 para porta alternativa.
+💡 Tentando porta alternativa em 2 segundos...
+🎨 Iniciando Frontend na porta 5000...
+
+> link-a-frontend@1.0.0 dev
+> vite
+
+🚀 Iniciando Backend PostgreSQL...
+Port 5000 is in use, trying another one...
+
+  VITE v5.4.19  ready in 272 ms
+
+  ➜  Local:   http://localhost:5001/
+  ➜  Network: http://172.31.73.162:5001/
+🌐 Link-A Backend Server running on port 3001
+📱 Frontend: http://localhost:3001/
+🔌 API: http://localhost:3001/api/
+🏥 Health: http://localhost:3001/api/health
+✅ Todas as APIs configuradas e funcionando
+🌐 Link-A Backend Server running on port 37291 (auto-atribuída)
+📱 Frontend: http://localhost:37291/
+🔌 API: http://localhost:37291/api/
+🏥 Health: http://localhost:37291/api/health
+✅ Todas as APIs configuradas e funcionando
+🚀 Inicializando Link-A Backend...
+❌ Porta 3001 já em uso. Use PORT=0 para auto-atribuição ou PORT=8001 para porta alternativa.
+💡 Tentando porta alternativa em 2 segundos...
+🌐 Link-A Backend Server running on port 3001
+📱 Frontend: http://localhost:3001/
+🔌 API: http://localhost:3001/api/
+🏥 Health: http://localhost:3001/api/health
+✅ Todas as APIs configuradas e funcionando
+🌐 Link-A Backend Server running on port 39663 (auto-atribuída)
+📱 Frontend: http://localhost:39663/
+🔌 API: http://localhost:39663/api/
+🏥 Health: http://localhost:39663/api/health
+✅ Todas as APIs configuradas e funcionando
+^C🛑 Recebido sinal SIGINT. Iniciando shutdown elegante...
+🛑 Recebido sinal SIGINT. Iniciando shutdown elegante...
+✅ Backend servidor fechado com sucesso
+✅ Backend servidor fechado com sucesso
+🛑 Parando serviços...
+~/workspace$ ./start-dev.sh
+🚀 Iniciando Link-A Development Server...
+📡 Iniciando Backend na porta 3001...
+
+> link-a-backend@1.0.0 dev
+> NODE_ENV=development tsx index.ts
+
+🚀 Inicializando Link-A Backend...
+🌐 Link-A Backend Server running on port 3001
+📱 Frontend: http://localhost:3001/
+🔌 API: http://localhost:3001/api/
+🏥 Health: http://localhost:3001/api/health
+✅ Todas as APIs configuradas e funcionando
+🎨 Iniciando Frontend na porta 5000...
+
+> link-a-frontend@1.0.0 dev
+> vite
+
+🚀 Iniciando Backend PostgreSQL...
+
+  VITE v5.4.19  ready in 188 ms
+
+  ➜  Local:   http://localhost:5000/
+  ➜  Network: http://172.31.73.162:5000/
+🚀 Inicializando Link-A Backend...
+❌ Porta 3001 já em uso. Use PORT=0 para auto-atribuição ou PORT=8001 para porta alternativa.
+💡 Tentando porta alternativa em 2 segundos...
+🌐 Link-A Backend Server running on port 3001
+📱 Frontend: http://localhost:3001/
+🔌 API: http://localhost:3001/api/
+🏥 Health: http://localhost:3001/api/health
+✅ Todas as APIs configuradas e funcionando
+🌐 Link-A Backend Server running on port 43731 (auto-atribuída)
+📱 Frontend: http://localhost:43731/
+🔌 API: http://localhost:43731/api/
+🏥 Health: http://localhost:43731/api/health
+✅ Todas as APIs configuradas e funcionando
+11:50:41 AM [vite] vite.config.ts changed, restarting server...
+failed to load config from /home/runner/workspace/frontend/vite.config.ts
+11:50:41 AM [vite] backendPlugin is not defined
+11:50:41 AM [vite] server restart failed
+11:50:42 AM [vite] vite.config.ts changed, restarting server...
+Re-optimizing dependencies because vite config has changed
+11:50:42 AM [vite] server restarted.
+^C🛑 Recebido sinal SIGINT. Iniciando shutdown elegante...
+✅ Backend servidor fechado com sucesso
+🛑 Recebido sinal SIGINT. Iniciando shutdown elegante...
+✅ Backend servidor fechado com sucesso
+🛑 Parando serviços...
+~/workspace$ ./start-dev.sh
+🚀 Iniciando Link-A Development Server...
+📡 Iniciando Backend na porta 3001...
+
+> link-a-backend@1.0.0 dev
+> NODE_ENV=development tsx index.ts
+
+🚀 Inicializando Link-A Backend...
+🌐 Link-A Backend Server running on port 3001
+📱 Frontend: http://localhost:3001/
+🔌 API: http://localhost:3001/api/
+🏥 Health: http://localhost:3001/api/health
+✅ Todas as APIs configuradas e funcionando
+🎨 Iniciando Frontend na porta 5000...
+
+> link-a-frontend@1.0.0 dev
+> vite
+
+
+  VITE v5.4.19  ready in 354 ms
+
+  ➜  Local:   http://localhost:5000/
+  ➜  Network: http://172.31.73.162:5000/
