@@ -1,5 +1,6 @@
-// Serviço de Acomodações usando ApiClient
-import { ApiClient } from "../../lib/apiClient";
+// Serviço de Acomodações usando as novas APIs organizadas
+import { clientBookingsApi } from "../../api/client/bookings";
+import { ApiClient } from "../../lib/apiClient"; // Manter fallback temporário
 
 export interface AccommodationData {
   name: string;
@@ -88,19 +89,38 @@ export const accommodationService = {
   }) => {
     console.log('📋 AccommodationService: Criando reserva', bookingData);
     
-    const result = await ApiClient.createBooking({
-      type: 'accommodation',
-      itemId: bookingData.accommodationId,
-      totalPrice: bookingData.totalPrice.toString(),
-      details: {
-        checkIn: bookingData.checkIn,
-        checkOut: bookingData.checkOut,
+    try {
+      // Usar nova API organizada
+      const result = await clientBookingsApi.create({
+        serviceType: 'accommodation',
+        serviceId: bookingData.accommodationId,
+        clientId: bookingData.guestDetails?.clientId || 'temp-client',
+        contactPhone: bookingData.guestDetails?.phone || '',
+        contactEmail: bookingData.guestDetails?.email || '',
+        checkInDate: bookingData.checkIn,
+        checkOutDate: bookingData.checkOut,
         guests: bookingData.guests,
-        guestDetails: bookingData.guestDetails
-      }
-    });
-    
-    return result;
+        specialRequests: bookingData.guestDetails?.requests || ''
+      });
+      
+      return result;
+    } catch (error) {
+      console.log('🔄 Fallback to ApiClient');
+      // Fallback para API antiga se nova falhar
+      const result = await ApiClient.createBooking({
+        type: 'accommodation',
+        itemId: bookingData.accommodationId,
+        totalPrice: bookingData.totalPrice.toString(),
+        details: {
+          checkIn: bookingData.checkIn,
+          checkOut: bookingData.checkOut,
+          guests: bookingData.guests,
+          guestDetails: bookingData.guestDetails
+        }
+      });
+      
+      return result;
+    }
   }
 };
 
