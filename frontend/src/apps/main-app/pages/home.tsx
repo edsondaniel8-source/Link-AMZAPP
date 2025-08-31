@@ -52,7 +52,30 @@ export default function Home() {
 
   const handleSearch = () => {
     console.log('Busca:', { type: searchType, ...searchQuery });
-    // TODO: Implementar busca funcional
+    
+    if (searchType === "rides") {
+      // Redirecionar para página de busca de viagens com parâmetros
+      const searchParams = new URLSearchParams({
+        from: searchQuery.from,
+        to: searchQuery.to,
+        date: searchQuery.date
+      }).toString();
+      window.location.href = `/rides/search?${searchParams}`;
+    } else if (searchType === "stays") {
+      // Redirecionar para página de busca de acomodações
+      const searchParams = new URLSearchParams({
+        location: searchQuery.from,
+        checkIn: searchQuery.date
+      }).toString();
+      window.location.href = `/stays/search?${searchParams}`;
+    } else if (searchType === "events") {
+      // Redirecionar para página de eventos
+      const searchParams = new URLSearchParams({
+        location: searchQuery.from,
+        date: searchQuery.date
+      }).toString();
+      window.location.href = `/events?${searchParams}`;
+    }
   };
 
   const handleLogout = () => {

@@ -1,5 +1,5 @@
 // frontend/src/shared/lib/rideService.ts
-import { api } from "./api";
+import { ApiClient } from "../../lib/apiClient";
 
 export interface RideData {
   type?: string;
@@ -35,35 +35,134 @@ export interface Ride extends RideData {
 
 export const rideService = {
   // Criar uma nova ride
-  createRide: (rideData: RideData): Promise<Ride> => {
-    return api.post("/api/rides", rideData);
+  createRide: async (rideData: RideData): Promise<Ride> => {
+    console.log('📝 RideService: Criando nova rota', rideData);
+    
+    // Converter para formato esperado pelo ApiClient
+    const apiData = {
+      from: rideData.fromAddress,
+      to: rideData.toAddress,
+      price: rideData.price.toString(),
+      date: rideData.departureDate.split('T')[0],
+      time: rideData.departureDate.split('T')[1]?.substring(0, 5) || '08:00',
+      seats: rideData.maxPassengers.toString(),
+      vehicleType: rideData.type || rideData.vehicleType || 'Standard'
+    };
+    
+    const result = await ApiClient.createRide(apiData);
+    
+    // Converter resposta para formato esperado
+    if (result.success && result.route) {
+      return {
+        id: result.route.id,
+        driverId: 'current-driver',
+        fromAddress: result.route.fromAddress,
+        toAddress: result.route.toAddress,
+        departureDate: result.route.departureDate,
+        price: parseFloat(result.route.price),
+        maxPassengers: result.route.availableSeats,
+        type: result.route.type,
+        status: 'active' as const,
+        currentPassengers: 0,
+        createdAt: result.route.createdAt,
+        updatedAt: result.route.createdAt
+      };
+    }
+    
+    throw new Error(result.message || 'Erro ao criar rota');
   },
 
   // Buscar as rides do motorista logado
-  getMyRides: (): Promise<Ride[]> => {
-    return api.get("/api/rides/my-rides");
+  getMyRides: async (): Promise<Ride[]> => {
+    const result = await ApiClient.searchRides({});
+    return result.rides.map((ride: any) => ({
+      id: ride.id,
+      driverId: 'current-driver',
+      fromAddress: ride.fromAddress,
+      toAddress: ride.toAddress,
+      departureDate: ride.departureDate,
+      price: parseFloat(ride.price),
+      maxPassengers: ride.availableSeats,
+      type: ride.type,
+      status: 'active' as const,
+      currentPassengers: 0,
+      createdAt: ride.createdAt,
+      updatedAt: ride.createdAt
+    }));
   },
 
   // Buscar rides públicas (para a main-app dos clientes)
-  searchRides: (searchParams: SearchParams): Promise<Ride[]> => {
-    // Converte o objeto de parâmetros numa query string
-    const queryString = new URLSearchParams(searchParams as Record<string, string>).toString();
-    return api.get(`/api/rides/search?${queryString}`);
+  searchRides: async (searchParams: SearchParams): Promise<Ride[]> => {
+    console.log('🔍 RideService: Buscando rotas', searchParams);
+    
+    const apiParams = {
+      from: searchParams.from,
+      to: searchParams.to,
+      passengers: searchParams.passengers?.toString()
+    };
+    
+    const result = await ApiClient.searchRides(apiParams);
+    
+    return result.rides.map((ride: any) => ({
+      id: ride.id,
+      driverId: ride.driverName || 'driver-id',
+      fromAddress: ride.fromAddress,
+      toAddress: ride.toAddress,
+      departureDate: ride.departureDate,
+      price: parseFloat(ride.price),
+      maxPassengers: ride.availableSeats,
+      type: ride.type,
+      status: 'active' as const,
+      currentPassengers: 0,
+      createdAt: ride.createdAt || new Date().toISOString(),
+      updatedAt: ride.createdAt || new Date().toISOString()
+    }));
   },
 
-  // Atualizar uma ride existente
-  updateRide: (rideId: string, updateData: Partial<RideData>): Promise<Ride> => {
-    return api.put(`/api/rides/${rideId}`, updateData);
+  // Atualizar uma ride existente (mock por enquanto)
+  updateRide: async (rideId: string, updateData: Partial<RideData>): Promise<Ride> => {
+    console.log('📝 RideService: Atualizando rota', rideId, updateData);
+    // Por enquanto, retorna dados mockados
+    return {
+      id: rideId,
+      driverId: 'current-driver',
+      fromAddress: updateData.fromAddress || 'Maputo',
+      toAddress: updateData.toAddress || 'Matola',
+      departureDate: updateData.departureDate || new Date().toISOString(),
+      price: updateData.price || 0,
+      maxPassengers: updateData.maxPassengers || 4,
+      type: updateData.type || 'Standard',
+      status: 'active' as const,
+      currentPassengers: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
   },
 
-  // Cancelar (deletar) uma ride
-  cancelRide: (rideId: string): Promise<void> => {
-    return api.delete(`/api/rides/${rideId}`);
+  // Cancelar (deletar) uma ride (mock por enquanto)
+  cancelRide: async (rideId: string): Promise<void> => {
+    console.log('🗑️ RideService: Cancelando rota', rideId);
+    // Mock implementation
   },
 
-  // Obter detalhes de uma ride específica (para a página de detalhes)
-  getRideDetails: (rideId: string): Promise<Ride> => {
-    return api.get(`/api/rides/${rideId}`);
+  // Obter detalhes de uma ride específica (mock por enquanto)
+  getRideDetails: async (rideId: string): Promise<Ride> => {
+    console.log('📋 RideService: Obtendo detalhes da rota', rideId);
+    // Mock implementation
+    return {
+      id: rideId,
+      driverId: 'current-driver',
+      fromAddress: 'Maputo',
+      toAddress: 'Matola',
+      departureDate: new Date().toISOString(),
+      price: 100,
+      maxPassengers: 4,
+      type: 'Standard',
+      status: 'active' as const,
+      currentPassengers: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
   },
 };
 
