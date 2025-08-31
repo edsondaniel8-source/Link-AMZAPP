@@ -1,5 +1,28 @@
 import express from 'express';
 import { createServer } from 'http';
+
+// ===== NOVA ESTRUTURA ORGANIZACIONAL POR ROLES =====
+// Client Routes
+import clientRidesRoutes from './client/rides';
+import clientBookingsRoutes from './client/bookings';
+
+// Driver Routes  
+import driverRidesRoutes from './driver/rides';
+import driverVehiclesRoutes from './driver/vehicles';
+
+// Hotel Routes
+import hotelAvailabilityRoutes from './hotel/availability';
+import hotelBookingsRoutes from './hotel/bookings';
+
+// Admin Routes
+import adminDashboardRoutes from './admin/dashboard';
+import adminUsersRoutes from './admin/users';
+
+// Shared Routes
+import sharedAuthRoutes from './shared/auth';
+import sharedHealthRoutes from './shared/health';
+
+// ===== SISTEMAS LEGADOS (manter compatibilidade) =====
 import authRoutes from './auth';
 import ridesRoutes from './rides';
 import simplifiedRidesRoutes from './simplified-rides';
@@ -17,13 +40,38 @@ import pmsRoutes from './pms';
 import { initializeChatService } from '../services/chatService';
 
 export async function registerRoutes(app: express.Express) {
-  // ===== SISTEMA UNIFICADO LINK-A =====
+  // ===== NOVA ESTRUTURA ORGANIZACIONAL POR ROLES =====
+  console.log('🔧 Registrando rotas organizadas por roles...');
+  
+  // Client APIs - Para clientes buscarem e reservarem serviços
+  app.use('/api/client/rides', clientRidesRoutes);
+  app.use('/api/client/bookings', clientBookingsRoutes);
+  
+  // Driver APIs - Para motoristas gerirem viagens e veículos
+  app.use('/api/driver/rides', driverRidesRoutes);
+  app.use('/api/driver/vehicles', driverVehiclesRoutes);
+  
+  // Hotel APIs - Para gestores de alojamentos
+  app.use('/api/hotel/availability', hotelAvailabilityRoutes);
+  app.use('/api/hotel/bookings', hotelBookingsRoutes);
+  
+  // Admin APIs - Para administradores da plataforma
+  app.use('/api/admin/dashboard', adminDashboardRoutes);
+  app.use('/api/admin/users', adminUsersRoutes);
+  
+  // Shared APIs - Funcionalidades compartilhadas
+  app.use('/api/auth', sharedAuthRoutes);
+  app.use('/api/health', sharedHealthRoutes);
+  
+  console.log('✅ Rotas organizadas por roles registradas com sucesso');
+
+  // ===== SISTEMA UNIFICADO LINK-A (manter funcionando) =====
   app.use('/api/unified/rides', unifiedRidesRoutes); // Sistema de viagens unificado
   app.use('/api/unified/accommodations', unifiedAccommodationsRoutes); // Sistema de alojamentos
   app.use('/api/unified/bookings', unifiedBookingsRoutes); // Sistema de reservas unificado
   
   // ===== SISTEMAS LEGADOS (manter compatibilidade) =====
-  app.use('/api/auth', authRoutes);
+  app.use('/api/auth-legacy', authRoutes); // Auth legado
   app.use('/api/rides', ridesRoutes); // Sistema antigo - deprecado
   app.use('/api/rides-simple', simplifiedRidesRoutes); // Sistema simplificado - deprecado
   app.use('/api/geo', geoRoutes); // Geolocalização para Moçambique

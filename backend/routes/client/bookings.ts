@@ -1,110 +1,209 @@
 import { Router } from 'express';
-import { verifyFirebaseToken, requireClientRole } from '../../middleware/role-auth';
+import { z } from 'zod';
+import { db } from '../../db';
+import { bookings, rides, accommodations } from '../../shared/unified-schema';
+import { verifyFirebaseToken } from '../auth';
+import { eq, and } from 'drizzle-orm';
 
 const router = Router();
 
-// Aplicar middleware de autenticação em todas as rotas de cliente
-router.use(verifyFirebaseToken);
-router.use(requireClientRole);
+// Schema para criar reserva (Cliente)
+const createBookingSchema = z.object({
+  serviceType: z.enum(['ride', 'accommodation']),
+  serviceId: z.string(),
+  clientId: z.string(),
+  contactPhone: z.string(),
+  contactEmail: z.string(),
+  // Para viagens
+  seatsBooked: z.number().optional(),
+  // Para alojamentos
+  checkInDate: z.string().optional(),
+  checkOutDate: z.string().optional(),
+  guests: z.number().optional(),
+  specialRequests: z.string().optional(),
+});
 
-// GET /api/client/bookings - Buscar reservas do cliente
-router.get('/', async (req, res) => {
+// Criar nova reserva (Cliente)
+router.post('/create', async (req, res) => {
   try {
-    const userId = req.user?.uid;
+    const bookingData = createBookingSchema.parse(req.body);
     
-    // Mock data - substituir por consulta real ao banco
-    const bookings = [
-      {
-        id: '1',
-        type: 'ride',
-        status: 'confirmed',
-        from: 'Maputo',
-        to: 'Matola',
-        date: '2025-01-15',
-        time: '08:00',
-        price: 150,
-        driver: 'João Silva',
-        vehicle: 'Toyota Hiace'
+    console.log('📦 [CLIENT] Criando nova reserva:', bookingData);
+
+    let serviceName = '';
+    let totalAmount = 0;
+    let providerId = '';
+    let providerName = '';
+    let providerPhone = '';
+
+    if (bookingData.serviceType === 'ride') {
+      // Buscar informações da viagem
+      const [ride] = await db
+        .select()
+        .from(rides)
+        .where(eq(rides.id, bookingData.serviceId));
+
+      if (!ride) {
+        return res.status(404).json({
+          error: 'Viagem não encontrada',
+          message: 'A viagem selecionada não está disponível'
+        });
       }
-    ];
-    
-    res.json(bookings);
+
+      if (!bookingData.seatsBooked || ride.availableSeats < bookingData.seatsBooked) {
+        return res.status(400).json({
+          error: 'Lugares insuficientes',
+          message: `Apenas ${ride.availableSeats} lugares disponíveis`
+        });
+      }
+
+      serviceName = `${ride.fromCity || ride.fromAddress} → ${ride.toCity || ride.toAddress}`;
+      totalAmount = ride.pricePerSeat * bookingData.seatsBooked;
+      providerId = ride.driverId;
+      providerName = ride.driverName || 'Motorista';
+      providerPhone = ride.driverPhone || '';
+
+    } else if (bookingData.serviceType === 'accommodation') {
+      // Buscar informações do alojamento
+      const [accommodation] = await db
+        .select()
+        .from(accommodations)
+        .where(eq(accommodations.id, bookingData.serviceId));
+
+      if (!accommodation) {
+        return res.status(404).json({
+          error: 'Alojamento não encontrado',
+          message: 'O alojamento selecionado não está disponível'
+        });
+      }
+
+      if (!bookingData.checkInDate || !bookingData.checkOutDate) {
+        return res.status(400).json({
+          error: 'Datas obrigatórias',
+          message: 'Informe as datas de check-in e check-out'
+        });
+      }
+
+      const checkIn = new Date(bookingData.checkInDate);
+      const checkOut = new Date(bookingData.checkOutDate);
+      const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
+
+      serviceName = accommodation.name;
+      totalAmount = accommodation.pricePerNight * nights;
+      providerId = accommodation.hostId;
+      providerName = accommodation.hostName || 'Anfitrião';
+      providerPhone = accommodation.hostPhone || '';
+    }
+
+    // Criar a reserva
+    const [newBooking] = await db
+      .insert(bookings)
+      .values({
+        serviceType: bookingData.serviceType,
+        serviceId: bookingData.serviceId,
+        serviceName,
+        clientId: bookingData.clientId,
+        providerId,
+        providerName,
+        providerPhone,
+        totalAmount,
+        status: 'pending',
+        seatsBooked: bookingData.seatsBooked || null,
+        checkInDate: bookingData.checkInDate ? new Date(bookingData.checkInDate) : null,
+        checkOutDate: bookingData.checkOutDate ? new Date(bookingData.checkOutDate) : null,
+        guests: bookingData.guests || null,
+        nights: bookingData.serviceType === 'accommodation' && bookingData.checkInDate && bookingData.checkOutDate
+          ? Math.ceil((new Date(bookingData.checkOutDate).getTime() - new Date(bookingData.checkInDate).getTime()) / (1000 * 60 * 60 * 24))
+          : null,
+        specialRequests: bookingData.specialRequests || null,
+        contactPhone: bookingData.contactPhone,
+        contactEmail: bookingData.contactEmail,
+      })
+      .returning();
+
+    console.log('✅ [CLIENT] Reserva criada com sucesso:', newBooking.id);
+
+    res.status(201).json({
+      success: true,
+      message: 'Reserva criada com sucesso',
+      booking: newBooking
+    });
+
   } catch (error) {
-    console.error('Erro ao buscar reservas:', error);
-    res.status(500).json({ error: 'Erro interno do servidor' });
+    console.error('❌ [CLIENT] Erro ao criar reserva:', error);
+    res.status(500).json({ 
+      error: 'Erro interno do servidor',
+      message: error.message 
+    });
   }
 });
 
-// POST /api/client/bookings - Criar nova reserva
-router.post('/', async (req, res) => {
+// Listar reservas do cliente
+router.get('/my-bookings/:clientId', async (req, res) => {
   try {
-    const userId = req.user?.uid;
-    const { type, from, to, date, time, passengers } = req.body;
+    const { clientId } = req.params;
     
-    // Validação básica
-    if (!type || !from || !to || !date) {
-      return res.status(400).json({ 
-        error: 'Campos obrigatórios: type, from, to, date' 
+    console.log('🔍 [CLIENT] Buscando reservas do cliente:', clientId);
+
+    const clientBookings = await db
+      .select()
+      .from(bookings)
+      .where(eq(bookings.clientId, clientId))
+      .orderBy(bookings.createdAt);
+
+    console.log(`✅ [CLIENT] Encontradas ${clientBookings.length} reservas`);
+
+    res.json({
+      success: true,
+      bookings: clientBookings
+    });
+
+  } catch (error) {
+    console.error('❌ [CLIENT] Erro ao buscar reservas:', error);
+    res.status(500).json({ 
+      error: 'Erro interno do servidor',
+      message: error.message 
+    });
+  }
+});
+
+// Cancelar reserva (Cliente)
+router.patch('/:bookingId/cancel', async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    
+    console.log('🚫 [CLIENT] Cancelando reserva:', bookingId);
+
+    const [updatedBooking] = await db
+      .update(bookings)
+      .set({ 
+        status: 'cancelled',
+        updatedAt: new Date()
+      })
+      .where(eq(bookings.id, bookingId))
+      .returning();
+
+    if (!updatedBooking) {
+      return res.status(404).json({
+        error: 'Reserva não encontrada',
+        message: 'Não foi possível encontrar esta reserva'
       });
     }
-    
-    // Mock - criar reserva
-    const newBooking = {
-      id: Date.now().toString(),
-      userId,
-      type,
-      from,
-      to,
-      date,
-      time,
-      passengers,
-      status: 'pending',
-      createdAt: new Date().toISOString()
-    };
-    
-    res.status(201).json(newBooking);
-  } catch (error) {
-    console.error('Erro ao criar reserva:', error);
-    res.status(500).json({ error: 'Erro interno do servidor' });
-  }
-});
 
-// PUT /api/client/bookings/:id - Atualizar reserva
-router.put('/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const userId = req.user?.uid;
-    const updates = req.body;
-    
-    // Mock - atualizar reserva
-    const updatedBooking = {
-      id,
-      userId,
-      ...updates,
-      updatedAt: new Date().toISOString()
-    };
-    
-    res.json(updatedBooking);
-  } catch (error) {
-    console.error('Erro ao atualizar reserva:', error);
-    res.status(500).json({ error: 'Erro interno do servidor' });
-  }
-});
+    console.log('✅ [CLIENT] Reserva cancelada com sucesso');
 
-// DELETE /api/client/bookings/:id - Cancelar reserva
-router.delete('/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const userId = req.user?.uid;
-    
-    // Mock - cancelar reserva
-    res.json({ 
+    res.json({
+      success: true,
       message: 'Reserva cancelada com sucesso',
-      bookingId: id
+      booking: updatedBooking
     });
+
   } catch (error) {
-    console.error('Erro ao cancelar reserva:', error);
-    res.status(500).json({ error: 'Erro interno do servidor' });
+    console.error('❌ [CLIENT] Erro ao cancelar reserva:', error);
+    res.status(500).json({ 
+      error: 'Erro interno do servidor',
+      message: error.message 
+    });
   }
 });
 
