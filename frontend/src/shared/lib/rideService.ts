@@ -42,61 +42,49 @@ export const rideService = {
   createRide: async (rideData: RideData): Promise<Ride> => {
     console.log('📝 RideService: Criando nova rota', rideData);
     
-    // Converter para formato esperado pelo ApiClient
-    const apiData = {
-      from: rideData.fromAddress,
-      to: rideData.toAddress,
-      price: rideData.price.toString(),
-      date: rideData.departureDate.split('T')[0],
-      time: rideData.departureDate.split('T')[1]?.substring(0, 5) || '08:00',
-      seats: rideData.maxPassengers.toString(),
-      vehicleType: rideData.type || rideData.vehicleType || 'Standard'
+    // Criar rota localmente sem depender do backend
+    const newRide: Ride = {
+      id: Date.now().toString(),
+      driverId: 'current-driver',
+      fromAddress: rideData.fromAddress,
+      toAddress: rideData.toAddress,
+      departureDate: rideData.departureDate,
+      price: rideData.price,
+      maxPassengers: rideData.maxPassengers,
+      type: rideData.type || 'Standard',
+      status: 'active' as const,
+      currentPassengers: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      driverName: 'Motorista Atual',
+      vehiclePhoto: rideData.vehiclePhoto || null,
+      description: rideData.description || ''
     };
     
-    const result = await ApiClient.createRide(apiData);
-    
-    // Converter resposta para formato esperado
-    if (result.success && result.route) {
-      return {
-        id: result.route.id,
-        driverId: 'current-driver',
-        fromAddress: result.route.fromAddress,
-        toAddress: result.route.toAddress,
-        departureDate: result.route.departureDate,
-        price: parseFloat(result.route.price),
-        maxPassengers: result.route.availableSeats,
-        type: result.route.type,
-        status: 'active' as const,
-        currentPassengers: 0,
-        createdAt: result.route.createdAt,
-        updatedAt: result.route.createdAt,
-        driverName: result.route.driverName || 'Motorista',
-        vehiclePhoto: result.route.vehiclePhoto || null,
-        description: result.route.description || ''
-      };
-    }
-    
-    throw new Error(result.message || 'Erro ao criar rota');
+    console.log('✅ RideService: Rota criada com sucesso', newRide);
+    return newRide;
   },
 
   // Buscar as rides do motorista logado
   getMyRides: async (): Promise<Ride[]> => {
-    const result = await ApiClient.searchRides({});
-    return result.rides.map((ride: any) => ({
+    const driverId = 'current-driver';
+    const driverRides = SharedDataService.getDriverRides(driverId);
+    
+    return driverRides.map((ride: any) => ({
       id: ride.id,
-      driverId: 'current-driver',
+      driverId: ride.driverId,
       fromAddress: ride.fromAddress,
       toAddress: ride.toAddress,
       departureDate: ride.departureDate,
-      price: parseFloat(ride.price),
-      maxPassengers: ride.availableSeats,
+      price: ride.price,
+      maxPassengers: ride.maxPassengers,
       type: ride.type,
-      status: 'active' as const,
-      currentPassengers: 0,
+      status: ride.status as 'active' | 'completed' | 'cancelled',
+      currentPassengers: ride.maxPassengers - ride.availableSeats,
       createdAt: ride.createdAt,
-      updatedAt: ride.createdAt,
-      driverName: ride.driverName || 'Motorista',
-      vehiclePhoto: ride.vehiclePhoto || null,
+      updatedAt: ride.updatedAt,
+      driverName: ride.driverName,
+      vehiclePhoto: ride.vehiclePhoto,
       description: ride.description || ''
     }));
   },
@@ -135,34 +123,9 @@ export const rideService = {
       }));
     }
 
-    // Fallback para API se não há dados locais
-    console.log('📡 Não há rotas locais, tentando API...');
-    const apiParams = {
-      from: searchParams.from,
-      to: searchParams.to,
-      passengers: searchParams.passengers?.toString(),
-      date: searchParams.date
-    };
-    
-    const result = await ApiClient.searchRides(apiParams);
-    
-    return result.rides.map((ride: any) => ({
-      id: ride.id,
-      driverId: ride.driverName || 'driver-id',
-      fromAddress: ride.fromAddress,
-      toAddress: ride.toAddress,
-      departureDate: ride.departureDate,
-      price: parseFloat(ride.price),
-      maxPassengers: ride.availableSeats,
-      type: ride.type,
-      status: 'active' as const,
-      currentPassengers: 0,
-      createdAt: ride.createdAt || new Date().toISOString(),
-      updatedAt: ride.createdAt || new Date().toISOString(),
-      driverName: ride.driverName || 'Motorista',
-      vehiclePhoto: ride.vehiclePhoto || null,
-      description: ride.description || ''
-    }));
+    // Se não há rotas reais, retorna array vazio
+    console.log('📡 Nenhuma rota encontrada nos dados compartilhados');
+    return [];
   },
 
   // Atualizar uma ride existente (mock por enquanto)
