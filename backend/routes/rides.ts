@@ -360,4 +360,60 @@ router.get('/:rideId', async (req, res) => {
   }
 });
 
+// ✅ ROTA SIMPLIFICADA PARA COMPATIBILIDADE
+router.post('/simple/create', async (req, res) => {
+  try {
+    console.log('📦 Dados recebidos (simplificado):', req.body);
+    
+    const {
+      fromAddress,
+      toAddress,
+      departureDate,
+      maxPassengers,
+      price,
+      type,
+      description
+    } = req.body;
+
+    // Validação básica
+    if (!fromAddress || !toAddress || !departureDate || !maxPassengers || !price) {
+      return res.status(400).json({
+        error: 'Dados incompletos',
+        message: 'Preencha todos os campos obrigatórios'
+      });
+    }
+
+    const departure = new Date(departureDate);
+    
+    const newRide = {
+      id: Math.random().toString(36).substr(2, 9),
+      from: fromAddress,
+      to: toAddress,
+      date: departure.toISOString().split('T')[0],
+      time: departure.toTimeString().split(' ')[0].substring(0, 5),
+      seats: parseInt(maxPassengers),
+      price: parseFloat(price),
+      vehicleType: type || 'suv',
+      description: description || '',
+      status: 'active',
+      createdAt: new Date().toISOString()
+    };
+
+    console.log('✅ Nova rota criada (simplificado):', newRide);
+
+    res.status(201).json({
+      success: true,
+      message: 'Rota publicada com sucesso!',
+      ride: newRide
+    });
+
+  } catch (error) {
+    console.error('❌ Erro ao criar rota (simplificado):', error);
+    res.status(500).json({
+      error: 'Erro interno do servidor',
+      message: error.message
+    });
+  }
+});
+
 export default router;
