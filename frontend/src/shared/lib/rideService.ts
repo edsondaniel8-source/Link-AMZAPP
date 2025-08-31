@@ -15,6 +15,7 @@ export interface RideData {
   driverId?: string;
   allowNegotiation?: boolean;
   isRoundTrip?: boolean;
+  vehiclePhoto?: File | null;
 }
 
 export interface SearchParams {
@@ -31,6 +32,8 @@ export interface Ride extends RideData {
   currentPassengers: number;
   createdAt: string;
   updatedAt: string;
+  driverName: string;
+  vehiclePhoto?: string | null;
 }
 
 export const rideService = {
@@ -65,7 +68,10 @@ export const rideService = {
         status: 'active' as const,
         currentPassengers: 0,
         createdAt: result.route.createdAt,
-        updatedAt: result.route.createdAt
+        updatedAt: result.route.createdAt,
+        driverName: result.route.driverName || 'Motorista',
+        vehiclePhoto: result.route.vehiclePhoto || null,
+        description: result.route.description || ''
       };
     }
     
@@ -87,7 +93,10 @@ export const rideService = {
       status: 'active' as const,
       currentPassengers: 0,
       createdAt: ride.createdAt,
-      updatedAt: ride.createdAt
+      updatedAt: ride.createdAt,
+      driverName: ride.driverName || 'Motorista',
+      vehiclePhoto: ride.vehiclePhoto || null,
+      description: ride.description || ''
     }));
   },
 
@@ -115,7 +124,10 @@ export const rideService = {
       status: 'active' as const,
       currentPassengers: 0,
       createdAt: ride.createdAt || new Date().toISOString(),
-      updatedAt: ride.createdAt || new Date().toISOString()
+      updatedAt: ride.createdAt || new Date().toISOString(),
+      driverName: ride.driverName || 'Motorista',
+      vehiclePhoto: ride.vehiclePhoto || null,
+      description: ride.description || ''
     }));
   },
 
@@ -135,7 +147,10 @@ export const rideService = {
       status: 'active' as const,
       currentPassengers: 0,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      driverName: 'Motorista',
+      vehiclePhoto: null,
+      description: updateData.description || ''
     };
   },
 
@@ -161,7 +176,10 @@ export const rideService = {
       status: 'active' as const,
       currentPassengers: 0,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      driverName: 'Motorista',
+      vehiclePhoto: null,
+      description: ''
     };
   },
 };

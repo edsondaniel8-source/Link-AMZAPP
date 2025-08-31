@@ -9,6 +9,8 @@ interface Ride {
   availableSeats: number;
   driverName: string;
   vehicleInfo: string;
+  vehiclePhoto?: string | null;
+  description?: string;
   departureDate: string;
   createdAt: string;
   status: string;
@@ -100,6 +102,14 @@ export class MockApiService {
       throw new Error('Dados obrigatórios faltando: De onde, Para onde e Preço são obrigatórios');
     }
     
+    // Simular upload da foto se presente
+    let vehiclePhotoUrl = null;
+    if (rideData.vehiclePhoto) {
+      // Em uma implementação real, faria upload para cloud storage
+      vehiclePhotoUrl = URL.createObjectURL(rideData.vehiclePhoto);
+      console.log('📸 Foto do veículo processada');
+    }
+    
     // Criar nova rota
     const newRide: Ride = {
       id: Date.now().toString(),
@@ -111,6 +121,8 @@ export class MockApiService {
       availableSeats: parseInt(rideData.seats) || 4,
       driverName: 'Motorista Atual',
       vehicleInfo: `${rideData.vehicleType || 'Veículo'} - Disponível`,
+      vehiclePhoto: vehiclePhotoUrl,
+      description: rideData.description || '',
       departureDate: rideData.date && rideData.time ? 
         `${rideData.date}T${rideData.time}:00.000Z` : 
         new Date().toISOString(),

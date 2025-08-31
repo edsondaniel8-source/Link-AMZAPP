@@ -47,13 +47,33 @@ export default function RoutePublisher() {
     description: "",
     pickupPoint: "",
     dropoffPoint: "",
+    vehiclePhoto: null as File | null, // Foto do veículo
   });
+  
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   const handleInputChange = (field: string, value: string | number) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
+  };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFormData((prev) => ({
+        ...prev,
+        vehiclePhoto: file,
+      }));
+      
+      // Criar preview da imagem
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPhotoPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handlePublish = async () => {
@@ -79,6 +99,8 @@ export default function RoutePublisher() {
         maxPassengers: Number(formData.maxPassengers),
         allowNegotiation: false,
         isRoundTrip: false,
+        vehiclePhoto: formData.vehiclePhoto, // Incluir foto do veículo
+        description: formData.description,
       };
 
       console.log("A publicar rota:", rideData);
@@ -101,7 +123,9 @@ export default function RoutePublisher() {
         description: "",
         pickupPoint: "",
         dropoffPoint: "",
+        vehiclePhoto: null,
       });
+      setPhotoPreview(null);
     } catch (error) {
       // 5. CORREÇÃO: Tratar o erro desconhecido
       const errorMessage =
@@ -342,6 +366,62 @@ export default function RoutePublisher() {
                   }
                   data-testid="input-dropoff"
                 />
+              </div>
+            </div>
+
+            {/* Foto do Veículo */}
+            <div className="space-y-4">
+              <Label className="flex items-center gap-2">
+                <Car className="w-4 h-4 text-blue-600" />
+                Foto do Veículo
+              </Label>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                {photoPreview ? (
+                  <div className="space-y-4">
+                    <div className="relative">
+                      <img 
+                        src={photoPreview} 
+                        alt="Preview do veículo" 
+                        className="w-full h-48 object-cover rounded-lg"
+                      />
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        className="absolute top-2 right-2"
+                        onClick={() => {
+                          setPhotoPreview(null);
+                          setFormData(prev => ({ ...prev, vehiclePhoto: null }));
+                        }}
+                        data-testid="button-remove-photo"
+                      >
+                        Remover
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <Car className="mx-auto h-12 w-12 text-gray-400" />
+                    <div className="mt-4">
+                      <Label htmlFor="vehicle-photo" className="cursor-pointer">
+                        <span className="mt-2 block text-sm font-medium text-gray-900">
+                          Clique para adicionar uma foto do seu veículo
+                        </span>
+                        <span className="mt-1 block text-xs text-gray-500">
+                          PNG, JPG até 5MB
+                        </span>
+                      </Label>
+                      <Input
+                        id="vehicle-photo"
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoChange}
+                        className="hidden"
+                        data-testid="input-vehicle-photo"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

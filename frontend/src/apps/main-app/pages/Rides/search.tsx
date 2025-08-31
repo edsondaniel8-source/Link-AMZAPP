@@ -5,9 +5,13 @@ import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
 import { Input } from "@/shared/components/ui/input";
 import { Separator } from "@/shared/components/ui/separator";
-import { MapPin, Clock, Users, Star, ArrowLeft, Calendar, Search } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/shared/components/ui/dialog";
+import { Label } from "@/shared/components/ui/label";
+import { Textarea } from "@/shared/components/ui/textarea";
+import { useToast } from "@/shared/hooks/use-toast";
+import { MapPin, Users, Star, ArrowLeft, Calendar, Search, Phone, Mail, CreditCard } from "lucide-react";
 import { rideService, type Ride } from "@/shared/lib/rideService";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import PageHeader from "@/shared/components/PageHeader";
 import MobileNavigation from "@/shared/components/MobileNavigation";
 
@@ -20,6 +24,16 @@ export default function RideSearchPage() {
     passengers: 1
   });
   const [hasSearched, setHasSearched] = useState(false);
+  const [selectedRide, setSelectedRide] = useState<Ride | null>(null);
+  const [bookingModal, setBookingModal] = useState(false);
+  const [bookingData, setBookingData] = useState({
+    passengers: 1,
+    phone: "",
+    email: "",
+    notes: ""
+  });
+  
+  const { toast } = useToast();
 
   // Parse URL parameters on component mount
   useEffect(() => {
@@ -59,9 +73,66 @@ export default function RideSearchPage() {
   };
 
   const handleBookRide = (ride: Ride) => {
-    console.log('Reservar viagem:', ride);
-    // Implementar navegação para página de reserva
-    setLocation(`/rides/${ride.id}/book`);
+    setSelectedRide(ride);
+    setBookingModal(true);
+  };
+
+  // Mutation para criar reserva
+  const bookingMutation = useMutation({
+    mutationFn: async (_data: any) => {
+      // Simular chamada de API para criar reserva
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve({ success: true, bookingId: Date.now().toString() });
+        }, 1500);
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Reserva confirmada!",
+        description: "Sua reserva foi criada com sucesso. Você receberá mais detalhes por email.",
+      });
+      setBookingModal(false);
+      setSelectedRide(null);
+      setBookingData({
+        passengers: 1,
+        phone: "",
+        email: "",
+        notes: ""
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro na reserva",
+        description: "Não foi possível processar sua reserva. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleConfirmBooking = () => {
+    if (!selectedRide) return;
+    
+    // Validação básica
+    if (!bookingData.phone || !bookingData.email) {
+      toast({
+        title: "Dados incompletos",
+        description: "Por favor, preencha telefone e email.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const reservationData = {
+      rideId: selectedRide.id,
+      passengers: bookingData.passengers,
+      phone: bookingData.phone,
+      email: bookingData.email,
+      notes: bookingData.notes,
+      totalPrice: selectedRide.price * bookingData.passengers
+    };
+
+    bookingMutation.mutate(reservationData);
   };
 
   const formatPrice = (price: number) => {
@@ -179,7 +250,25 @@ export default function RideSearchPage() {
             {rides && rides.map((ride) => (
               <Card key={ride.id} className="hover:shadow-lg transition-shadow">
                 <CardContent className="pt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
+                    {/* Foto do Veículo */}
+                    <div className="md:col-span-1">
+                      {ride.vehiclePhoto ? (
+                        <img 
+                          src={ride.vehiclePhoto} 
+                          alt={`Veículo ${ride.type}`}
+                          className="w-full h-24 md:h-20 object-cover rounded-lg"
+                        />
+                      ) : (
+                        <div className="w-full h-24 md:h-20 bg-gray-200 rounded-lg flex items-center justify-center">
+                          <MapPin className="w-8 h-8 text-gray-400" />
+                        </div>
+                      )}
+                      <div className="text-xs text-center mt-1 text-gray-500">
+                        {ride.type}
+                      </div>
+                    </div>
+
                     {/* Informações da rota */}
                     <div className="md:col-span-2">
                       <div className="flex items-center gap-4 mb-3">
@@ -201,7 +290,7 @@ export default function RideSearchPage() {
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <div className="flex items-center gap-4 text-sm text-gray-600 flex-wrap">
                         <div className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
                           {formatDate(ride.departureDate)}
@@ -211,10 +300,16 @@ export default function RideSearchPage() {
                           {ride.maxPassengers - ride.currentPassengers} lugares disponíveis
                         </div>
                         <div className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          {ride.type}
+                          <Star className="w-4 h-4 text-yellow-500" />
+                          {ride.driverName}
                         </div>
                       </div>
+                      
+                      {ride.description && (
+                        <div className="mt-2 text-sm text-gray-600">
+                          {ride.description}
+                        </div>
+                      )}
                     </div>
 
                     {/* Preço */}
@@ -242,6 +337,145 @@ export default function RideSearchPage() {
           </div>
         )}
       </div>
+
+      {/* Modal de Reserva */}
+      <Dialog open={bookingModal} onOpenChange={setBookingModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirmar Reserva</DialogTitle>
+            <DialogDescription>
+              Complete os dados para confirmar sua reserva de viagem.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedRide && (
+            <div className="space-y-6">
+              {/* Resumo da viagem */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="text-sm">
+                    <span className="font-semibold">{selectedRide.fromAddress}</span>
+                    <span className="mx-2">→</span>
+                    <span className="font-semibold">{selectedRide.toAddress}</span>
+                  </div>
+                </div>
+                <div className="text-sm text-gray-600">
+                  {formatDate(selectedRide.departureDate)}
+                </div>
+                <div className="text-sm text-gray-600">
+                  Motorista: {selectedRide.driverName}
+                </div>
+                {selectedRide.vehiclePhoto && (
+                  <img 
+                    src={selectedRide.vehiclePhoto} 
+                    alt="Veículo" 
+                    className="w-full h-20 object-cover rounded mt-2"
+                  />
+                )}
+              </div>
+
+              {/* Formulário de reserva */}
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="passengers">Número de Passageiros</Label>
+                  <Input
+                    id="passengers"
+                    type="number"
+                    min="1"
+                    max={selectedRide.maxPassengers - selectedRide.currentPassengers}
+                    value={bookingData.passengers}
+                    onChange={(e) => setBookingData({...bookingData, passengers: parseInt(e.target.value)})}
+                    data-testid="input-passengers"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="phone">Telefone</Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                    <Input
+                      id="phone"
+                      placeholder="84 123 4567"
+                      value={bookingData.phone}
+                      onChange={(e) => setBookingData({...bookingData, phone: e.target.value})}
+                      className="pl-10"
+                      data-testid="input-phone"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="email">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="seu@email.com"
+                      value={bookingData.email}
+                      onChange={(e) => setBookingData({...bookingData, email: e.target.value})}
+                      className="pl-10"
+                      data-testid="input-email"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="notes">Observações (opcional)</Label>
+                  <Textarea
+                    id="notes"
+                    placeholder="Alguma observação especial..."
+                    value={bookingData.notes}
+                    onChange={(e) => setBookingData({...bookingData, notes: e.target.value})}
+                    rows={3}
+                    data-testid="textarea-notes"
+                  />
+                </div>
+
+                {/* Resumo do preço */}
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span>Total ({bookingData.passengers} passageiro{bookingData.passengers > 1 ? 's' : ''})</span>
+                    <span className="text-xl font-bold text-blue-600">
+                      {formatPrice(selectedRide.price * bookingData.passengers)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Botões de ação */}
+              <div className="flex gap-3">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setBookingModal(false)}
+                  className="flex-1"
+                  data-testid="button-cancel-booking"
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  onClick={handleConfirmBooking}
+                  disabled={bookingMutation.isPending}
+                  className="flex-1"
+                  data-testid="button-confirm-booking"
+                >
+                  {bookingMutation.isPending ? (
+                    <>
+                      <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2" />
+                      Processando...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="w-4 h-4 mr-2" />
+                      Confirmar Reserva
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <MobileNavigation />
     </div>
