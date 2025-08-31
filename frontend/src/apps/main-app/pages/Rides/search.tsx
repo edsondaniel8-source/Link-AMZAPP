@@ -10,7 +10,6 @@ import { Textarea } from "@/shared/components/ui/textarea";
 import { useToast } from "@/shared/hooks/use-toast";
 import { ArrowLeft, Calendar, Search, Phone, Mail, CreditCard, Car, ArrowRight, User } from "lucide-react";
 import { rideService, type Ride } from "@/shared/lib/rideService";
-import { SharedDataService } from "@/shared/services/sharedDataService";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import PageHeader from "@/shared/components/PageHeader";
 import MobileNavigation from "@/shared/components/MobileNavigation";
@@ -88,10 +87,8 @@ export default function RideSearchPage() {
       });
     },
     onSuccess: () => {
-      // Atualizar lugares disponíveis no serviço compartilhado
+      // Atualizar a lista após reserva
       if (selectedRide) {
-        SharedDataService.updateRideSeats(selectedRide.id, bookingData.passengers);
-        // Atualizar a lista local também
         refetch();
       }
       

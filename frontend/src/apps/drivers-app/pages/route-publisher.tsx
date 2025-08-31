@@ -27,7 +27,6 @@ import {
   Plus,
 } from "lucide-react";
 import rideService from "@/shared/lib/rideService";
-import { SharedDataService } from '@/shared/services/sharedDataService';
 
 export default function RoutePublisher() {
   const { user } = useAuth();
@@ -108,29 +107,7 @@ export default function RoutePublisher() {
 
       const result = await rideService.createRide(rideData);
 
-      // Salvar também no serviço compartilhado para que clientes possam encontrar
-      const sharedRide = {
-        id: result.id,
-        driverId: user.uid || 'current-driver',
-        driverName: user.displayName || 'Motorista',
-        fromAddress: rideData.fromAddress,
-        toAddress: rideData.toAddress,
-        departureDate: rideData.departureDate,
-        price: rideData.price,
-        maxPassengers: rideData.maxPassengers,
-        availableSeats: rideData.maxPassengers,
-        type: rideData.type,
-        vehicleInfo: `${rideData.type} - ${user.displayName || 'Motorista'}`,
-        vehiclePhoto: formData.vehiclePhoto ? URL.createObjectURL(formData.vehiclePhoto) : null,
-        description: rideData.description || '',
-        status: 'active' as const,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-
-      SharedDataService.saveRide(sharedRide);
-
-      console.log("✅ Rota publicada com sucesso e disponível para busca!", result);
+      console.log("✅ Rota publicada com sucesso na base de dados!", result);
       setSuccess(true);
 
       // Reset form
