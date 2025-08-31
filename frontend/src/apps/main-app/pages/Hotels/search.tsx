@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
 import { Input } from "@/shared/components/ui/input";
-import { ArrowLeft, Calendar, Search, Star, MapPin, Wifi, Car, Coffee, Users } from "lucide-react";
+import { ArrowLeft, Search, Star, MapPin, Wifi, Car, Coffee, Users } from "lucide-react";
 import { accommodationService, type Accommodation } from "@/shared/lib/accommodationService";
 import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/shared/components/PageHeader";

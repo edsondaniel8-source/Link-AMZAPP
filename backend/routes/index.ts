@@ -3,6 +3,9 @@ import { createServer } from 'http';
 import authRoutes from './auth';
 import ridesRoutes from './rides';
 import simplifiedRidesRoutes from './simplified-rides';
+import unifiedRidesRoutes from './unified-rides';
+import unifiedAccommodationsRoutes from './unified-accommodations';
+import unifiedBookingsRoutes from './unified-bookings-manager';
 import geoRoutes from './geo';
 import hotelsRoutes from './hotels';
 import eventsRoutes from './events';
@@ -14,14 +17,19 @@ import pmsRoutes from './pms';
 import { initializeChatService } from '../services/chatService';
 
 export async function registerRoutes(app: express.Express) {
-  // Centralizar todas as rotas da API
+  // ===== SISTEMA UNIFICADO LINK-A =====
+  app.use('/api/unified/rides', unifiedRidesRoutes); // Sistema de viagens unificado
+  app.use('/api/unified/accommodations', unifiedAccommodationsRoutes); // Sistema de alojamentos
+  app.use('/api/unified/bookings', unifiedBookingsRoutes); // Sistema de reservas unificado
+  
+  // ===== SISTEMAS LEGADOS (manter compatibilidade) =====
   app.use('/api/auth', authRoutes);
-  app.use('/api/rides', ridesRoutes);
-  app.use('/api/rides-simple', simplifiedRidesRoutes); // Simplified rides API
-  app.use('/api/geo', geoRoutes); // Geolocation services for Mozambique
-  app.use('/api/hotels', hotelsRoutes);
+  app.use('/api/rides', ridesRoutes); // Sistema antigo - deprecado
+  app.use('/api/rides-simple', simplifiedRidesRoutes); // Sistema simplificado - deprecado
+  app.use('/api/geo', geoRoutes); // Geolocalização para Moçambique
+  app.use('/api/hotels', hotelsRoutes); // Sistema antigo de hotéis - deprecado
   app.use('/api/events', eventsRoutes);
-  app.use('/api/bookings', bookingsRoutes);
+  app.use('/api/bookings', bookingsRoutes); // Sistema antigo de reservas - deprecado
   app.use('/api/billing', billingRoutes);
   app.use('/api/chat', chatRoutes);
   app.use('/api/pms', pmsRoutes);
