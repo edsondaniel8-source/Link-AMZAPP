@@ -13,7 +13,7 @@ sleep 3
 
 # Iniciar frontend
 echo "🎨 Iniciando Frontend na porta 5000..."
-cd ../frontend && npm run dev &
+cd frontend && npm run dev &
 FRONTEND_PID=$!
 
 # Função para cleanup ao sair
