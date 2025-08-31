@@ -7,7 +7,7 @@ import { fileURLToPath } from "url";
 import { registerRoutes } from "./routes/index";
 
 const app = express();
-const PORT = parseInt(process.env.PORT || "8000", 10);
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
 
 // Get directory name for ES modules
 const __filename = fileURLToPath(import.meta.url);

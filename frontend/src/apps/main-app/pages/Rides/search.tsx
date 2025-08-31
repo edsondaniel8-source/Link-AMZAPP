@@ -4,12 +4,28 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
 import { Input } from "@/shared/components/ui/input";
+import { LocationAutocomplete } from "@/components/ui/location-autocomplete";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/shared/components/ui/dialog";
 import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { useToast } from "@/shared/hooks/use-toast";
 import { ArrowLeft, Calendar, Search, Phone, Mail, CreditCard, Car, ArrowRight, User } from "lucide-react";
-import { rideService, type Ride } from "@/shared/lib/rideService";
+// Interface para viagem simplificada
+interface Ride {
+  id: number;
+  driverId: string;
+  fromAddress: string;
+  toAddress: string;
+  departureDate: string;
+  price: string;
+  maxPassengers: number;
+  currentPassengers: number;
+  type: string;
+  driverName: string;
+  driverRating: number;
+  description?: string;
+  vehiclePhoto?: string;
+}
 import { useQuery, useMutation } from "@tanstack/react-query";
 import PageHeader from "@/shared/components/PageHeader";
 import MobileNavigation from "@/shared/components/MobileNavigation";
@@ -49,13 +65,21 @@ export default function RideSearchPage() {
   }, []);
 
   // Buscar viagens quando hasSearched muda
-  const { data: rides, isLoading, error } = useQuery({
-    queryKey: ['rides-search', searchParams],
-    queryFn: () => rideService.searchRides({
-      from: searchParams.from,
-      to: searchParams.to,
-      passengers: searchParams.passengers
-    }),
+  const { data: rides, isLoading, error, refetch } = useQuery({
+    queryKey: ['rides-simple-search', searchParams],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (searchParams.from) params.append('from', searchParams.from);
+      if (searchParams.to) params.append('to', searchParams.to);
+      if (searchParams.date) params.append('date', searchParams.date);
+      params.append('passengers', searchParams.passengers.toString());
+      
+      const response = await fetch(`/api/rides-simple/search?${params}`);
+      if (!response.ok) {
+        throw new Error('Erro ao buscar viagens');
+      }
+      return response.json();
+    },
     enabled: hasSearched && (!!searchParams.from || !!searchParams.to)
   });
 
@@ -78,13 +102,27 @@ export default function RideSearchPage() {
 
   // Mutation para criar reserva
   const bookingMutation = useMutation({
-    mutationFn: async (_data: any) => {
-      // Simular chamada de API para criar reserva
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({ success: true, bookingId: Date.now().toString() });
-        }, 1500);
+    mutationFn: async (data: any) => {
+      const response = await fetch('/api/rides-simple/book', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          rideId: data.rideId,
+          passengerId: 'cdaaee9b-5ef6-4b6e-98bc-79533d795d73', // TODO: Get from auth context
+          seatsBooked: data.passengers,
+          phone: data.phone,
+          email: data.email,
+          notes: data.notes
+        }),
       });
+      
+      if (!response.ok) {
+        throw new Error('Failed to book ride');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       // Atualizar a lista após reserva
@@ -136,7 +174,13 @@ export default function RideSearchPage() {
       totalPrice: selectedRide.price * bookingData.passengers
     };
 
-    bookingMutation.mutate(reservationData);
+    bookingMutation.mutate({
+      rideId: selectedRide.id,
+      passengers: bookingData.passengers,
+      phone: bookingData.phone,
+      email: bookingData.email,
+      notes: bookingData.notes
+    });
   };
 
   const formatPrice = (price: number | string) => {
@@ -181,21 +225,21 @@ export default function RideSearchPage() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-2">De onde</label>
-                <Input
-                  placeholder="Cidade de origem"
+                <label className="block text-sm font-medium mb-2">Saindo de</label>
+                <LocationAutocomplete
                   value={searchParams.from}
-                  onChange={(e) => setSearchParams({...searchParams, from: e.target.value})}
-                  data-testid="input-from"
+                  onChange={(value) => setSearchParams({...searchParams, from: value})}
+                  placeholder="Saindo de... (Moçambique)"
+                  className="w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Para onde</label>
-                <Input
-                  placeholder="Cidade de destino"
+                <label className="block text-sm font-medium mb-2">Indo para</label>
+                <LocationAutocomplete
                   value={searchParams.to}
-                  onChange={(e) => setSearchParams({...searchParams, to: e.target.value})}
-                  data-testid="input-to"
+                  onChange={(value) => setSearchParams({...searchParams, to: value})}
+                  placeholder="Indo para... (Moçambique)"
+                  className="w-full"
                 />
               </div>
               <div>
@@ -286,7 +330,7 @@ export default function RideSearchPage() {
                         <div className="flex items-center gap-3">
                           <div className="flex-1">
                             <div className="font-bold text-lg text-gray-800">{ride.fromAddress}</div>
-                            <div className="text-sm text-gray-500">Saída</div>
+                            <div className="text-sm text-gray-500">Saindo de</div>
                           </div>
                           <div className="flex flex-col items-center px-3">
                             <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
@@ -296,7 +340,7 @@ export default function RideSearchPage() {
                           </div>
                           <div className="flex-1 text-right">
                             <div className="font-bold text-lg text-gray-800">{ride.toAddress}</div>
-                            <div className="text-sm text-gray-500">Chegada</div>
+                            <div className="text-sm text-gray-500">Indo para</div>
                           </div>
                         </div>
                         

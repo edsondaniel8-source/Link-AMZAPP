@@ -1,191 +1,258 @@
 import express from 'express';
-import { z } from 'zod';
-import { drizzle } from 'drizzle-orm/neon-http';
-import { neon } from '@neondatabase/serverless';
-import { eq, and, gte, lte, ilike, sql, desc, asc } from 'drizzle-orm';
-import { rides, bookings, users } from '../shared/schema';
+import { Pool } from 'pg';
 
 const router = express.Router();
-const dbUrl = process.env.DATABASE_URL!;
-const client = neon(dbUrl);
-const db = drizzle(client);
 
-// Search rides with advanced filtering
+// Configuração do banco de dados
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
+// Buscar viagens com filtros
 router.get('/search', async (req, res) => {
   try {
-    const { from, to, date, passengers, maxPrice, vehicleType, minRating } = req.query;
+    const { from, to, date, passengers = 1 } = req.query;
     
-    // Build query conditions
-    const conditions = [];
+    let query = `
+      SELECT 
+        r.*,
+        u.first_name || ' ' || u.last_name as driver_name,
+        u.rating as driver_rating
+      FROM rides_simple r
+      JOIN users u ON r.driver_id = u.id
+      WHERE r.available_seats >= $1
+    `;
+    
+    const queryParams: any[] = [passengers];
+    let paramCount = 1;
     
     if (from) {
-      conditions.push(ilike(rides.fromAddress, `%${from}%`));
+      paramCount++;
+      query += ` AND LOWER(r.from_location) LIKE LOWER($${paramCount})`;
+      queryParams.push(`%${from}%`);
     }
     
     if (to) {
-      conditions.push(ilike(rides.toAddress, `%${to}%`));
+      paramCount++;
+      query += ` AND LOWER(r.to_location) LIKE LOWER($${paramCount})`;
+      queryParams.push(`%${to}%`);
     }
     
     if (date) {
-      conditions.push(eq(rides.departureDate, new Date(date as string)));
+      paramCount++;
+      query += ` AND r.departure_date >= $${paramCount}`;
+      queryParams.push(date);
     }
     
-    if (passengers) {
-      conditions.push(gte(rides.availableSeats, parseInt(passengers as string)));
-    }
+    query += ` ORDER BY r.departure_date ASC, r.departure_time ASC`;
     
-    if (maxPrice) {
-      conditions.push(lte(rides.price, sql`${parseFloat(maxPrice as string)}`));
-    }
+    const result = await pool.query(query, queryParams);
     
-    if (vehicleType) {
-      conditions.push(eq(rides.vehicleInfo, vehicleType as string));
-    }
+    // Transformar resultados para o formato esperado pelo frontend
+    const rides = result.rows.map((row: any) => ({
+      id: row.id,
+      driverId: row.driver_id,
+      fromAddress: row.from_location,
+      toAddress: row.to_location,
+      departureDate: `${row.departure_date}T${row.departure_time}`,
+      price: row.price_per_seat.toString(),
+      maxPassengers: row.available_seats,
+      currentPassengers: 0, // TODO: Calcular baseado nas reservas
+      type: row.vehicle_type,
+      driverName: row.driver_name || 'Motorista',
+      driverRating: row.driver_rating || 4.0,
+      description: row.additional_info,
+      vehiclePhoto: null // TODO: Implementar fotos de veículos
+    }));
     
-    // Always filter for active rides
-    conditions.push(eq(rides.isActive, true));
-    
-    // Build the query with driver information
-    let query = db
-      .select({
-        id: rides.id,
-        driverId: rides.driverId,
-        fromAddress: rides.fromAddress,
-        toAddress: rides.toAddress,
-        departureDate: rides.departureDate,
-        price: rides.price,
-        availableSeats: rides.availableSeats,
-        vehicleInfo: rides.vehicleInfo,
-        driverName: rides.driverName,
-        driverRating: users.rating,
-        estimatedDuration: rides.estimatedDuration,
-        estimatedDistance: rides.estimatedDistance,
-      })
-      .from(rides)
-      .leftJoin(users, eq(rides.driverId, users.id));
-    
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
-    
-    // Apply minimum rating filter if specified
-    if (minRating) {
-      query = query.where(gte(users.rating, sql`${parseFloat(minRating as string)}`));
-    }
-    
-    const results = await query.orderBy(asc(rides.departureDate), asc(rides.price));
-    
-    // Filter results with additional logic (distance, driver rating, etc.)
-    const filteredResults = results.filter(ride => {
-      // Driver rating filter (minimum 4.0 for good drivers)
-      const driverRating = Number(ride.driverRating) || 0;
-      return driverRating >= (minRating ? parseFloat(minRating as string) : 4.0);
-    });
-    
-    res.json({ 
-      rides: filteredResults,
-      total: filteredResults.length,
-      filters: { from, to, date, passengers, maxPrice, vehicleType, minRating }
-    });
+    res.json(rides);
     
   } catch (error) {
-    console.error('Search error:', error);
-    res.status(500).json({ error: 'Failed to search rides' });
+    console.error('Erro na busca de viagens:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });
 
-// Create new ride (for drivers)
+// Criar nova viagem
 router.post('/create', async (req, res) => {
   try {
-    const rideData = z.object({
-      driverId: z.string(),
-      fromAddress: z.string(),
-      toAddress: z.string(),
-      departureDate: z.string().transform(str => new Date(str)),
-      price: z.number().positive(),
-      availableSeats: z.number().int().positive(),
-      vehicleInfo: z.string().optional(),
-      estimatedDuration: z.number().optional(),
-      driverName: z.string(),
-    }).parse(req.body);
+    const {
+      driverId,
+      fromAddress,
+      toAddress,
+      departureDate,
+      price,
+      availableSeats,
+      vehicleInfo,
+      additionalInfo
+    } = req.body;
     
-    const [newRide] = await db.insert(rides).values({
-      ...rideData,
-      isActive: true,
-      type: 'regular', // Default type
-    }).returning();
+    // Validações básicas
+    if (!fromAddress || !toAddress || !departureDate || !price || !availableSeats) {
+      return res.status(400).json({ 
+        error: 'Campos obrigatórios: origem, destino, data, preço e lugares disponíveis' 
+      });
+    }
     
-    res.status(201).json({ ride: newRide });
+    // Converter data para formato apropriado
+    const date = new Date(departureDate);
+    const departureTimeOnly = date.toTimeString().slice(0, 5); // HH:MM
+    const departureDateOnly = date.toISOString().split('T')[0]; // YYYY-MM-DD
+    
+    const query = `
+      INSERT INTO rides_simple (
+        driver_id, from_location, to_location, departure_date, departure_time,
+        available_seats, price_per_seat, vehicle_type, additional_info
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING *
+    `;
+    
+    const values = [
+      driverId,
+      fromAddress,
+      toAddress,
+      departureDateOnly,
+      departureTimeOnly,
+      availableSeats,
+      parseFloat(price),
+      vehicleInfo || 'sedan',
+      additionalInfo
+    ];
+    
+    const result = await pool.query(query, values);
+    const newRide = result.rows[0];
+    
+    res.status(201).json({
+      success: true,
+      ride: {
+        id: newRide.id,
+        driverId: newRide.driver_id,
+        fromAddress: newRide.from_location,
+        toAddress: newRide.to_location,
+        departureDate: `${newRide.departure_date}T${newRide.departure_time}`,
+        price: newRide.price_per_seat.toString(),
+        maxPassengers: newRide.available_seats,
+        type: newRide.vehicle_type,
+        description: newRide.additional_info
+      }
+    });
     
   } catch (error) {
-    console.error('Create ride error:', error);
-    res.status(400).json({ error: 'Failed to create ride' });
+    console.error('Erro ao criar viagem:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });
 
-// Get rides for a specific driver
+// Listar viagens de um motorista
 router.get('/driver/:driverId', async (req, res) => {
   try {
     const { driverId } = req.params;
     
-    const driverRides = await db
-      .select()
-      .from(rides)
-      .where(eq(rides.driverId, driverId))
-      .orderBy(desc(rides.departureDate));
+    const query = `
+      SELECT 
+        r.*,
+        COUNT(b.id) as total_bookings,
+        COALESCE(SUM(b.seats_booked), 0) as booked_seats
+      FROM rides_simple r
+      LEFT JOIN bookings_simple b ON r.id = b.ride_id
+      WHERE r.driver_id = $1
+      GROUP BY r.id
+      ORDER BY r.departure_date DESC, r.departure_time DESC
+    `;
     
-    res.json({ rides: driverRides });
+    const result = await pool.query(query, [driverId]);
+    
+    const rides = result.rows.map((row: any) => ({
+      id: row.id,
+      fromAddress: row.from_location,
+      toAddress: row.to_location,
+      departureDate: `${row.departure_date}T${row.departure_time}`,
+      price: row.price_per_seat.toString(),
+      maxPassengers: row.available_seats + parseInt(row.booked_seats),
+      currentPassengers: parseInt(row.booked_seats),
+      availableSeats: row.available_seats,
+      type: row.vehicle_type,
+      description: row.additional_info,
+      totalBookings: parseInt(row.total_bookings)
+    }));
+    
+    res.json(rides);
     
   } catch (error) {
-    console.error('Get driver rides error:', error);
-    res.status(500).json({ error: 'Failed to get driver rides' });
+    console.error('Erro ao buscar viagens do motorista:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });
 
-// Book a ride (for passengers)
-router.post('/:rideId/book', async (req, res) => {
+// Criar reserva
+router.post('/book', async (req, res) => {
   try {
-    const { rideId } = req.params;
-    const bookingData = z.object({
-      passengerId: z.string(),
-      seatsRequested: z.number().int().positive(),
-    }).parse(req.body);
+    const {
+      rideId,
+      passengerId,
+      seatsBooked,
+      phone,
+      email,
+      notes
+    } = req.body;
     
-    // Check if ride exists and has available seats
-    const [ride] = await db.select().from(rides).where(eq(rides.id, rideId));
-    
-    if (!ride) {
-      return res.status(404).json({ error: 'Ride not found' });
+    // Validações
+    if (!rideId || !passengerId || !seatsBooked) {
+      return res.status(400).json({ 
+        error: 'Campos obrigatórios: ID da viagem, passageiro e número de lugares' 
+      });
     }
     
-    if (ride.availableSeats < bookingData.seatsRequested) {
-      return res.status(400).json({ error: 'Not enough seats available' });
+    // Verificar se a viagem existe e tem lugares disponíveis
+    const rideQuery = 'SELECT * FROM rides_simple WHERE id = $1';
+    const rideResult = await pool.query(rideQuery, [rideId]);
+    
+    if (rideResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Viagem não encontrada' });
     }
     
-    // Calculate total price
-    const totalPrice = Number(ride.price) * bookingData.seatsRequested;
+    const ride = rideResult.rows[0];
     
-    // Create booking (using existing booking schema for compatibility)
-    const [newBooking] = await db.insert(bookings).values({
-      rideId: rideId,
-      userId: bookingData.passengerId,
-      type: 'ride',
-      status: 'pending_approval',
-      providerId: ride.driverId,
-      originalPrice: sql`${totalPrice}`,
-      totalPrice: sql`${totalPrice}`,
-    }).returning();
+    if (ride.available_seats < seatsBooked) {
+      return res.status(400).json({ error: 'Não há lugares suficientes disponíveis' });
+    }
     
-    // Update available seats
-    await db.update(rides)
-      .set({ availableSeats: ride.availableSeats - bookingData.seatsRequested })
-      .where(eq(rides.id, rideId));
+    // Calcular preço total
+    const totalPrice = ride.price_per_seat * seatsBooked;
     
-    res.status(201).json({ booking: newBooking });
+    // Criar reserva
+    const bookingQuery = `
+      INSERT INTO bookings_simple (
+        ride_id, passenger_id, seats_booked, total_price, status
+      ) VALUES ($1, $2, $3, $4, $5)
+      RETURNING *
+    `;
+    
+    const bookingValues = [rideId, passengerId, seatsBooked, totalPrice, 'confirmed'];
+    const bookingResult = await pool.query(bookingQuery, bookingValues);
+    
+    // Atualizar lugares disponíveis na viagem
+    const updateRideQuery = `
+      UPDATE rides_simple 
+      SET available_seats = available_seats - $1 
+      WHERE id = $2
+    `;
+    await pool.query(updateRideQuery, [seatsBooked, rideId]);
+    
+    res.status(201).json({
+      success: true,
+      booking: {
+        id: bookingResult.rows[0].id,
+        rideId: bookingResult.rows[0].ride_id,
+        seatsBooked: bookingResult.rows[0].seats_booked,
+        totalPrice: bookingResult.rows[0].total_price,
+        status: bookingResult.rows[0].status
+      }
+    });
     
   } catch (error) {
-    console.error('Book ride error:', error);
-    res.status(400).json({ error: 'Failed to book ride' });
+    console.error('Erro ao criar reserva:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });
 

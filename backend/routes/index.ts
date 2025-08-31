@@ -2,7 +2,8 @@ import express from 'express';
 import { createServer } from 'http';
 import authRoutes from './auth';
 import ridesRoutes from './rides';
-import ridesSearchRoutes from './rides-search';
+import simplifiedRidesRoutes from './simplified-rides';
+import geoRoutes from './geo';
 import hotelsRoutes from './hotels';
 import eventsRoutes from './events';
 import bookingsRoutes from './bookings';
@@ -16,7 +17,8 @@ export async function registerRoutes(app: express.Express) {
   // Centralizar todas as rotas da API
   app.use('/api/auth', authRoutes);
   app.use('/api/rides', ridesRoutes);
-  app.use('/api/rides-search', ridesSearchRoutes); // Advanced search API
+  app.use('/api/rides-simple', simplifiedRidesRoutes); // Simplified rides API
+  app.use('/api/geo', geoRoutes); // Geolocation services for Mozambique
   app.use('/api/hotels', hotelsRoutes);
   app.use('/api/events', eventsRoutes);
   app.use('/api/bookings', bookingsRoutes);

@@ -13,7 +13,7 @@ import Chat from './pages/chat';
 import Notifications from './pages/notifications';
 import Profile from './pages/profile';
 import RideSearch from './pages/Rides/search';
-import RideBook from './pages/Rides/book';
+import RideCreate from './pages/Rides/create';
 import HotelSearch from './pages/Hotels/search';
 import ProtectedRoute from '@/shared/components/ProtectedRoute';
 import NotFound from './pages/not-found';
@@ -29,7 +29,7 @@ function MainApp() {
               <Route path="/" component={Home} />
               <Route path="/eventos" component={Events} />
               <Route path="/rides/search" component={RideSearch} />
-              <Route path="/rides/:rideId/book" component={RideBook} />
+              <Route path="/rides/create" component={RideCreate} />
               <Route path="/hotels/search" component={HotelSearch} />
               <Route path="/stays/search" component={HotelSearch} />
               <Route path="/reservas">

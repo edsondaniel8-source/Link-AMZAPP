@@ -26,7 +26,7 @@ import {
   Car,
   Plus,
 } from "lucide-react";
-import rideService from "@/shared/lib/rideService";
+// Usando API simplificada diretamente
 
 export default function RoutePublisher() {
   const { user } = useAuth();
@@ -105,7 +105,13 @@ export default function RoutePublisher() {
 
       console.log("A publicar rota:", rideData);
 
-      const result = await rideService.createRide(rideData);
+      // TODO: Implementar usando nova API simplificada
+      const response = await fetch('/api/rides-simple/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(rideData)
+      });
+      const result = await response.json();
 
       console.log("✅ Rota publicada com sucesso na base de dados!", result);
       setSuccess(true);
