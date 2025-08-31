@@ -9,16 +9,9 @@ import { useAuth } from "../hooks/useAuth";
 import { useUserRoles } from "../hooks/useUserRoles";
 // Logo is now served from public directory
 
-interface HeaderProps {
-  activeService: "rides" | "stays";
-  onServiceChange: (service: "rides" | "stays") => void;
-  onOfferRide?: () => void;
-  onManageAccommodation?: () => void;
-}
 
-export default function Header({ activeService, onServiceChange, onOfferRide, onManageAccommodation }: HeaderProps) {
+export default function Header() {
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showServicesMenu, setShowServicesMenu] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const { isAuthenticated, user, signOut } = useAuth();
   const { canAccessFeature } = useUserRoles();
@@ -40,140 +33,9 @@ export default function Header({ activeService, onServiceChange, onOfferRide, on
             </Link>
           </div>
           
-          {/* Service Toggle */}
-          <div className="hidden md:flex bg-gray-light rounded-full p-1">
-            <button
-              data-testid="service-toggle-rides"
-              onClick={() => onServiceChange("rides")}
-              className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                activeService === "rides"
-                  ? "bg-white shadow-sm text-dark"
-                  : "text-gray-medium hover:text-dark"
-              }`}
-            >
-              <i className="fas fa-car mr-2"></i>Viagens
-            </button>
-            <button
-              data-testid="service-toggle-stays"
-              onClick={() => onServiceChange("stays")}
-              className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                activeService === "stays"
-                  ? "bg-white shadow-sm text-dark"
-                  : "text-gray-medium hover:text-dark"
-              }`}
-            >
-              <i className="fas fa-bed mr-2"></i>Hospedagem
-            </button>
-          </div>
 
           <div className="flex items-center space-x-4">
             
-            {/* Community Menu Button */}
-            <div className="relative">
-              <button
-                data-testid="community-menu-button"
-                onClick={() => setShowServicesMenu(!showServicesMenu)}
-                className="hidden md:flex items-center text-gray-medium hover:text-dark font-medium transition-colors"
-              >
-                <i className="fas fa-users mr-2"></i>
-                Comunidade Link-A
-                <i className="fas fa-chevron-down ml-1 text-xs"></i>
-              </button>
-              
-              {showServicesMenu && (
-                <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
-                  {/* Blog Section */}
-                  <Link href="/blog">
-                    <button 
-                      className="w-full text-left px-4 py-3 text-sm text-dark hover:bg-gray-50 flex items-center"
-                      onClick={() => setShowServicesMenu(false)}
-                      data-testid="blog-button"
-                    >
-                      <i className="fas fa-newspaper mr-3 text-primary"></i>
-                      <div>
-                        <div className="font-medium">Blog Link-A</div>
-                        <div className="text-xs text-gray-500">Notícias, dicas e guias de viagem</div>
-                      </div>
-                    </button>
-                  </Link>
-                  
-                  <hr className="my-2" />
-                  
-                  {/* Services Section */}
-                  <div className="px-4 py-2">
-                    <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                      Oferecer Serviços
-                    </div>
-                  </div>
-                  
-                  {onOfferRide && canAccessFeature('offer-ride') && (
-                    <button 
-                      onClick={() => {
-                        onOfferRide();
-                        setShowServicesMenu(false);
-                      }}
-                      className="w-full text-left px-4 py-3 text-sm text-dark hover:bg-gray-50 flex items-center"
-                      data-testid="offer-ride-button"
-                    >
-                      <i className="fas fa-plus mr-3 text-primary"></i>
-                      <div>
-                        <div className="font-medium">Oferecer Viagem</div>
-                        <div className="text-xs text-gray-500">Ganhe dinheiro como motorista</div>
-                        <div className="text-xs text-green-500">
-                          <i className="fas fa-shield-alt mr-1"></i>Verificação obrigatória
-                        </div>
-                      </div>
-                    </button>
-                  )}
-                  <button 
-                    className="w-full text-left px-4 py-3 text-sm text-dark hover:bg-gray-50 flex items-center"
-                    onClick={() => {
-                      // Check if user is verified first
-                      const isVerified = false; // This would come from user context
-                      if (!isVerified) {
-                        window.location.href = "/profile/verification";
-                        return;
-                      }
-                      if (onManageAccommodation) {
-                        onManageAccommodation();
-                      }
-                      setShowServicesMenu(false);
-                    }}
-                  >
-                    <i className="fas fa-home mr-3 text-primary"></i>
-                    <div>
-                      <div className="font-medium">Torne-se Anfitrião</div>
-                      <div className="text-xs text-gray-500">Alugue o seu espaço</div>
-                      <div className="text-xs text-red-500">
-                        <i className="fas fa-shield-alt mr-1"></i>Verificação obrigatória
-                      </div>
-                    </div>
-                  </button>
-                  <button 
-                    className="w-full text-left px-4 py-3 text-sm text-dark hover:bg-gray-50 flex items-center"
-                    onClick={() => {
-                      // Check if user is verified first
-                      const isVerified = false; // This would come from user context
-                      if (!isVerified) {
-                        window.location.href = "/profile/verification";
-                        return;
-                      }
-                      window.location.href = "/events/create";
-                      setShowServicesMenu(false);
-                    }}
-                  >
-                    <i className="fas fa-calendar-plus mr-3 text-primary"></i>
-                    <div>
-                      <div className="font-medium">Gestor de Eventos</div>
-                      <div className="text-xs text-gray-500">Criar e gerir eventos e feiras</div>
-                      <div className="text-xs text-red-500">
-                        <i className="fas fa-shield-alt mr-1"></i>Verificação obrigatória
-                      </div>
-                    </div>
-                  </button>
-                </div>
-              )}
-            </div>
             
             {/* Authentication Section */}
             {isAuthenticated ? (
