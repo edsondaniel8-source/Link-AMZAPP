@@ -1,10 +1,9 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-import { backendPlugin } from "./vite-backend-plugin";
 
 export default defineConfig({
-  plugins: [react(), backendPlugin()],
+  plugins: [react()],
   root: ".",
   publicDir: "public",
   build: {
