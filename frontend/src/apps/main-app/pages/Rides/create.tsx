@@ -11,7 +11,6 @@ import { ArrowLeft, Car, MapPin, Calendar, Users, DollarSign, Clock } from "luci
 import { LocationAutocomplete } from "@/components/ui/location-autocomplete";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import PageHeader from "@/shared/components/PageHeader";
-import { driverRidesApi, CreateRideRequest } from "@/api/driver/rides";
 import { useAuth } from "@/shared/hooks/useAuth";
 
 interface LocationSuggestion {
@@ -77,32 +76,31 @@ export default function CreateRidePage() {
     }
   };
 
-  // Create ride mutation usando nova API organizada
+  // Create ride mutation usando API simplificada que funciona
   const createRideMutation = useMutation({
     mutationFn: async (newRide: typeof rideData) => {
-      if (!user) throw new Error('Usuário não autenticado');
+      const response = await fetch('/api/rides-simple/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          driverId: user?.uid || 'temp-driver-id',
+          fromAddress: newRide.fromLocation,
+          toAddress: newRide.toLocation,
+          departureDate: new Date(`${newRide.departureDate}T${newRide.departureTime}`),
+          price: parseFloat(newRide.pricePerSeat),
+          availableSeats: newRide.availableSeats,
+          vehicleInfo: newRide.vehicleType,
+          additionalInfo: newRide.additionalInfo,
+        }),
+      });
       
-      const rideRequest: CreateRideRequest = {
-        driverId: user.uid,
-        driverName: user.displayName || 'Motorista',
-        driverPhone: user.phoneNumber || '',
-        vehicleType: newRide.vehicleType || 'sedan',
-        vehiclePlate: 'ABC-123', // TODO: Obter do perfil
-        vehicleSeats: newRide.availableSeats,
-        fromAddress: newRide.fromLocation,
-        fromCity: newRide.fromLocation.split(',')[0] || newRide.fromLocation,
-        fromProvince: 'Maputo', // TODO: Detectar automaticamente
-        toAddress: newRide.toLocation,
-        toCity: newRide.toLocation.split(',')[0] || newRide.toLocation,
-        toProvince: 'Maputo', // TODO: Detectar automaticamente
-        departureDateTime: `${newRide.departureDate}T${newRide.departureTime}:00`,
-        pricePerSeat: parseFloat(newRide.pricePerSeat),
-        maxPassengers: newRide.availableSeats,
-        allowNegotiation: false,
-        description: newRide.additionalInfo || ''
-      };
+      if (!response.ok) {
+        throw new Error('Failed to create ride');
+      }
       
-      return driverRidesApi.create(rideRequest);
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -123,7 +121,7 @@ export default function CreateRidePage() {
       });
       
       // Invalidate rides cache
-      queryClient.invalidateQueries({ queryKey: ['/api/client/rides/search'] });
+      queryClient.invalidateQueries({ queryKey: ['rides-simple-search'] });
       
       // Redirect to driver dashboard or rides list
       setLocation('/rides/driver');

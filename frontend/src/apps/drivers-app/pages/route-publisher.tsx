@@ -26,7 +26,6 @@ import {
   Car,
   Plus,
 } from "lucide-react";
-import { driverRidesApi, CreateRideRequest } from "@/api/driver/rides";
 import { useToast } from "@/shared/hooks/use-toast";
 
 export default function RoutePublisher() {
@@ -106,28 +105,28 @@ export default function RoutePublisher() {
 
       console.log("A publicar rota:", rideData);
 
-      // Usar nova API organizada por roles - DRIVER
-      const rideRequest: CreateRideRequest = {
-        driverId: user.uid,
-        driverName: user.displayName || 'Motorista',
-        driverPhone: user.phoneNumber || '',
-        vehicleType: rideData.type,
-        vehiclePlate: 'ABC-123', // TODO: Obter do perfil do motorista
-        vehicleSeats: rideData.maxPassengers,
+      // Usar API simplificada que funciona corretamente
+      const cleanRideData = {
         fromAddress: rideData.fromAddress,
-        fromCity: rideData.fromAddress.split(',')[0] || rideData.fromAddress,
-        fromProvince: 'Maputo', // TODO: Detectar automaticamente
         toAddress: rideData.toAddress,
-        toCity: rideData.toAddress.split(',')[0] || rideData.toAddress,
-        toProvince: 'Maputo', // TODO: Detectar automaticamente
-        departureDateTime: rideData.departureDate,
-        pricePerSeat: rideData.price,
+        departureDate: rideData.departureDate,
+        price: rideData.price.toString(),
         maxPassengers: rideData.maxPassengers,
-        allowNegotiation: false,
-        description: rideData.description || ''
+        type: rideData.type,
+        description: rideData.description || null
       };
       
-      const result = await driverRidesApi.create(rideRequest);
+      const response = await fetch('/api/rides-simple/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cleanRideData)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
 
       console.log("✅ Rota publicada com sucesso na base de dados!", result);
       setSuccess(true);
