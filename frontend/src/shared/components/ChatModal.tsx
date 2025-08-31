@@ -140,8 +140,21 @@ export function ChatModal({
       // Here you would send message to backend/WebSocket
       // await sendMessageToServer(message);
       
-      // Real chat implementation needed - no simulation
-      setLoading(false);
+      // Simulate response after delay (remove in real implementation)
+      setTimeout(() => {
+        const otherParticipant = participants.find(p => p.id !== user?.uid);
+        if (otherParticipant) {
+          const responseMessage: ChatMessage = {
+            id: `msg-${Date.now() + 1}`,
+            senderId: otherParticipant.id,
+            content: getSimulatedResponse(newMessage, chatType),
+            timestamp: new Date(),
+            type: 'text'
+          };
+          setMessages(prev => [...prev, responseMessage]);
+        }
+        setLoading(false);
+      }, 1000 + Math.random() * 2000);
 
     } catch (error) {
       console.error('Error sending message:', error);
@@ -440,6 +453,37 @@ function getParticipantRole(role?: ChatParticipant['role']): string {
   }
 }
 
-// Mock function removed - real chat responses needed
+function getSimulatedResponse(message: string, chatType: ChatType): string {
+  const responses = {
+    ride_booking: [
+      "Olá! Confirmo a sua viagem. Estarei lá na hora marcada.",
+      "Muito bem, vamos combinar os detalhes da viagem.",
+      "Perfeito! Vou buscá-lo no local combinado."
+    ],
+    accommodation_booking: [
+      "Bem-vindo! O seu quarto está reservado e pronto.",
+      "Olá! Obrigado pela reserva. Confirmo a disponibilidade.",
+      "Perfeito! Aguardamos a sua chegada."
+    ],
+    driver_customer: [
+      "Estou a caminho! Chego em 5 minutos.",
+      "Obrigado pela mensagem. Confirmo todos os detalhes.",
+      "Sim, tudo confirmado para a nossa viagem."
+    ],
+    host_guest: [
+      "Bem-vindo ao alojamento! Se precisar de alguma coisa, me avise.",
+      "Obrigado pela reserva! Confirmo tudo para a sua estadia.",
+      "Perfeito! Qualquer dúvida, estou à disposição."
+    ],
+    support: [
+      "Olá! Como posso ajudá-lo hoje?",
+      "Obrigado por entrar em contato. Vou verificar isso para si.",
+      "Entendi a sua questão. Vou resolver isso rapidamente."
+    ]
+  };
+
+  const categoryResponses = responses[chatType] || responses.support;
+  return categoryResponses[Math.floor(Math.random() * categoryResponses.length)];
+}
 
 export default ChatModal;
