@@ -26,7 +26,8 @@ import {
   Car,
   Plus,
 } from "lucide-react";
-// Usando API simplificada diretamente
+import { driverRidesApi, CreateRideRequest } from "@/api/driver/rides";
+import { useToast } from "@/shared/hooks/use-toast";
 
 export default function RoutePublisher() {
   const { user } = useAuth();
@@ -105,28 +106,28 @@ export default function RoutePublisher() {
 
       console.log("A publicar rota:", rideData);
 
-      // Criar viagem usando API simplificada
-      const cleanRideData = {
+      // Usar nova API organizada por roles - DRIVER
+      const rideRequest: CreateRideRequest = {
+        driverId: user.uid,
+        driverName: user.displayName || 'Motorista',
+        driverPhone: user.phoneNumber || '',
+        vehicleType: rideData.type,
+        vehiclePlate: 'ABC-123', // TODO: Obter do perfil do motorista
+        vehicleSeats: rideData.maxPassengers,
         fromAddress: rideData.fromAddress,
+        fromCity: rideData.fromAddress.split(',')[0] || rideData.fromAddress,
+        fromProvince: 'Maputo', // TODO: Detectar automaticamente
         toAddress: rideData.toAddress,
-        departureDate: rideData.departureDate,
-        price: rideData.price.toString(),
+        toCity: rideData.toAddress.split(',')[0] || rideData.toAddress,
+        toProvince: 'Maputo', // TODO: Detectar automaticamente
+        departureDateTime: rideData.departureDate,
+        pricePerSeat: rideData.price,
         maxPassengers: rideData.maxPassengers,
-        type: rideData.type,
-        description: rideData.description || null
+        allowNegotiation: false,
+        description: rideData.description || ''
       };
       
-      const response = await fetch('/api/rides-simple/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(cleanRideData)
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Erro ${response.status}: ${response.statusText}`);
-      }
-      
-      const result = await response.json();
+      const result = await driverRidesApi.create(rideRequest);
 
       console.log("✅ Rota publicada com sucesso na base de dados!", result);
       setSuccess(true);

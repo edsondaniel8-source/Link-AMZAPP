@@ -66,7 +66,7 @@ export default function RideSearchPage() {
 
   // Buscar viagens quando hasSearched muda
   const { data: rides, isLoading, error, refetch } = useQuery({
-    queryKey: ['rides-simple-search', searchParams],
+    queryKey: ['/api/client/rides/search', searchParams],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (searchParams.from) params.append('from', searchParams.from);
@@ -74,7 +74,7 @@ export default function RideSearchPage() {
       if (searchParams.date) params.append('date', searchParams.date);
       params.append('passengers', searchParams.passengers.toString());
       
-      const response = await fetch(`/api/rides-simple/search?${params}`);
+      const response = await fetch(`/api/client/rides/search?${params}`);
       if (!response.ok) {
         throw new Error('Erro ao buscar viagens');
       }
@@ -103,7 +103,7 @@ export default function RideSearchPage() {
   // Mutation para criar reserva
   const bookingMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await fetch('/api/rides-simple/book', {
+      const response = await fetch('/api/client/bookings/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
