@@ -178,7 +178,7 @@ export class DatabaseStorage implements IStorage {
       query = query.where(and(...conditions));
     }
     
-    return query.orderBy(desc(rides.departureDate));
+    return await query.orderBy(desc(rides.departureDate));
   }
 
   async updateRide(id: string, data: Partial<Ride>): Promise<Ride | undefined> {
@@ -188,7 +188,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteRide(id: string): Promise<boolean> {
     const result = await db.delete(rides).where(eq(rides.id, id));
-    return result.count > 0;
+    return result.rowCount > 0;
   }
 
   // Accommodations operations
@@ -231,7 +231,7 @@ export class DatabaseStorage implements IStorage {
       query = query.where(and(...conditions));
     }
     
-    return query.orderBy(desc(accommodations.rating));
+    return await query.orderBy(desc(accommodations.rating));
   }
 
   async updateAccommodation(id: string, data: Partial<Accommodation>): Promise<Accommodation | undefined> {
@@ -241,7 +241,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteAccommodation(id: string): Promise<boolean> {
     const result = await db.delete(accommodations).where(eq(accommodations.id, id));
-    return result.count > 0;
+    return result.rowCount > 0;
   }
 
   // Bookings operations
@@ -312,7 +312,7 @@ export class DatabaseStorage implements IStorage {
       query = query.where(and(...conditions));
     }
     
-    return query.orderBy(asc(events.startDate));
+    return await query.orderBy(asc(events.startDate));
   }
 
   async updateEvent(id: string, data: Partial<Event>): Promise<Event | undefined> {
@@ -322,7 +322,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteEvent(id: string): Promise<boolean> {
     const result = await db.delete(events).where(eq(events.id, id));
-    return result.count > 0;
+    return result.rowCount > 0;
   }
 
   // Payments operations

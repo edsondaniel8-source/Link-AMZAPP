@@ -72,29 +72,48 @@ const searchRidesSchema = z.object({
 // Buscar viagens (público)
 router.get('/search', async (req, res) => {
   try {
-    const query = searchRidesSchema.parse(req.query);
+    const { 
+      from, 
+      to, 
+      date,
+      passengers,
+      minPrice,
+      maxPrice,
+      vehicleType,
+      allowNegotiation,
+      page = '1',
+      limit = '20'
+    } = req.query;
+
+    // Validação básica
+    if (!from || !to) {
+      return res.status(400).json({ 
+        error: "Origem e destino são obrigatórios",
+        details: "Os parâmetros 'from' e 'to' devem ser fornecidos"
+      });
+    }
     
     let whereConditions: any = [eq(rides.isActive, true)];
     
     // Implementar busca por proximidade - encontrar resultados aproximados
-    if (query.from) {
-      const proximityTerms = getProximityTerms(query.from);
+    if (from) {
+      const proximityTerms = getProximityTerms(from as string);
       const fromConditions = proximityTerms.map(term => 
         like(rides.fromAddress, `%${term}%`)
       );
       whereConditions.push(or(...fromConditions));
     }
     
-    if (query.to) {
-      const proximityTerms = getProximityTerms(query.to);
+    if (to) {
+      const proximityTerms = getProximityTerms(to as string);
       const toConditions = proximityTerms.map(term => 
         like(rides.toAddress, `%${term}%`)
       );
       whereConditions.push(or(...toConditions));
     }
     
-    if (query.date) {
-      const searchDate = new Date(query.date);
+    if (date) {
+      const searchDate = new Date(date as string);
       const nextDay = new Date(searchDate);
       nextDay.setDate(nextDay.getDate() + 1);
       
@@ -106,15 +125,21 @@ router.get('/search', async (req, res) => {
       );
     }
     
-    if (query.passengers) {
-      whereConditions.push(gte(rides.availableSeats, query.passengers));
+    if (passengers) {
+      whereConditions.push(gte(rides.availableSeats, Number(passengers)));
     }
     
-    if (query.maxPrice) {
-      whereConditions.push(lte(rides.price, query.maxPrice.toString()));
+    if (minPrice) {
+      whereConditions.push(gte(rides.price, minPrice as string));
+    }
+    
+    if (maxPrice) {
+      whereConditions.push(lte(rides.price, maxPrice as string));
     }
 
-    const offset = (query.page - 1) * query.limit;
+    const pageNum = Number(page);
+    const limitNum = Number(limit);
+    const offset = (pageNum - 1) * limitNum;
     
     const rideResults = await db
       .select({
@@ -125,7 +150,6 @@ router.get('/search', async (req, res) => {
         price: rides.price,
         estimatedDuration: rides.estimatedDuration,
         estimatedDistance: rides.estimatedDistance,
-        availableIn: rides.availableIn,
         driverId: rides.driverId,
         driverName: rides.driverName,
         vehicleInfo: rides.vehicleInfo,
@@ -142,15 +166,27 @@ router.get('/search', async (req, res) => {
       })
       .from(rides)
       .where(and(...whereConditions))
-      .limit(query.limit)
+      .limit(limitNum)
       .offset(offset)
       .orderBy(rides.departureDate);
 
     res.json({
+      success: true,
       rides: rideResults,
+      searchParams: {
+        from,
+        to,
+        date,
+        appliedFilters: {
+          minPrice: minPrice ? Number(minPrice) : null,
+          maxPrice: maxPrice ? Number(maxPrice) : null,
+          passengers: passengers ? Number(passengers) : null,
+          allowNegotiation: allowNegotiation === 'true'
+        }
+      },
       pagination: {
-        page: query.page,
-        limit: query.limit,
+        page: pageNum,
+        limit: limitNum,
         total: rideResults.length,
       }
     });

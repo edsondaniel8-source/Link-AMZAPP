@@ -1,5 +1,4 @@
 // frontend/src/shared/lib/rideService.ts
-import { ApiClient } from "../../lib/apiClient";
 
 export interface RideData {
   type?: string;
@@ -25,15 +24,28 @@ export interface SearchParams {
   passengers?: number;
 }
 
-export interface Ride extends RideData {
+export interface Ride {
   id: string;
   driverId: string;
+  type?: string;
+  fromAddress: string;
+  toAddress: string;
+  departureDate: string;
+  price: number;
+  maxPassengers: number;
+  vehicleType?: string;
+  description?: string;
+  pickupPoint?: string;
+  dropoffPoint?: string;
+  allowNegotiation?: boolean;
+  isRoundTrip?: boolean;
   status: 'active' | 'completed' | 'cancelled';
   currentPassengers: number;
   createdAt: string;
   updatedAt: string;
   driverName: string;
   vehiclePhoto?: string | null;
+  vehicleInfo?: string;
 }
 
 export const rideService = {
@@ -147,13 +159,12 @@ export const rideService = {
     try {
       const queryParams = new URLSearchParams();
       
-      if (searchParams.from) queryParams.append('fromAddress', searchParams.from);
-      if (searchParams.to) queryParams.append('toAddress', searchParams.to);
-      if (searchParams.passengers) queryParams.append('minSeats', searchParams.passengers.toString());
-      if (searchParams.date) queryParams.append('departureDate', searchParams.date);
-      queryParams.append('isActive', 'true');
+      if (searchParams.from) queryParams.append('from', searchParams.from);
+      if (searchParams.to) queryParams.append('to', searchParams.to);
+      if (searchParams.passengers) queryParams.append('passengers', searchParams.passengers.toString());
+      if (searchParams.date) queryParams.append('date', searchParams.date);
 
-      const response = await fetch(`/api/rides?${queryParams.toString()}`);
+      const response = await fetch(`/api/rides/search?${queryParams.toString()}`);
       
       if (!response.ok) {
         throw new Error(`Erro HTTP: ${response.status}`);
@@ -161,13 +172,9 @@ export const rideService = {
 
       const result = await response.json();
       
-      if (!result.success) {
-        throw new Error(result.message || 'Erro ao buscar rotas');
-      }
-
-      console.log(`✅ Encontradas ${result.data.rides.length} rotas no backend`);
+      console.log(`✅ Encontradas ${result.rides.length} rotas no backend`);
       
-      return result.data.rides.map((ride: any) => ({
+      return result.rides.map((ride: any) => ({
         id: ride.id,
         driverId: ride.driverId || 'current-driver',
         fromAddress: ride.fromAddress,
@@ -176,10 +183,10 @@ export const rideService = {
         price: parseFloat(ride.price),
         maxPassengers: ride.maxPassengers,
         type: ride.type,
-        status: ride.isActive ? 'active' as const : 'completed' as const,
+        status: 'active' as const,
         currentPassengers: ride.maxPassengers - ride.availableSeats,
-        createdAt: ride.createdAt,
-        updatedAt: ride.updatedAt,
+        createdAt: ride.createdAt || new Date().toISOString(),
+        updatedAt: ride.updatedAt || new Date().toISOString(),
         driverName: ride.driverName || 'Motorista',
         vehiclePhoto: null,
         description: ride.description || '',
