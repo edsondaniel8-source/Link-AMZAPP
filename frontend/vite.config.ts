@@ -77,6 +77,23 @@ export default defineConfig({
               return;
             }
             
+            // POST para criar nova rota
+            if (req.url === '/api/rides' && req.method === 'POST') {
+              console.log('Mock API: Criando nova rota');
+              
+              // Simular criação bem-sucedida
+              const newRide = {
+                id: Date.now().toString(),
+                status: 'published',
+                createdAt: new Date().toISOString(),
+                message: 'Rota publicada com sucesso!'
+              };
+              
+              res.writeHead(201, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify(newRide));
+              return;
+            }
+            
             res.writeHead(404, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ 
               error: 'API endpoint não encontrado (fallback)',
