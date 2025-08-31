@@ -23,23 +23,26 @@ export default defineConfig({
   server: {
     host: "0.0.0.0",
     port: 5000,
-    middlewareMode: false,
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || 'http://localhost:8000',
+        target: 'http://localhost:8000',
         changeOrigin: true,
-        secure: false,
-        configure: (proxy, _options) => {
+        rewrite: (path) => {
+          console.log(`🔄 API Request: ${path}`);
+          return path;
+        },
+        configure: (proxy, options) => {
           proxy.on('error', (err, req, res) => {
-            console.log('🔴 Proxy error:', err.message);
-            console.log('🔄 Fallback: Using mock API for', req.url);
+            console.log('🔴 Backend não disponível, usando mock API');
+            const url = req.url;
+            const method = req.method;
             
-            // Fallback para mock quando backend não está disponível
-            if (req.url.startsWith('/api/health')) {
+            // Health check
+            if (url === '/api/health') {
               res.writeHead(200, { 'Content-Type': 'application/json' });
               res.end(JSON.stringify({
                 status: 'OK',
-                message: 'Link-A API funcionando (fallback mock)',
+                message: 'Link-A API funcionando (mock)',
                 timestamp: new Date().toISOString(),
                 version: '2.0.0',
                 environment: 'development'
@@ -47,8 +50,9 @@ export default defineConfig({
               return;
             }
             
-            if (req.url.startsWith('/api/rides/search')) {
-              const urlParams = new URLSearchParams(req.url.split('?')[1] || '');
+            // Buscar viagens (GET)
+            if (url.startsWith('/api/rides/search')) {
+              const urlParams = new URLSearchParams(url.split('?')[1] || '');
               const from = urlParams.get('from') || 'Maputo';
               const to = urlParams.get('to') || 'Matola';
               
@@ -77,34 +81,46 @@ export default defineConfig({
               return;
             }
             
-            // POST para criar nova rota
-            if (req.url === '/api/rides' && req.method === 'POST') {
-              console.log('Mock API: Criando nova rota');
+            // Criar nova rota (POST)
+            if (url === '/api/rides' && method === 'POST') {
+              console.log('✅ Mock API: Criando nova rota');
               
-              // Simular criação bem-sucedida
-              const newRide = {
-                id: Date.now().toString(),
-                status: 'published',
-                createdAt: new Date().toISOString(),
-                message: 'Rota publicada com sucesso!'
-              };
+              // Ler body da requisição
+              let body = '';
+              req.on('data', chunk => {
+                body += chunk.toString();
+              });
               
-              res.writeHead(201, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify(newRide));
+              req.on('end', () => {
+                try {
+                  const routeData = body ? JSON.parse(body) : {};
+                  console.log('📝 Dados da rota recebidos:', routeData);
+                  
+                  const newRide = {
+                    id: Date.now().toString(),
+                    status: 'published',
+                    createdAt: new Date().toISOString(),
+                    message: 'Rota publicada com sucesso!',
+                    ...routeData
+                  };
+                  
+                  res.writeHead(201, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify(newRide));
+                } catch (error) {
+                  console.error('Erro ao processar dados:', error);
+                  res.writeHead(500, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ error: 'Erro interno do servidor' }));
+                }
+              });
               return;
             }
             
+            // Erro 404 para outros endpoints
             res.writeHead(404, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ 
-              error: 'API endpoint não encontrado (fallback)',
-              path: req.url
+              error: 'API endpoint não encontrado',
+              path: url
             }));
-          });
-          proxy.on('proxyReq', (proxyReq, req, _res) => {
-            console.log('🔄 Proxying request:', req.method, req.url);
-          });
-          proxy.on('proxyRes', (proxyRes, req, _res) => {
-            console.log('✅ Proxy response:', proxyRes.statusCode, req.url);
           });
         },
       }
