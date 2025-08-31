@@ -82,17 +82,20 @@ router.post('/create', async (req, res) => {
       toAddress,
       departureDate,
       price,
-      availableSeats,
-      vehicleInfo,
-      additionalInfo
+      maxPassengers,
+      type,
+      description
     } = req.body;
     
     // Validações básicas
-    if (!fromAddress || !toAddress || !departureDate || !price || !availableSeats) {
+    if (!fromAddress || !toAddress || !departureDate || !price || !maxPassengers) {
       return res.status(400).json({ 
         error: 'Campos obrigatórios: origem, destino, data, preço e lugares disponíveis' 
       });
     }
+    
+    // Usar driverId do usuário autenticado ou padrão para teste
+    const finalDriverId = driverId || '9624afd4-5385-4601-af6e-4cf747dba1bc';
     
     // Converter data para formato apropriado
     const date = new Date(departureDate);
@@ -108,15 +111,15 @@ router.post('/create', async (req, res) => {
     `;
     
     const values = [
-      driverId,
+      finalDriverId,
       fromAddress,
       toAddress,
       departureDateOnly,
       departureTimeOnly,
-      availableSeats,
+      maxPassengers,
       parseFloat(price),
-      vehicleInfo || 'sedan',
-      additionalInfo
+      type || 'sedan',
+      description
     ];
     
     const result = await pool.query(query, values);

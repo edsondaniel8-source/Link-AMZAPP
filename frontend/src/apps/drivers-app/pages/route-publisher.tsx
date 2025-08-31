@@ -105,12 +105,27 @@ export default function RoutePublisher() {
 
       console.log("A publicar rota:", rideData);
 
-      // TODO: Implementar usando nova API simplificada
+      // Criar viagem usando API simplificada
+      const cleanRideData = {
+        fromAddress: rideData.fromAddress,
+        toAddress: rideData.toAddress,
+        departureDate: rideData.departureDate,
+        price: rideData.price.toString(),
+        maxPassengers: rideData.maxPassengers,
+        type: rideData.type,
+        description: rideData.description || null
+      };
+      
       const response = await fetch('/api/rides-simple/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(rideData)
+        body: JSON.stringify(cleanRideData)
       });
+      
+      if (!response.ok) {
+        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+      }
+      
       const result = await response.json();
 
       console.log("✅ Rota publicada com sucesso na base de dados!", result);
@@ -198,7 +213,7 @@ export default function RoutePublisher() {
               <div className="space-y-2">
                 <Label htmlFor="from" className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-orange-600" />
-                  De onde
+                  Saindo de
                 </Label>
                 <Select
                   onValueChange={(value) =>
@@ -221,7 +236,7 @@ export default function RoutePublisher() {
               <div className="space-y-2">
                 <Label htmlFor="to" className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-blue-600" />
-                  Para onde
+                  Indo para
                 </Label>
                 <Select
                   onValueChange={(value) =>

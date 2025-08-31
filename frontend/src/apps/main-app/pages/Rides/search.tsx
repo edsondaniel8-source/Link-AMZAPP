@@ -165,14 +165,7 @@ export default function RideSearchPage() {
       return;
     }
 
-    const reservationData = {
-      rideId: selectedRide.id,
-      passengers: bookingData.passengers,
-      phone: bookingData.phone,
-      email: bookingData.email,
-      notes: bookingData.notes,
-      totalPrice: selectedRide.price * bookingData.passengers
-    };
+    // Validação completa - dados prontos para envio
 
     bookingMutation.mutate({
       rideId: selectedRide.id,
@@ -296,7 +289,7 @@ export default function RideSearchPage() {
               </Card>
             )}
 
-            {rides && rides.map((ride) => (
+            {rides && rides.map((ride: Ride) => (
               <Card key={ride.id} className="hover:shadow-xl transition-all duration-300 border-0 shadow-md">
                 <CardContent className="p-6">
                   <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-center">
