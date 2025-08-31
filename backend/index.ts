@@ -54,10 +54,6 @@ app.get("/api/health", (req, res) => {
     environment: process.env.NODE_ENV || "development",
   });
 });
-import ridesRouter from "./routes/rides.js";
-
-// Mount rides router
-app.use("/api/rides", ridesRouter);
 
 // Função principal do servidor
 async function startServer() {
