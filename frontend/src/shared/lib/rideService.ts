@@ -1,5 +1,6 @@
 // frontend/src/shared/lib/rideService.ts
 import { ApiClient } from "../../lib/apiClient";
+import { SharedDataService } from '../services/sharedDataService';
 
 export interface RideData {
   type?: string;
@@ -102,8 +103,40 @@ export const rideService = {
 
   // Buscar rides públicas (para a main-app dos clientes)
   searchRides: async (searchParams: SearchParams): Promise<Ride[]> => {
-    console.log('🔍 RideService: Buscando rotas', searchParams);
+    console.log('🔍 RideService: Buscando rotas reais', searchParams);
     
+    // Usar dados reais do serviço compartilhado primeiro
+    const sharedRides = SharedDataService.searchRides({
+      from: searchParams.from,
+      to: searchParams.to,
+      passengers: searchParams.passengers,
+      date: searchParams.date
+    });
+
+    if (sharedRides.length > 0) {
+      console.log(`✅ Encontradas ${sharedRides.length} rotas reais dos motoristas`);
+      return sharedRides.map((ride: any) => ({
+        id: ride.id,
+        driverId: ride.driverId,
+        fromAddress: ride.fromAddress,
+        toAddress: ride.toAddress,
+        departureDate: ride.departureDate,
+        price: ride.price,
+        maxPassengers: ride.maxPassengers,
+        type: ride.type,
+        status: ride.status as 'active' | 'completed' | 'cancelled',
+        currentPassengers: ride.maxPassengers - ride.availableSeats,
+        createdAt: ride.createdAt,
+        updatedAt: ride.updatedAt,
+        driverName: ride.driverName,
+        vehiclePhoto: ride.vehiclePhoto,
+        description: ride.description || '',
+        vehicleInfo: ride.vehicleInfo
+      }));
+    }
+
+    // Fallback para API se não há dados locais
+    console.log('📡 Não há rotas locais, tentando API...');
     const apiParams = {
       from: searchParams.from,
       to: searchParams.to,
