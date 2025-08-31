@@ -135,8 +135,9 @@ export default function RideSearchPage() {
     bookingMutation.mutate(reservationData);
   };
 
-  const formatPrice = (price: number) => {
-    return `${price.toFixed(2)} MT`;
+  const formatPrice = (price: number | string) => {
+    const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+    return `${numPrice.toFixed(2)} MT`;
   };
 
   const formatDate = (dateString: string) => {
@@ -437,7 +438,7 @@ export default function RideSearchPage() {
                   <div className="flex justify-between items-center">
                     <span>Total ({bookingData.passengers} passageiro{bookingData.passengers > 1 ? 's' : ''})</span>
                     <span className="text-xl font-bold text-blue-600">
-                      {formatPrice(selectedRide.price * bookingData.passengers)}
+                      {formatPrice(parseFloat(selectedRide.price) * bookingData.passengers)}
                     </span>
                   </div>
                 </div>

@@ -41,19 +41,133 @@ interface Booking {
   details: any;
 }
 
-// Armazenamento em memória
+// Armazenamento em memória com dados mais realistas de Moçambique
 let rides: Ride[] = [
   {
     id: '1',
     type: 'Standard',
     fromAddress: 'Maputo',
     toAddress: 'Matola',
-    price: '50.00',
-    estimatedDuration: 30,
+    price: '80.00',
+    estimatedDuration: 45,
     availableSeats: 3,
-    driverName: 'João Silva',
-    vehicleInfo: 'Toyota Corolla Branco',
-    departureDate: new Date().toISOString(),
+    driverName: 'Carlos Manhiça',
+    vehicleInfo: 'Toyota Corolla Prata 2018',
+    vehiclePhoto: null,
+    description: 'Viagem confortável e segura com ar condicionado',
+    departureDate: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), // 2 horas à frente
+    createdAt: new Date().toISOString(),
+    status: 'published'
+  },
+  {
+    id: '2',
+    type: 'Premium',
+    fromAddress: 'Maputo',
+    toAddress: 'Inhambane',
+    price: '1200.00',
+    estimatedDuration: 300,
+    availableSeats: 2,
+    driverName: 'Ana Macuácua',
+    vehicleInfo: 'Mercedes-Benz Classe C Azul 2020',
+    vehiclePhoto: null,
+    description: 'Viagem premium com paragens para descanso e refeições incluídas',
+    departureDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // amanhã
+    createdAt: new Date().toISOString(),
+    status: 'published'
+  },
+  {
+    id: '3',
+    type: 'Econômico',
+    fromAddress: 'Maputo',
+    toAddress: 'Xai-Xai',
+    price: '350.00',
+    estimatedDuration: 120,
+    availableSeats: 4,
+    driverName: 'Tomás Sithole',
+    vehicleInfo: 'Nissan Sentra Branco 2016',
+    vehiclePhoto: null,
+    description: 'Opção económica e rápida para Xai-Xai',
+    departureDate: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(), // 4 horas à frente
+    createdAt: new Date().toISOString(),
+    status: 'published'
+  },
+  {
+    id: '4',
+    type: 'Standard',
+    fromAddress: 'Inhambane',
+    toAddress: 'Maputo',
+    price: '1150.00',
+    estimatedDuration: 290,
+    availableSeats: 3,
+    driverName: 'Felisberto Cossa',
+    vehicleInfo: 'Honda Civic Cinza 2019',
+    vehiclePhoto: null,
+    description: 'Regresso de Inhambane para Maputo, viagem confortável',
+    departureDate: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(), // 2 dias
+    createdAt: new Date().toISOString(),
+    status: 'published'
+  },
+  {
+    id: '5',
+    type: 'Minibus',
+    fromAddress: 'Maputo',
+    toAddress: 'Beira',
+    price: '2800.00',
+    estimatedDuration: 600,
+    availableSeats: 8,
+    driverName: 'Joaquim Chissano',
+    vehicleInfo: 'Toyota Hiace Branco 2017',
+    vehiclePhoto: null,
+    description: 'Viagem longa com várias paragens, ideal para grupos',
+    departureDate: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(), // 3 dias
+    createdAt: new Date().toISOString(),
+    status: 'published'
+  },
+  {
+    id: '6',
+    type: 'Standard',
+    fromAddress: 'Matola',
+    toAddress: 'Maputo',
+    price: '75.00',
+    estimatedDuration: 40,
+    availableSeats: 3,
+    driverName: 'Maria Nhamuave',
+    vehicleInfo: 'Hyundai Accent Vermelho 2018',
+    vehiclePhoto: null,
+    description: 'Trajeto rápido entre Matola e Maputo centro',
+    departureDate: new Date(Date.now() + 90 * 60 * 1000).toISOString(), // 1.5 horas
+    createdAt: new Date().toISOString(),
+    status: 'published'
+  },
+  {
+    id: '7',
+    type: 'Premium',
+    fromAddress: 'Maputo',
+    toAddress: 'Vilanculos',
+    price: '1800.00',
+    estimatedDuration: 360,
+    availableSeats: 2,
+    driverName: 'Eduardo Mabjaia',
+    vehicleInfo: 'BMW X3 Preto 2021',
+    vehiclePhoto: null,
+    description: 'Viagem de luxo para Vilanculos com WiFi e bebidas incluídas',
+    departureDate: new Date(Date.now() + 36 * 60 * 60 * 1000).toISOString(), // 1.5 dias
+    createdAt: new Date().toISOString(),
+    status: 'published'
+  },
+  {
+    id: '8',
+    type: 'Econômico',
+    fromAddress: 'Xai-Xai',
+    toAddress: 'Maputo',
+    price: '320.00',
+    estimatedDuration: 115,
+    availableSeats: 4,
+    driverName: 'Albertina Mucavel',
+    vehicleInfo: 'Suzuki Swift Azul 2015',
+    vehiclePhoto: null,
+    description: 'Retorno económico de Xai-Xai para Maputo',
+    departureDate: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(), // 8 horas
     createdAt: new Date().toISOString(),
     status: 'published'
   }
