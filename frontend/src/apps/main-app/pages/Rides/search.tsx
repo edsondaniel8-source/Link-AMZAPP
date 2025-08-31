@@ -4,12 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
 import { Input } from "@/shared/components/ui/input";
-import { Separator } from "@/shared/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/shared/components/ui/dialog";
 import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { useToast } from "@/shared/hooks/use-toast";
-import { MapPin, Users, Star, ArrowLeft, Calendar, Search, Phone, Mail, CreditCard } from "lucide-react";
+import { ArrowLeft, Calendar, Search, Phone, Mail, CreditCard, Car, ArrowRight, User } from "lucide-react";
 import { rideService, type Ride } from "@/shared/lib/rideService";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import PageHeader from "@/shared/components/PageHeader";
@@ -249,87 +248,99 @@ export default function RideSearchPage() {
             )}
 
             {rides && rides.map((ride) => (
-              <Card key={ride.id} className="hover:shadow-lg transition-shadow">
-                <CardContent className="pt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
-                    {/* Foto do Veículo */}
-                    <div className="md:col-span-1">
-                      {ride.vehiclePhoto ? (
-                        <img 
-                          src={ride.vehiclePhoto} 
-                          alt={`Veículo ${ride.type}`}
-                          className="w-full h-24 md:h-20 object-cover rounded-lg"
-                        />
-                      ) : (
-                        <div className="w-full h-24 md:h-20 bg-gray-200 rounded-lg flex items-center justify-center">
-                          <MapPin className="w-8 h-8 text-gray-400" />
-                        </div>
-                      )}
-                      <div className="text-xs text-center mt-1 text-gray-500">
-                        {ride.type}
-                      </div>
-                    </div>
-
-                    {/* Informações da rota */}
-                    <div className="md:col-span-2">
-                      <div className="flex items-center gap-4 mb-3">
-                        <div className="text-center">
-                          <div className="font-semibold text-lg">{ride.fromAddress}</div>
-                          <div className="text-sm text-gray-500">Origem</div>
-                        </div>
-                        <div className="flex-1 relative">
-                          <Separator className="w-full" />
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="bg-white px-2">
-                              <MapPin className="w-4 h-4 text-gray-400" />
+              <Card key={ride.id} className="hover:shadow-xl transition-all duration-300 border-0 shadow-md">
+                <CardContent className="p-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-center">
+                    {/* Foto do Veículo e Informações do Tipo */}
+                    <div className="lg:col-span-1">
+                      <div className="relative">
+                        {ride.vehiclePhoto ? (
+                          <img 
+                            src={ride.vehiclePhoto} 
+                            alt={`Veículo ${ride.type}`}
+                            className="w-full h-28 object-cover rounded-xl"
+                          />
+                        ) : (
+                          <div className="w-full h-28 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center">
+                            <div className="text-center">
+                              <Car className="w-8 h-8 text-blue-600 mx-auto mb-1" />
+                              <div className="text-xs font-medium text-blue-700">{ride.type}</div>
                             </div>
                           </div>
-                        </div>
-                        <div className="text-center">
-                          <div className="font-semibold text-lg">{ride.toAddress}</div>
-                          <div className="text-sm text-gray-500">Destino</div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-4 text-sm text-gray-600 flex-wrap">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          {formatDate(ride.departureDate)}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Users className="w-4 h-4" />
-                          {ride.maxPassengers - ride.currentPassengers} lugares disponíveis
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Star className="w-4 h-4 text-yellow-500" />
-                          {ride.driverName}
+                        )}
+                        <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+                          {ride.maxPassengers - ride.currentPassengers} lugares
                         </div>
                       </div>
-                      
-                      {ride.description && (
-                        <div className="mt-2 text-sm text-gray-600">
-                          {ride.description}
-                        </div>
-                      )}
                     </div>
 
-                    {/* Preço */}
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-primary">
-                        {formatPrice(ride.price)}
+                    {/* Informações da Rota */}
+                    <div className="lg:col-span-2">
+                      <div className="space-y-4">
+                        {/* Rota Visual */}
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1">
+                            <div className="font-bold text-lg text-gray-800">{ride.fromAddress}</div>
+                            <div className="text-sm text-gray-500">Saída</div>
+                          </div>
+                          <div className="flex flex-col items-center px-3">
+                            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                              <ArrowRight className="w-4 h-4 text-white" />
+                            </div>
+                            <div className="text-xs text-gray-400 mt-1">direto</div>
+                          </div>
+                          <div className="flex-1 text-right">
+                            <div className="font-bold text-lg text-gray-800">{ride.toAddress}</div>
+                            <div className="text-sm text-gray-500">Chegada</div>
+                          </div>
+                        </div>
+                        
+                        {/* Detalhes da Viagem */}
+                        <div className="flex items-center gap-4 text-sm text-gray-600 flex-wrap">
+                          <div className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-full">
+                            <Calendar className="w-4 h-4 text-blue-500" />
+                            <span className="font-medium">{formatDate(ride.departureDate)}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-full">
+                            <User className="w-4 h-4 text-green-500" />
+                            <span className="font-medium">{ride.driverName}</span>
+                          </div>
+                        </div>
+                        
+                        {ride.description && (
+                          <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg italic">
+                            "{ride.description}"
+                          </div>
+                        )}
                       </div>
-                      <div className="text-sm text-gray-500">por pessoa</div>
                     </div>
 
-                    {/* Ação */}
+                    {/* Preço Destacado */}
+                    <div className="text-center lg:text-left">
+                      <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl">
+                        <div className="text-3xl font-bold text-green-700">
+                          {formatPrice(ride.price)}
+                        </div>
+                        <div className="text-sm text-green-600 font-medium">por pessoa</div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          Total: {formatPrice((parseFloat(ride.price) * searchParams.passengers).toString())}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Botão de Reserva */}
                     <div className="text-center">
                       <Button 
                         onClick={() => handleBookRide(ride)}
-                        className="w-full"
+                        className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-300"
                         data-testid={`button-book-ride-${ride.id}`}
                       >
-                        Reservar
+                        <Calendar className="w-5 h-5 mr-2" />
+                        Reservar Agora
                       </Button>
+                      <div className="text-xs text-gray-500 mt-2">
+                        Confirmação instantânea
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -438,7 +449,7 @@ export default function RideSearchPage() {
                   <div className="flex justify-between items-center">
                     <span>Total ({bookingData.passengers} passageiro{bookingData.passengers > 1 ? 's' : ''})</span>
                     <span className="text-xl font-bold text-blue-600">
-                      {formatPrice(parseFloat(selectedRide.price) * bookingData.passengers)}
+                      {formatPrice((parseFloat(selectedRide.price) * bookingData.passengers).toString())}
                     </span>
                   </div>
                 </div>

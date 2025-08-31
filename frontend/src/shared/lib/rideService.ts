@@ -107,7 +107,8 @@ export const rideService = {
     const apiParams = {
       from: searchParams.from,
       to: searchParams.to,
-      passengers: searchParams.passengers?.toString()
+      passengers: searchParams.passengers?.toString(),
+      date: searchParams.date
     };
     
     const result = await ApiClient.searchRides(apiParams);

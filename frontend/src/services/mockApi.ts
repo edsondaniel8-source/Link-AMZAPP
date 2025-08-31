@@ -254,22 +254,50 @@ export class MockApiService {
     };
   }
   
-  static async searchRides(params: { from?: string; to?: string; passengers?: string }): Promise<{ rides: Ride[]; pagination: any }> {
+  static async searchRides(params: { from?: string; to?: string; passengers?: string; date?: string }): Promise<{ rides: Ride[]; pagination: any }> {
     console.log('🔍 Buscar viagens:', params);
     
     let filteredRides = [...rides];
     
+    // Busca flexível por origem
     if (params.from) {
+      const fromLower = params.from.toLowerCase();
       filteredRides = filteredRides.filter(ride => 
-        ride.fromAddress.toLowerCase().includes(params.from!.toLowerCase())
+        ride.fromAddress.toLowerCase().includes(fromLower) ||
+        fromLower.includes(ride.fromAddress.toLowerCase())
       );
     }
     
+    // Busca flexível por destino
     if (params.to) {
+      const toLower = params.to.toLowerCase();
       filteredRides = filteredRides.filter(ride => 
-        ride.toAddress.toLowerCase().includes(params.to!.toLowerCase())
+        ride.toAddress.toLowerCase().includes(toLower) ||
+        toLower.includes(ride.toAddress.toLowerCase())
       );
     }
+    
+    // Filtrar por número de passageiros
+    if (params.passengers) {
+      const requiredSeats = parseInt(params.passengers);
+      filteredRides = filteredRides.filter(ride => 
+        ride.availableSeats >= requiredSeats
+      );
+    }
+    
+    // Filtrar por data (mesmo dia)
+    if (params.date) {
+      const searchDate = new Date(params.date);
+      filteredRides = filteredRides.filter(ride => {
+        const rideDate = new Date(ride.departureDate);
+        return rideDate.toDateString() === searchDate.toDateString();
+      });
+    }
+    
+    // Ordenar por preço (mais baratos primeiro)
+    filteredRides.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+    
+    console.log(`🎯 Encontradas ${filteredRides.length} viagens para os critérios especificados`);
     
     return {
       rides: filteredRides,
