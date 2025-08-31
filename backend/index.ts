@@ -42,7 +42,7 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
 // Servir arquivos estáticos do frontend build
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
 // API Health check
 app.get("/api/health", (req, res) => {
@@ -63,17 +63,17 @@ async function startServer() {
     // Registrar todas as rotas da API
     const server = await registerRoutes(app);
 
-    // SPA Catch-all handler - serve index.html para rotas não-API
-    app.get("*", (req, res) => {
-      if (req.path.startsWith("/api/")) {
-        return res.status(404).json({
-          error: "API endpoint não encontrado",
-          path: req.path,
-        });
-      }
+    // Para rotas API não encontradas - SEMPRE retorne JSON
+    app.all('/api/*', (req, res) => {
+      res.status(404).json({ 
+        error: 'API endpoint não encontrado',
+        path: req.path
+      });
+    });
 
-      // Para qualquer outra rota, servir index.html (React SPA)
-      res.sendFile(path.join(__dirname, "index.html"));
+    // Para todas as outras rotas - sirva o SPA
+    app.get('*', (req, res) => {
+      res.sendFile(path.join(__dirname, '../frontend/dist', 'index.html'));
     });
 
     // Configurar graceful shutdown
