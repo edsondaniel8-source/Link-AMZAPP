@@ -75,7 +75,7 @@ app.get("/api/rides/search", (req, res) => {
 });
 
 // Criar nova rota (viagem)
-app.post("/api/rides", (req, res) => {
+app.post("/api/rides-simple/create", (req, res) => {
   try {
     const { from, to, date, time, seats, price, vehicleType, additionalInfo } =
       req.body;
