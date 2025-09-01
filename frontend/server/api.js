@@ -82,8 +82,8 @@ export function createApiServer() {
   });
 
   // Criar nova rota (POST)
-  app.post("/api/simplified-rides/create", (req, res) => {
-    console.log("📝 POST /api/simplified-rides/create - Criando nova rota");
+  app.post("/api/simplified-rides", (req, res) => {
+    console.log("📝 POST /api/simplified-rides - Criando nova rota");
     console.log("Dados recebidos:", req.body);
 
     try {
