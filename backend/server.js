@@ -1,14 +1,20 @@
-// Backend simples para testar a API
+// Backend completo para produção
 import express from "express";
 import cors from "cors";
+import { Pool } from "pg"; // ← IMPORTANTE: instale o pacote pg
 
 const app = express();
-const PORT = 8000;
+const PORT = process.env.PORT || 8000;
 
-// CORS
+// CORS para produção - permitindo seu frontend no Railway
 app.use(
   cors({
-    origin: ["http://localhost:5000", "http://localhost:3000"],
+    origin: [
+      "http://localhost:5000",
+      "http://localhost:3000",
+      "https://link-amzapp-production.up.railway.app", // ← SEU FRONTEND
+      "https://link-aturismomoz.com", // ← ADICIONE SEU DOMÍNIO REAL
+    ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
@@ -17,6 +23,9 @@ app.use(
 
 app.use(express.json());
 
+// Armazenamento em memória (substitua por database real)
+let rides = [];
+
 // API Health check
 app.get("/api/health", (req, res) => {
   res.json({
@@ -24,11 +33,12 @@ app.get("/api/health", (req, res) => {
     message: "Link-A Backend API funcionando",
     timestamp: new Date().toISOString(),
     version: "2.0.0",
-    environment: process.env.NODE_ENV || "development",
+    environment: process.env.NODE_ENV || "production",
+    totalRides: rides.length,
   });
 });
 
-// Buscar viagens (mock para teste)
+// Buscar viagens
 app.get("/api/rides/search", (req, res) => {
   const { from, to, passengers = 1 } = req.query;
 
@@ -36,45 +46,25 @@ app.get("/api/rides/search", (req, res) => {
     `Buscar viagens: de ${from} para ${to}, ${passengers} passageiros`,
   );
 
-  // Mock data para teste
-  const mockRides = [
-    {
-      id: "1",
-      type: "Standard",
-      fromAddress: from || "Maputo",
-      toAddress: to || "Matola",
-      price: "50.00",
-      estimatedDuration: 30,
-      availableSeats: 3,
-      driverName: "João Silva",
-      vehicleInfo: "Toyota Corolla Branco",
-      departureDate: new Date().toISOString(),
-    },
-    {
-      id: "2",
-      type: "Comfort",
-      fromAddress: from || "Maputo",
-      toAddress: to || "Matola",
-      price: "75.00",
-      estimatedDuration: 25,
-      availableSeats: 2,
-      driverName: "Maria Santos",
-      vehicleInfo: "Honda Civic Prata",
-      departureDate: new Date().toISOString(),
-    },
-  ];
+  // Filtra as viagens
+  let filteredRides = rides.filter(
+    (ride) =>
+      (!from || ride.fromAddress.toLowerCase().includes(from.toLowerCase())) &&
+      (!to || ride.toAddress.toLowerCase().includes(to.toLowerCase())) &&
+      ride.availableSeats >= parseInt(passengers),
+  );
 
   res.json({
-    rides: mockRides,
+    rides: filteredRides,
     pagination: {
       page: 1,
       limit: 20,
-      total: mockRides.length,
+      total: filteredRides.length,
     },
   });
 });
 
-// Criar nova rota (viagem)
+// Criar nova rota (viagem) - ROTA QUE ESTAVA FALTANDO
 app.post("/api/rides-simple/create", (req, res) => {
   try {
     const { from, to, date, time, seats, price, vehicleType, additionalInfo } =
@@ -82,29 +72,46 @@ app.post("/api/rides-simple/create", (req, res) => {
 
     console.log("📦 Dados recebidos para nova rota:", req.body);
 
-    // Validação básica
+    // Validação melhorada
     if (!from || !to || !date || !time || !seats || !price) {
       return res.status(400).json({
         error: "Dados incompletos",
-        message: "Preencha todos os campos obrigatórios",
+        message:
+          "Preencha todos os campos obrigatórios: origem, destino, data, hora, lugares e preço",
+        missing: {
+          from: !from,
+          to: !to,
+          date: !date,
+          time: !time,
+          seats: !seats,
+          price: !price,
+        },
       });
     }
 
-    // Mock response - substitua com sua lógica real
+    // Criar nova viagem
     const newRide = {
-      id: Math.random().toString(36).substr(2, 9),
-      from,
-      to,
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+      fromAddress: from,
+      toAddress: to,
       date,
       time,
-      seats: parseInt(seats),
+      availableSeats: parseInt(seats),
       price: parseFloat(price),
       vehicleType: vehicleType || "Standard",
       additionalInfo: additionalInfo || "",
       status: "active",
       createdAt: new Date().toISOString(),
-      driverId: "mock-driver-id", // Substitua com ID real do usuário autenticado
+      driverId: "mock-driver-id", // Em produção, use req.user.id
+      driverName: "Motorista",
+      vehicleInfo: vehicleType
+        ? `${vehicleType} - Disponível`
+        : "Veículo Disponível",
+      estimatedDuration: 30, // minutos
     };
+
+    // Adiciona à lista
+    rides.push(newRide);
 
     console.log("✅ Nova rota criada:", newRide);
 
@@ -112,6 +119,7 @@ app.post("/api/rides-simple/create", (req, res) => {
       success: true,
       message: "Rota publicada com sucesso!",
       ride: newRide,
+      totalRides: rides.length,
     });
   } catch (error) {
     console.error("❌ Erro ao criar rota:", error);
@@ -120,17 +128,48 @@ app.post("/api/rides-simple/create", (req, res) => {
       message: error.message,
     });
   }
-}); // ✅ FECHAMENTO CORRETO DA ROTA POST
+});
 
-// Catch-all para rotas não encontradas
-app.get("*", (req, res) => {
-  if (req.path.startsWith("/api/")) {
-    return res.status(404).json({
-      error: "API endpoint não encontrado",
-      path: req.path,
-    });
-  }
-  res.status(404).json({ error: "Rota não encontrada" });
+// Listar todas as rotas (GET para teste)
+app.get("/api/rides-simple/create", (req, res) => {
+  res.json({
+    success: true,
+    message: "Endpoint POST para criar rotas. Use POST para criar nova rota.",
+    totalRides: rides.length,
+    rides: rides,
+  });
+});
+
+// Rota alternativa também (para compatibilidade)
+app.post("/api/rides", (req, res) => {
+  // Redireciona para a rota simple/create
+  console.log("📦 Redirecting /api/rides to /api/rides-simple/create");
+  req.url = "/api/rides-simple/create";
+  app.handle(req, res);
+});
+
+// Catch-all para rotas API não encontradas
+app.use("/api/*", (req, res) => {
+  res.status(404).json({
+    error: "API endpoint não encontrado",
+    path: req.path,
+    method: req.method,
+    availableEndpoints: [
+      "GET /api/health",
+      "GET /api/rides/search",
+      "POST /api/rides-simple/create",
+      "GET /api/rides-simple/create",
+      "POST /api/rides",
+    ],
+  });
+});
+
+// Catch-all para outras rotas
+app.use("*", (req, res) => {
+  res.status(404).json({
+    error: "Rota não encontrada",
+    message: "Consulte /api/health para endpoints disponíveis",
+  });
 });
 
 // Iniciar servidor
@@ -138,6 +177,7 @@ app.listen(PORT, "0.0.0.0", () => {
   console.log(`🌐 Link-A Backend Server running on port ${PORT}`);
   console.log(`🔌 API: http://localhost:${PORT}/api/`);
   console.log(`🏥 Health: http://localhost:${PORT}/api/health`);
+  console.log(`🚗 Rides: http://localhost:${PORT}/api/rides-simple/create`);
   console.log("✅ Backend funcionando corretamente");
 });
 
