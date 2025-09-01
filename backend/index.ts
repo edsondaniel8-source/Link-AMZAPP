@@ -20,10 +20,8 @@ app.use(
       // Domínios de produção
       "https://link-aturismomoz.com",
       "https://www.link-aturismomoz.com",
-      "https://link-amzapp.vercel.app",
-      "https://link-amzapp-git-main-brunooliveira3s-projects.vercel.app",
-      // Todos os deploys do Vercel
-      /https:\/\/link-amzapp-.*\.vercel\.app$/,
+      "link-amzapp-production.up.railway.app",
+
       // Railway backend URL
       process.env.CORS_ORIGIN ||
         "https://link-amzapp-production.up.railway.app",
@@ -42,7 +40,7 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
 // Servir arquivos estáticos do frontend build
-app.use(express.static(path.join(__dirname, '../frontend/dist')));
+app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
 // API Health check
 app.get("/api/health", (req, res) => {
@@ -64,16 +62,16 @@ async function startServer() {
     const server = await registerRoutes(app);
 
     // Para rotas API não encontradas - SEMPRE retorne JSON
-    app.all('/api/*', (req, res) => {
-      res.status(404).json({ 
-        error: 'API endpoint não encontrado',
-        path: req.path
+    app.all("/api/*", (req, res) => {
+      res.status(404).json({
+        error: "API endpoint não encontrado",
+        path: req.path,
       });
     });
 
     // Para todas as outras rotas - sirva o SPA
-    app.get('*', (req, res) => {
-      res.sendFile(path.join(__dirname, '../frontend/dist', 'index.html'));
+    app.get("*", (req, res) => {
+      res.sendFile(path.join(__dirname, "../frontend/dist", "index.html"));
     });
 
     // Configurar graceful shutdown

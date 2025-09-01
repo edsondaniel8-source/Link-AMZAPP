@@ -159,7 +159,7 @@ app.use("/api/*", (req, res) => {
       "GET /api/rides/search",
       "POST /api/rides-simple/create",
       "GET /api/rides-simple/create",
-      "POST /api/rides",
+      "POST /api/rides-simple/create",
     ],
   });
 });
