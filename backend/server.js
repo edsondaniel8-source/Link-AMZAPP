@@ -143,8 +143,8 @@ app.get("/api/rides-simple/create", (req, res) => {
 // Rota alternativa também (para compatibilidade)
 app.post("/api/rides", (req, res) => {
   // Redireciona para a rota simple/create
-  console.log("📦 Redirecting /api/rides to /api/rides-simple/create");
-  req.url = "/api/rides-simple/create";
+  console.log("📦 Redirecting /api/rides to /api/simplified-rides/create");
+  req.url = "/api/simplified-rides/create";
   app.handle(req, res);
 });
 
@@ -157,8 +157,8 @@ app.use("/api/*", (req, res) => {
     availableEndpoints: [
       "GET /api/health",
       "GET /api/rides/search",
-      "POST /api/rides-simple/create",
-      "GET /api/rides-simple/create",
+      "POST /api/simplified-rides/create",
+      "GET /api/simplified-rides/create",
       "POST /api/rides-simple/create",
     ],
   });
