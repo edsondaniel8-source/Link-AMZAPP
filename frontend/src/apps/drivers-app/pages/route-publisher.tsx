@@ -17,6 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
+import { LocationAutocomplete } from "@/shared/components/LocationAutocomplete";
+import { useToast } from "@/shared/hooks/use-toast";
 import {
   MapPin,
   Calendar,
@@ -26,12 +28,12 @@ import {
   Car,
   Plus,
 } from "lucide-react";
-import { useToast } from "@/shared/hooks/use-toast";
 
 export default function RoutePublisher() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null); // 2. Especificar o tipo como string | null
+  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
   // 3. CORREÇÃO: Adicione os campos 'date' e 'time' ao estado
@@ -105,15 +107,16 @@ export default function RoutePublisher() {
 
       console.log("A publicar rota:", rideData);
 
-      // Usar API simplificada que funciona corretamente
+      // Usar API simplificada com dados corretos
       const cleanRideData = {
         fromAddress: rideData.fromAddress,
         toAddress: rideData.toAddress,
         departureDate: rideData.departureDate,
-        price: rideData.price.toString(),
+        price: Number(rideData.price), // CORRIGIDO: Enviar como número
         maxPassengers: rideData.maxPassengers,
         type: rideData.type,
-        description: rideData.description || null
+        description: rideData.description || null,
+        driverId: user?.uid || 'temp-driver-id' // Usar ID real do motorista
       };
       
       const response = await fetch('/api/rides-simple/create', {
@@ -130,6 +133,12 @@ export default function RoutePublisher() {
 
       console.log("✅ Rota publicada com sucesso na base de dados!", result);
       setSuccess(true);
+      
+      // Mostrar toast de sucesso
+      toast({
+        title: "Viagem publicada!",
+        description: "Sua viagem já está disponível para reservas.",
+      });
 
       // Reset form
       setFormData({
@@ -160,22 +169,7 @@ export default function RoutePublisher() {
     }
   };
 
-  const cities = [
-    "Maputo",
-    "Matola",
-    "Beira",
-    "Nampula",
-    "Chimoio",
-    "Nacala",
-    "Quelimane",
-    "Tete",
-    "Xai-Xai",
-    "Inhambane",
-    "Pemba",
-    "Lichinga",
-    "Angoche",
-    "Maxixe",
-  ];
+  // Cidades removidas - agora usando LocationAutocomplete com lista completa de locais
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -191,12 +185,12 @@ export default function RoutePublisher() {
 
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-4">
-            {error}
+            ❌ {error}
           </div>
         )}
         {success && (
           <div className="bg-green-50 border border-green-200 text-green-700 p-4 rounded-lg mb-4">
-            Rota publicada com sucesso!
+            ✅ Viagem publicada com sucesso! Já está disponível para reservas.
           </div>
         )}
 
@@ -208,29 +202,19 @@ export default function RoutePublisher() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Origem e Destino */}
+            {/* Origem e Destino com AutoComplete */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="from" className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-orange-600" />
                   Saindo de
                 </Label>
-                <Select
-                  onValueChange={(value) =>
-                    handleInputChange("fromAddress", value)
-                  }
-                >
-                  <SelectTrigger data-testid="select-from">
-                    <SelectValue placeholder="Cidade de origem" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {cities.map((city) => (
-                      <SelectItem key={city} value={city}>
-                        {city}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <LocationAutocomplete
+                  value={formData.fromAddress}
+                  onChange={(value) => handleInputChange("fromAddress", value)}
+                  placeholder="Saindo de... (qualquer local em Moçambique)"
+                  className="w-full"
+                />
               </div>
 
               <div className="space-y-2">
@@ -238,22 +222,12 @@ export default function RoutePublisher() {
                   <MapPin className="w-4 h-4 text-blue-600" />
                   Indo para
                 </Label>
-                <Select
-                  onValueChange={(value) =>
-                    handleInputChange("toAddress", value)
-                  }
-                >
-                  <SelectTrigger data-testid="select-to">
-                    <SelectValue placeholder="Cidade de destino" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {cities.map((city) => (
-                      <SelectItem key={city} value={city}>
-                        {city}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <LocationAutocomplete
+                  value={formData.toAddress}
+                  onChange={(value) => handleInputChange("toAddress", value)}
+                  placeholder="Indo para... (qualquer local em Moçambique)"
+                  className="w-full"
+                />
               </div>
             </div>
 
@@ -493,14 +467,39 @@ export default function RoutePublisher() {
               </Button>
             </div>
 
+            {/* Resumo da Viagem */}
+            {formData.fromAddress && formData.toAddress && formData.date && formData.time && formData.price > 0 && (
+              <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-lg border border-green-200">
+                <h3 className="font-semibold text-green-800 mb-3">📋 Resumo da sua Viagem</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p><strong className="text-green-700">Rota:</strong> {formData.fromAddress} → {formData.toAddress}</p>
+                    <p><strong className="text-green-700">Data:</strong> {new Date(`${formData.date}T${formData.time}`).toLocaleDateString('pt-PT', { 
+                      weekday: 'long', 
+                      day: '2-digit', 
+                      month: 'long', 
+                      hour: '2-digit', 
+                      minute: '2-digit'
+                    })}</p>
+                  </div>
+                  <div>
+                    <p><strong className="text-green-700">Lugares:</strong> {formData.maxPassengers} disponíveis</p>
+                    <p><strong className="text-green-700">Preço:</strong> {formData.price} MT por pessoa</p>
+                    <p><strong className="text-blue-700">Receita máxima:</strong> {formData.price * formData.maxPassengers} MT</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             <div className="bg-blue-50 p-4 rounded-lg">
               <h3 className="font-medium text-blue-900 mb-2">
                 💡 Dicas para uma boa oferta:
               </h3>
               <ul className="text-sm text-blue-800 space-y-1">
                 <li>
-                  • Defina pontos de encontro conhecidos e de fácil acesso
+                  • Use locais específicos (ex: "Shopping Maputo Sul" em vez de "Maputo")
                 </li>
+                <li>• Defina pontos de encontro conhecidos e de fácil acesso</li>
                 <li>• Seja claro sobre regras (bagagem, fumar, etc.)</li>
                 <li>• Defina preços justos e competitivos</li>
                 <li>• Mantenha seu perfil e avaliações atualizadas</li>
