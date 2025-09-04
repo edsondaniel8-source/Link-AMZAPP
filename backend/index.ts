@@ -66,13 +66,10 @@ async function startServer() {
   try {
     console.log("🚀 Inicializando Link-A Backend...");
 
-    // Registrar todas as rotas da API
+    // 1. Registrar todas as rotas da API PRIMEIRO
     await registerRoutes(app);
     
-    // Criar servidor HTTP
-    const server = app.listen(PORT, "0.0.0.0");
-
-    // Para rotas API não encontradas - SEMPRE retorne JSON
+    // 2. Para rotas API não encontradas - SEMPRE retorne JSON
     app.all("/api/*", (req, res) => {
       res.status(404).json({
         error: "API endpoint não encontrado",
@@ -80,12 +77,20 @@ async function startServer() {
       });
     });
 
-    // Para todas as outras rotas - sirva o SPA com tratamento de erro
+    // 3. Para todas as outras rotas - sirva o SPA (React Router)
     app.get("*", (req, res) => {
       const frontendPath = path.join(__dirname, "../frontend/dist");
       const indexFile = path.join(frontendPath, "index.html");
       
-      console.log(`📂 Tentando servir: ${indexFile}`);
+      console.log(`📦 Servindo SPA para rota: ${req.path}`);
+      
+      // Verificar se é uma rota de API pela URL
+      if (req.path.startsWith('/api/')) {
+        return res.status(404).json({
+          error: "API endpoint não encontrado",
+          path: req.path,
+        });
+      }
       
       if (!fs.existsSync(frontendPath)) {
         console.error(`❌ Pasta do frontend não existe: ${frontendPath}`);
@@ -105,8 +110,12 @@ async function startServer() {
         });
       }
       
+      // Servir o index.html para todas as rotas (SPA)
       res.sendFile(indexFile);
     });
+    
+    // 4. Criar servidor HTTP
+    const server = app.listen(PORT, "0.0.0.0");
 
     // Configurar graceful shutdown
     const gracefulShutdown = (signal: string) => {
