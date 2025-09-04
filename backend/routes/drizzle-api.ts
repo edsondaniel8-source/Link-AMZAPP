@@ -35,7 +35,7 @@ const bookRideSchema = z.object({
 // ===== RIDES API =====
 
 // Criar viagem (Drizzle ORM)
-router.post('/rides/create', async (req, res) => {
+router.post('/create', async (req, res) => {
   try {
     const rideData = createRideSchema.parse(req.body);
     
@@ -75,7 +75,7 @@ router.post('/rides/create', async (req, res) => {
 });
 
 // Buscar viagens (Drizzle ORM)
-router.get('/rides/search', async (req, res) => {
+router.get('/search', async (req, res) => {
   try {
     const { from, to, passengers = 1 } = searchRidesSchema.parse({
       from: req.query.from,
@@ -135,7 +135,7 @@ router.get('/rides/search', async (req, res) => {
 });
 
 // Reservar viagem (Drizzle ORM)
-router.post('/rides/book', async (req, res) => {
+router.post('/book', async (req, res) => {
   try {
     const bookingData = bookRideSchema.parse(req.body);
     

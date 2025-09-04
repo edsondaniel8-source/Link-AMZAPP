@@ -49,7 +49,7 @@ export default function RideOfferForm({ onSubmit, onCancel }: RideOfferFormProps
       console.log("Nova oferta de boleia:", rideOffer);
       
       // TODO: Integrar com API real
-      // await apiRequest("POST", "/api/rides/offer", rideOffer);
+      // await apiRequest("POST", "/api/rides-simple/create", rideOffer);
       
       if (onSubmit) {
         onSubmit(rideOffer);

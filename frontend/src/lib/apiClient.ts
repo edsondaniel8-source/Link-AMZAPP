@@ -32,7 +32,7 @@ export class ApiClient {
 
     try {
       if (this.useBackend) {
-        const response = await fetch("/api/simplified-rides", {
+        const response = await fetch("/api/rides-simple/create", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(rideData),
@@ -61,7 +61,7 @@ export class ApiClient {
     try {
       if (this.useBackend) {
         const queryString = new URLSearchParams(params).toString();
-        const response = await fetch(`/api/rides/search?${queryString}`);
+        const response = await fetch(`/api/rides-simple/search?${queryString}`);
 
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         return await response.json();
