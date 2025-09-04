@@ -104,7 +104,7 @@ export class ApiClient {
       console.log("🔄 Fallback to mock service for accommodations");
       this.useBackend = false;
     }
-
+ 
     return await MockApiService.searchAccommodations(params);
   }
 

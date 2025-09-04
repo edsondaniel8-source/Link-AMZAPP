@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { db } from '../../db';
-import { accommodations, bookings } from '../../shared/unified-schema';
+import { accommodations, bookings } from '../../shared/schema';
 import { verifyFirebaseToken } from '../auth';
 import { eq, and, or, gte, lte } from 'drizzle-orm';
 

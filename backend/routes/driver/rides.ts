@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { db } from '../../db';
-import { rides } from '../../shared/unified-schema';
+import { rides } from '../../shared/schema';
 import { verifyFirebaseToken } from '../auth';
 import { eq, and } from 'drizzle-orm';
 
@@ -16,17 +16,10 @@ const createRideSchema = z.object({
   vehiclePlate: z.string(),
   vehicleColor: z.string().optional(),
   vehicleSeats: z.number(),
-  fromAddress: z.string(),
-  fromCity: z.string(),
-  fromProvince: z.string(),
-  fromLatitude: z.number().optional(),
-  fromLongitude: z.number().optional(),
-  toAddress: z.string(),
-  toCity: z.string(),
-  toProvince: z.string(),
-  toLatitude: z.number().optional(),
-  toLongitude: z.number().optional(),
-  departureDateTime: z.string(),
+  fromLocation: z.string(),
+  toLocation: z.string(),
+  departureDate: z.string(),
+  departureTime: z.string(),
   pricePerSeat: z.number(),
   maxPassengers: z.number(),
   route: z.array(z.string()).optional(),
@@ -47,11 +40,16 @@ router.post('/create', async (req, res) => {
     const [newRide] = await db
       .insert(rides)
       .values({
-        ...rideData,
-        departureDateTime: new Date(rideData.departureDateTime),
-        returnDateTime: rideData.returnDateTime ? new Date(rideData.returnDateTime) : null,
+        driverId: rideData.driverId,
+        fromLocation: rideData.fromLocation,
+        toLocation: rideData.toLocation,
+        departureDate: new Date(rideData.departureDate),
+        departureTime: rideData.departureTime,
+        pricePerSeat: String(rideData.pricePerSeat),
+        vehicleType: rideData.vehicleType,
+        additionalInfo: rideData.description,
         availableSeats: rideData.maxPassengers,
-        isActive: true,
+        status: 'active',
       })
       .returning();
 

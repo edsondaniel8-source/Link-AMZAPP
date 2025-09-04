@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { db } from '../../db';
-import { bookings, rides, accommodations } from '../../shared/unified-schema';
+import { bookings, rides, accommodations } from '../../shared/schema';
 import { verifyFirebaseToken } from '../auth';
 import { eq, and } from 'drizzle-orm';
 
@@ -57,11 +57,11 @@ router.post('/create', async (req, res) => {
         });
       }
 
-      serviceName = `${ride.fromCity || ride.fromAddress} → ${ride.toCity || ride.toAddress}`;
-      totalAmount = ride.pricePerSeat * bookingData.seatsBooked;
+      serviceName = `${ride.fromLocation} → ${ride.toLocation}`;
+      totalAmount = parseFloat(ride.pricePerSeat) * bookingData.seatsBooked;
       providerId = ride.driverId;
-      providerName = ride.driverName || 'Motorista';
-      providerPhone = ride.driverPhone || '';
+      providerName = 'Motorista';
+      providerPhone = '';
 
     } else if (bookingData.serviceType === 'accommodation') {
       // Buscar informações do alojamento

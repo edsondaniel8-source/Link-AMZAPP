@@ -22,17 +22,14 @@ import adminUsersRoutes from './admin/users';
 import sharedAuthRoutes from './shared/auth';
 import sharedHealthRoutes from './shared/health';
 
-// ===== SISTEMAS LEGADOS (manter compatibilidade) =====
+// ===== NOVA API DRIZZLE UNIFICADA =====
+import drizzleApiRoutes from './drizzle-api';
+
+// ===== SISTEMAS FUNCIONAIS (manter compatibilidade) =====
 import authRoutes from './auth';
-import ridesRoutes from './rides';
-import simplifiedRidesRoutes from './simplified-rides';
-import unifiedRidesRoutes from './unified-rides';
-import unifiedAccommodationsRoutes from './unified-accommodations';
-import unifiedBookingsRoutes from './unified-bookings-manager';
 import geoRoutes from './geo';
 import hotelsRoutes from './hotels';
 import eventsRoutes from './events';
-import bookingsRoutes from './bookings';
 import highlightsRoutes from './highlights';
 import billingRoutes from './billing';
 import chatRoutes from './chat';
@@ -65,19 +62,16 @@ export async function registerRoutes(app: express.Express) {
   
   console.log('✅ Rotas organizadas por roles registradas com sucesso');
 
-  // ===== SISTEMA UNIFICADO LINK-A (manter funcionando) =====
-  app.use('/api/unified/rides', unifiedRidesRoutes); // Sistema de viagens unificado
-  app.use('/api/unified/accommodations', unifiedAccommodationsRoutes); // Sistema de alojamentos
-  app.use('/api/unified/bookings', unifiedBookingsRoutes); // Sistema de reservas unificado
-  
-  // ===== SISTEMAS LEGADOS (manter compatibilidade) =====
+  // ===== NOVA API DRIZZLE UNIFICADA (principal) =====
+  app.use('/api/rides-simple', drizzleApiRoutes); // Compatibilidade com frontend
+  app.use('/api/drizzle', drizzleApiRoutes); // Nova API principal
+  console.log('🗃️ API Drizzle principal configurada');
+
+  // ===== SISTEMAS FUNCIONAIS (manter compatibilidade) =====
   app.use('/api/auth-legacy', authRoutes); // Auth legado
-  app.use('/api/rides', ridesRoutes); // Sistema antigo - deprecado
-  app.use('/api/rides-simple', simplifiedRidesRoutes); // Sistema simplificado - deprecado
   app.use('/api/geo', geoRoutes); // Geolocalização para Moçambique
-  app.use('/api/hotels', hotelsRoutes); // Sistema antigo de hotéis - deprecado
+  app.use('/api/hotels', hotelsRoutes); // Sistema de hotéis
   app.use('/api/events', eventsRoutes);
-  app.use('/api/bookings', bookingsRoutes); // Sistema antigo de reservas - deprecado
   app.use('/api/billing', billingRoutes);
   app.use('/api/chat', chatRoutes);
   app.use('/api/pms', pmsRoutes);

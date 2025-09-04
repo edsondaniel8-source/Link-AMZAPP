@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { db } from '../../db';
-import { users, rides, accommodations, bookings } from '../../shared/unified-schema';
+import { users, rides, accommodations, bookings } from '../../shared/schema';
 import { verifyFirebaseToken } from '../auth';
 import { eq, and, gte, count, sum, sql } from 'drizzle-orm';
 

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { db } from '../../db';
-import { rides } from '../../shared/unified-schema';
+import { rides } from '../../shared/schema';
 import { verifyFirebaseToken } from '../auth';
 import { eq, and, gte, lte, like, or } from 'drizzle-orm';
 
@@ -51,12 +51,12 @@ router.get('/search', async (req, res) => {
 
     // Filtrar por origem (busca flexível)
     if (from) {
-      query = query.where(like(rides.fromAddress, `%${from}%`));
+      query = query.where(like(rides.fromLocation, `%${from}%`));
     }
 
     // Filtrar por destino (busca flexível)
     if (to) {
-      query = query.where(like(rides.toAddress, `%${to}%`));
+      query = query.where(like(rides.toLocation, `%${to}%`));
     }
 
     // Filtrar por data
