@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { db } from '../db';
-import { rides, bookings, users } from '../shared/database-schema';
+import { rides, bookings } from '../shared/database-schema';
 import { eq, and, gte, like, desc, sql } from 'drizzle-orm';
 
 const router = Router();
@@ -69,7 +69,7 @@ router.post('/rides/create', async (req, res) => {
     console.error('❌ [DRIZZLE] Erro ao criar viagem:', error);
     res.status(500).json({ 
       error: 'Erro interno do servidor',
-      message: error.message 
+      message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 });
@@ -85,23 +85,23 @@ router.get('/rides/search', async (req, res) => {
 
     console.log('🔍 [DRIZZLE] Busca:', { from, to, passengers });
 
-    let query = db
-      .select()
-      .from(rides)
-      .where(and(
-        eq(rides.isActive, true),
-        gte(rides.availableSeats, passengers)
-      ));
+    let conditions = [
+      eq(rides.isActive, true),
+      gte(rides.availableSeats, passengers)
+    ];
 
     // Filtros opcionais
     if (from) {
-      query = query.where(like(rides.fromAddress, `%${from}%`));
+      conditions.push(like(rides.fromAddress, `%${from}%`));
     }
     if (to) {
-      query = query.where(like(rides.toAddress, `%${to}%`));
+      conditions.push(like(rides.toAddress, `%${to}%`));
     }
 
-    const results = await query
+    const results = await db
+      .select()
+      .from(rides)
+      .where(and(...conditions))
       .orderBy(desc(rides.departureDate))
       .limit(20);
 
@@ -110,17 +110,16 @@ router.get('/rides/search', async (req, res) => {
     // Transformar para formato compatível com frontend
     const ridesFormatted = results.map(ride => ({
       id: parseInt(ride.id) || ride.id, // Compatibilidade com IDs
-      driverId: ride.driverId,
-      fromAddress: ride.fromLocation,
-      toAddress: ride.toLocation,
-      departureDate: ride.departureDate.toISOString(),
-      price: ride.pricePerSeat,
-      maxPassengers: ride.availableSeats,
+      fromAddress: ride.fromAddress || '',
+      toAddress: ride.toAddress || '',
+      departureDate: ride.departureDate?.toISOString() || '',
+      price: ride.price || '0',
+      maxPassengers: ride.maxPassengers || 0,
       currentPassengers: 0, // TODO: Calcular reservas
-      type: ride.vehicleType || 'sedan',
-      driverName: 'Motorista', // TODO: Join com users
+      type: ride.type || 'sedan',
+      driverName: ride.driverName || 'Motorista',
       driverRating: '4.50',
-      description: ride.additionalInfo,
+      description: ride.vehicleInfo || '',
       vehiclePhoto: null,
     }));
 
@@ -130,7 +129,7 @@ router.get('/rides/search', async (req, res) => {
     console.error('❌ [DRIZZLE] Erro ao buscar viagens:', error);
     res.status(500).json({ 
       error: 'Erro interno do servidor',
-      message: error.message 
+      message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 });
@@ -155,7 +154,8 @@ router.post('/rides/book', async (req, res) => {
     }
 
     // Verificar lugares disponíveis
-    if (ride.availableSeats < bookingData.seatsBooked) {
+    const availableSeats = ride.availableSeats || 0;
+    if (availableSeats < bookingData.seatsBooked) {
       return res.status(400).json({
         error: 'Lugares insuficientes'
       });
@@ -165,11 +165,11 @@ router.post('/rides/book', async (req, res) => {
     const [newBooking] = await db
       .insert(bookings)
       .values({
-        rideId: bookingData.rideId,
-        passengerId: bookingData.passengerId,
-        seatsBooked: bookingData.seatsBooked,
-        totalPrice: (parseFloat(ride.pricePerSeat) * bookingData.seatsBooked).toString(),
+        id: sql`gen_random_uuid()`,
+        userId: bookingData.passengerId,
+        type: 'ride',
         status: 'confirmed',
+        totalPrice: (parseFloat(ride.price || '0') * bookingData.seatsBooked).toString(),
       })
       .returning();
 
@@ -177,7 +177,7 @@ router.post('/rides/book', async (req, res) => {
     await db
       .update(rides)
       .set({
-        availableSeats: ride.availableSeats - bookingData.seatsBooked
+        availableSeats: availableSeats - bookingData.seatsBooked
       })
       .where(eq(rides.id, bookingData.rideId));
 
@@ -192,7 +192,7 @@ router.post('/rides/book', async (req, res) => {
     console.error('❌ [DRIZZLE] Erro ao criar reserva:', error);
     res.status(500).json({ 
       error: 'Erro interno do servidor',
-      message: error.message 
+      message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 });
