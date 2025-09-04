@@ -7,6 +7,11 @@ import { Input } from "@/shared/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/shared/components/ui/dropdown-menu";
 import { Star, Car, Hotel, Calendar, Search, TrendingUp, Menu, UserCircle, LogOut, Shield, Settings, Sparkles, ArrowRight, Users, MapPin, BookOpen, Map } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useModalState } from "@/shared/hooks/useModalState";
+import ModalOverlay from "@/shared/components/ModalOverlay";
+import RideSearchModal from "@/shared/components/modals/RideSearchModal";
+import RideCreateModal from "@/shared/components/modals/RideCreateModal";
+import HotelSearchModal from "@/shared/components/modals/HotelSearchModal";
 
 interface RideHighlight {
   from: string;
@@ -43,6 +48,17 @@ export default function Home() {
   const { user } = useAuth();
   const [searchType, setSearchType] = useState<"rides" | "stays" | "events">("rides");
   const [searchQuery, setSearchQuery] = useState({ from: "", to: "", date: "" });
+  
+  // Estado dos modais
+  const {
+    modalState,
+    openRideSearch,
+    closeRideSearch,
+    openRideCreate,
+    closeRideCreate,
+    openHotelSearch,
+    closeHotelSearch,
+  } = useModalState();
 
   // Buscar destaques da API
   const { data: highlights } = useQuery<ApiHighlights>({
@@ -54,29 +70,31 @@ export default function Home() {
     console.log('Busca:', { type: searchType, ...searchQuery });
     
     if (searchType === "rides") {
-      // Redirecionar para página de busca de viagens com parâmetros
-      const searchParams = new URLSearchParams({
+      // Abrir modal de busca de viagens
+      openRideSearch({
         from: searchQuery.from,
         to: searchQuery.to,
-        date: searchQuery.date
-      }).toString();
-      window.location.href = `/rides/search?${searchParams}`;
+        date: searchQuery.date,
+        passengers: 1
+      });
     } else if (searchType === "stays") {
-      // Redirecionar para página de busca de acomodações
-      const searchParams = new URLSearchParams({
+      // Abrir modal de busca de acomodações
+      openHotelSearch({
         location: searchQuery.from,
-        checkIn: searchQuery.date
-      }).toString();
-      window.location.href = `/stays/search?${searchParams}`;
+        checkIn: searchQuery.date,
+        checkOut: '', // Usuário define no modal
+        guests: 2
+      });
     } else if (searchType === "events") {
-      // Redirecionar para página de eventos
+      // Para eventos, manter navegação tradicional
       const searchParams = new URLSearchParams({
         location: searchQuery.from,
         date: searchQuery.date
       }).toString();
-      window.location.href = `/events?${searchParams}`;
+      window.location.href = `/eventos?${searchParams}`;
     }
   };
+  
 
   const handleLogout = () => {
     // TODO: Implementar logout
@@ -548,6 +566,43 @@ export default function Home() {
           </Card>
         )}
       </div>
+      
+      {/* Modais Overlay */}
+      <ModalOverlay 
+        isOpen={modalState.rideSearch.isOpen} 
+        onClose={closeRideSearch}
+        title="Buscar Viagens"
+        maxWidth="6xl"
+      >
+        <RideSearchModal 
+          initialParams={modalState.rideSearch.params}
+          onClose={closeRideSearch}
+        />
+      </ModalOverlay>
+      
+      <ModalOverlay 
+        isOpen={modalState.rideCreate.isOpen} 
+        onClose={closeRideCreate}
+        title="Criar Nova Viagem"
+        maxWidth="4xl"
+      >
+        <RideCreateModal 
+          initialParams={modalState.rideCreate.params}
+          onClose={closeRideCreate}
+        />
+      </ModalOverlay>
+      
+      <ModalOverlay 
+        isOpen={modalState.hotelSearch.isOpen} 
+        onClose={closeHotelSearch}
+        title="Buscar Acomodações"
+        maxWidth="6xl"
+      >
+        <HotelSearchModal 
+          initialParams={modalState.hotelSearch.params}
+          onClose={closeHotelSearch}
+        />
+      </ModalOverlay>
     </div>
   );
 }

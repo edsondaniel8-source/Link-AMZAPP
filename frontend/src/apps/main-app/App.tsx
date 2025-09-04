@@ -12,9 +12,7 @@ import Loyalty from './pages/loyalty';
 import Chat from './pages/chat';
 import Notifications from './pages/notifications';
 import Profile from './pages/profile';
-import RideSearch from './pages/Rides/search';
-import RideCreate from './pages/Rides/create';
-import HotelSearch from './pages/Hotels/search';
+// Imports removidos - agora usamos modais na HomePage
 import ProtectedRoute from '@/shared/components/ProtectedRoute';
 import NotFound from './pages/not-found';
 
@@ -28,10 +26,7 @@ function MainApp() {
             <Switch>
               <Route path="/" component={Home} />
               <Route path="/eventos" component={Events} />
-              <Route path="/rides/search" component={RideSearch} />
-              <Route path="/rides/create" component={RideCreate} />
-              <Route path="/hotels/search" component={HotelSearch} />
-              <Route path="/stays/search" component={HotelSearch} />
+              {/* Rotas URL antigas removidas - agora usamos modais */}
               <Route path="/reservas">
                 <ProtectedRoute>
                   <Bookings />
