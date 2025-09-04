@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
-import { LocationAutocomplete } from "@/shared/components/LocationAutocomplete";
+import LocationAutocomplete from "@/shared/components/LocationAutocomplete";
 import { useToast } from "@/shared/hooks/use-toast";
 import {
   MapPin,
@@ -210,6 +210,7 @@ export default function RoutePublisher() {
                   Saindo de
                 </Label>
                 <LocationAutocomplete
+                  id="from-location"
                   value={formData.fromAddress}
                   onChange={(value) => handleInputChange("fromAddress", value)}
                   placeholder="Saindo de... (qualquer local em Moçambique)"
@@ -223,6 +224,7 @@ export default function RoutePublisher() {
                   Indo para
                 </Label>
                 <LocationAutocomplete
+                  id="to-location"
                   value={formData.toAddress}
                   onChange={(value) => handleInputChange("toAddress", value)}
                   placeholder="Indo para... (qualquer local em Moçambique)"
