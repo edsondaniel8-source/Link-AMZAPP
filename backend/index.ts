@@ -71,9 +71,16 @@ async function startServer() {
     
     // 2. Para rotas API não encontradas - SEMPRE retorne JSON
     app.all("/api/*", (req, res) => {
+      console.log(`❌ API endpoint não encontrado: ${req.method} ${req.path}`);
       res.status(404).json({
         error: "API endpoint não encontrado",
         path: req.path,
+        method: req.method,
+        availableEndpoints: [
+          "GET /api/health",
+          "POST /api/rides-simple/create", 
+          "GET /api/rides-simple/search"
+        ]
       });
     });
 

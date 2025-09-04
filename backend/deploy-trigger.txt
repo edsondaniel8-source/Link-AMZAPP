@@ -1,3 +1,4 @@
 Deploy triggered at: 2025-08-29 11:14 UTC
 Frontend build integrated with backend
-SPA serving configured
+SPA serving configuredDeploy trigger Thu Sep  4 06:34:38 PM UTC 2025
+Deploy trigger Thu Sep  4 06:35:32 PM UTC 2025 - Fix API routes for Railway
