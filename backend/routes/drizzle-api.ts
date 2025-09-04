@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { db } from '../db';
+import { db, pool } from '../db';
 import { rides, bookings } from '../shared/database-schema';
 import { eq, and, gte, like, desc, sql } from 'drizzle-orm';
 
@@ -77,6 +77,10 @@ router.post('/create', async (req, res) => {
 // Buscar viagens (Drizzle ORM)
 router.get('/search', async (req, res) => {
   try {
+    // 🚨 DEBUG: Verificar conexão antes da query
+    console.log('🔧 [SEARCH DEBUG] DATABASE_URL existe:', !!process.env.DATABASE_URL);
+    console.log('🔧 [SEARCH DEBUG] Database pool status:', pool ? 'CRIADO' : 'ERRO');
+    
     const { from, to, passengers = 1 } = searchRidesSchema.parse({
       from: req.query.from,
       to: req.query.to,

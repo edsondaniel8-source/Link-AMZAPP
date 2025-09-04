@@ -65,6 +65,11 @@ app.get("/api/health", (req, res) => {
 async function startServer() {
   try {
     console.log("🚀 Inicializando Link-A Backend...");
+    
+    // 🚨 DEBUG: Verificar ambiente e variáveis
+    console.log('🌍 [ENV DEBUG] NODE_ENV:', process.env.NODE_ENV || 'development');
+    console.log('🌍 [ENV DEBUG] PORT:', process.env.PORT || '3001');
+    console.log('🌍 [ENV DEBUG] DATABASE_URL existe:', !!process.env.DATABASE_URL);
 
     // 1. Registrar todas as rotas da API PRIMEIRO
     await registerRoutes(app);
