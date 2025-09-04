@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 
 // Import routes function
@@ -39,8 +40,15 @@ app.use(
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-// Servir arquivos estáticos do frontend build
-app.use(express.static(path.join(__dirname, "../frontend/dist")));
+// Servir arquivos estáticos do frontend build com debug
+const staticPath = path.join(__dirname, "../frontend/dist");
+console.log(`📂 Servindo arquivos estáticos de: ${staticPath}`);
+console.log(`📂 Diretório existe: ${fs.existsSync(staticPath)}`);
+if (fs.existsSync(staticPath)) {
+  const files = fs.readdirSync(staticPath);
+  console.log(`📂 Arquivos encontrados: ${files.join(', ')}`);
+}
+app.use(express.static(staticPath));
 
 // API Health check
 app.get("/api/health", (req, res) => {
@@ -72,9 +80,32 @@ async function startServer() {
       });
     });
 
-    // Para todas as outras rotas - sirva o SPA
+    // Para todas as outras rotas - sirva o SPA com tratamento de erro
     app.get("*", (req, res) => {
-      res.sendFile(path.join(__dirname, "../frontend/dist", "index.html"));
+      const frontendPath = path.join(__dirname, "../frontend/dist");
+      const indexFile = path.join(frontendPath, "index.html");
+      
+      console.log(`📂 Tentando servir: ${indexFile}`);
+      
+      if (!fs.existsSync(frontendPath)) {
+        console.error(`❌ Pasta do frontend não existe: ${frontendPath}`);
+        return res.status(503).json({ 
+          error: "Frontend não disponível", 
+          message: "O frontend ainda não foi construído ou deployado",
+          path: frontendPath
+        });
+      }
+      
+      if (!fs.existsSync(indexFile)) {
+        console.error(`❌ index.html não encontrado: ${indexFile}`);
+        return res.status(503).json({ 
+          error: "Frontend index.html não encontrado", 
+          message: "Build do frontend incompleto",
+          path: indexFile
+        });
+      }
+      
+      res.sendFile(indexFile);
     });
 
     // Configurar graceful shutdown
