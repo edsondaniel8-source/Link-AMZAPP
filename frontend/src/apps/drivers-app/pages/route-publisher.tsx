@@ -79,8 +79,24 @@ export default function RoutePublisher() {
   };
 
   const handlePublish = async () => {
+    // Validações simples
     if (!user) {
       setError("Deve estar autenticado para publicar uma rota.");
+      return;
+    }
+
+    if (!formData.fromAddress || !formData.toAddress) {
+      setError("Por favor preencha origem e destino.");
+      return;
+    }
+
+    if (!formData.date || !formData.time) {
+      setError("Por favor preencha data e hora da viagem.");
+      return;
+    }
+
+    if (formData.price <= 0) {
+      setError("Por favor defina um preço válido.");
       return;
     }
 
@@ -89,37 +105,21 @@ export default function RoutePublisher() {
     setSuccess(false);
 
     try {
-      // 4. Combine date e time para criar departureDate
-      const departureDate = `${formData.date}T${formData.time}:00`;
-
+      // Dados limpos para enviar
       const rideData = {
-        type: formData.vehicleType || "UberX", // Mapeando vehicleType para type
         fromAddress: formData.fromAddress,
         toAddress: formData.toAddress,
-        departureDate: departureDate,
+        departureDate: `${formData.date}T${formData.time}:00`,
         price: Number(formData.price),
         maxPassengers: Number(formData.maxPassengers),
-        allowNegotiation: false,
-        isRoundTrip: false,
-        vehiclePhoto: formData.vehiclePhoto, // Incluir foto do veículo
-        description: formData.description,
+        type: formData.vehicleType || "sedan",
+        description: formData.description || "Viagem confortável",
+        driverId: user?.uid || 'temp-driver-id'
       };
 
-      console.log("A publicar rota:", rideData);
-
-      // Usar API simplificada com dados corretos
-      const cleanRideData = {
-        fromAddress: rideData.fromAddress,
-        toAddress: rideData.toAddress,
-        departureDate: rideData.departureDate,
-        price: Number(rideData.price), // CORRIGIDO: Enviar como número
-        maxPassengers: rideData.maxPassengers,
-        type: rideData.type,
-        description: rideData.description || null,
-        driverId: user?.uid || 'temp-driver-id' // Usar ID real do motorista
-      };
+      console.log("📝 Publicando viagem:", rideData);
       
-      const response = await fetch('/api/rides-simple/create', {
+      const response = await fetch('http://localhost:3001/api/rides-simple/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(cleanRideData)
@@ -131,13 +131,13 @@ export default function RoutePublisher() {
       
       const result = await response.json();
 
-      console.log("✅ Rota publicada com sucesso na base de dados!", result);
+      console.log("✅ Viagem publicada com sucesso!", result);
       setSuccess(true);
       
       // Mostrar toast de sucesso
       toast({
-        title: "Viagem publicada!",
-        description: "Sua viagem já está disponível para reservas.",
+        title: "🎉 Viagem Publicada!",
+        description: `Rota ${formData.fromAddress} → ${formData.toAddress} está disponível!`,
       });
 
       // Reset form
@@ -149,7 +149,7 @@ export default function RoutePublisher() {
         departureDate: "",
         price: 0,
         maxPassengers: 4,
-        vehicleType: "",
+        vehicleType: "sedan",
         description: "",
         pickupPoint: "",
         dropoffPoint: "",
