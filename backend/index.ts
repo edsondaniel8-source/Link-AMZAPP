@@ -59,7 +59,10 @@ async function startServer() {
     console.log("🚀 Inicializando Link-A Backend...");
 
     // Registrar todas as rotas da API
-    const server = await registerRoutes(app);
+    await registerRoutes(app);
+    
+    // Criar servidor HTTP
+    const server = app.listen(PORT, "0.0.0.0");
 
     // Para rotas API não encontradas - SEMPRE retorne JSON
     app.all("/api/*", (req, res) => {
@@ -124,8 +127,8 @@ async function startServer() {
       }
     });
 
-    // Iniciar servidor
-    server.listen(PORT, "0.0.0.0", () => {
+    // Configurar callback de sucesso
+    server.on('listening', () => {
       console.log(`🌐 Link-A Backend Server running on port ${PORT}`);
       console.log(`📱 Frontend: http://localhost:${PORT}/`);
       console.log(`🔌 API: http://localhost:${PORT}/api/`);
@@ -141,4 +144,4 @@ async function startServer() {
 // Iniciar servidor
 startServer();
 
-export default app;
+// Não exportar app antes das rotas serem registradas
