@@ -100,9 +100,9 @@ if (isFirebaseConfigured) {
     
     // Configure Google provider with Web Client ID
     googleProvider.setCustomParameters({
-      'client_id': '1058402037541-8mu67hl8s62krmgnsrr6qiu07n302alm.apps.googleusercontent.com',
-      'prompt': 'select_account'
-    });
+      'client_id': import.meta.env.VITE_GOOGLE_CLIENT_ID,
+  'prompt': 'select_account'
+});
     
     // Force popup mode to avoid multiple windows
     googleProvider.setCustomParameters({ 
