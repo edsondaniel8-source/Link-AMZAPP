@@ -7,8 +7,9 @@ import sharedHealthRoutes from './shared/health';
 // ===== NOVA API DRIZZLE UNIFICADA =====
 import drizzleApiRoutes from './drizzle-api';
 
-// ===== SISTEMAS FUNCIONAIS (manter compatibilidade) =====
+// ===== SISTEMAS FUNCIONAIS (Firebase Auth apenas) =====
 import authRoutes from './auth';
+import bookingsRoutes from './bookings';
 import geoRoutes from './geo';
 import billingRoutes from './billing';
 import chatRoutes from './chat';
@@ -25,8 +26,9 @@ export async function registerRoutes(app: express.Express): Promise<void> {
   app.use('/api/drizzle', drizzleApiRoutes); // Nova API principal
   console.log('🗃️ API Drizzle principal configurada');
 
-  // ===== SISTEMAS FUNCIONAIS (manter compatibilidade) =====
-  app.use('/api/auth-legacy', authRoutes); // Auth legado
+  // ===== SISTEMAS FUNCIONAIS (Firebase Auth) =====
+  app.use('/api/auth', authRoutes); // Firebase Auth
+  app.use('/api/bookings', bookingsRoutes); // Sistema de reservas
   app.use('/api/geo', geoRoutes); // Geolocalização para Moçambique
   app.use('/api/billing', billingRoutes);
   app.use('/api/chat', chatRoutes);

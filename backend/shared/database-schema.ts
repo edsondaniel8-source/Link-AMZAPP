@@ -67,7 +67,7 @@ export const rides = pgTable("rides", {
 
 // Bookings table (baseado na estrutura REAL do database)
 export const bookings = pgTable("bookings", {
-  id: varchar("id").primaryKey(),
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id"),
   type: text("type"),
   status: text("status"),
@@ -78,7 +78,11 @@ export const bookings = pgTable("bookings", {
   checkOutDate: timestamp("check_out_date"),
   guests: integer("guests"),
   nights: integer("nights"),
+  passengers: integer("passengers").default(1),
   totalPrice: decimal("total_price"),
+  guestName: text("guest_name"),
+  guestEmail: text("guest_email"),
+  guestPhone: text("guest_phone"),
   paymentMethod: text("payment_method"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
