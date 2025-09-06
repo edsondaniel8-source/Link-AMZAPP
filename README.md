@@ -18,7 +18,7 @@ link-a-app/
 ├── attached_assets/   # Shared assets
 └── package.json       # Workspace configuration
 ```
-
+.
 ## Development
 
 ```bash
