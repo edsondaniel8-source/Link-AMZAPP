@@ -4,14 +4,16 @@ import { Link } from "wouter";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
+import { Badge } from "@/shared/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/shared/components/ui/dropdown-menu";
-import { Star, Car, Hotel, Calendar, Search, TrendingUp, Menu, UserCircle, LogOut, Shield, Settings, Sparkles, ArrowRight, Users, MapPin, BookOpen, Map } from "lucide-react";
+import { Star, Car, Hotel, Calendar, Search, TrendingUp, Menu, UserCircle, LogOut, Shield, Settings, Sparkles, ArrowRight, Users, MapPin, BookOpen, Map, Clock, Zap, Award } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useModalState } from "@/shared/hooks/useModalState";
 import ModalOverlay from "@/shared/components/ModalOverlay";
 import RideSearchModal from "@/shared/components/modals/RideSearchModal";
 import RideCreateModal from "@/shared/components/modals/RideCreateModal";
 import HotelSearchModal from "@/shared/components/modals/HotelSearchModal";
+import LocationAutocomplete from "@/shared/components/LocationAutocomplete";
 
 interface RideHighlight {
   from: string;
@@ -48,6 +50,12 @@ export default function Home() {
   const { user } = useAuth();
   const [searchType, setSearchType] = useState<"rides" | "stays" | "events">("rides");
   const [searchQuery, setSearchQuery] = useState({ from: "", to: "", date: "" });
+  
+  // Buscar rides especiais dos motoristas
+  const { data: specialOffers } = useQuery({
+    queryKey: ['/api/rides-special-offers'],
+    staleTime: 2 * 60 * 1000, // 2 minutos
+  });
   
   // Estado dos modais
   const {
@@ -106,7 +114,14 @@ export default function Home() {
     topRides: [
       { from: "Maputo", to: "Beira", price: 1500, date: "2024-01-15", driver: "João M.", rating: 4.8 },
       { from: "Nampula", to: "Nacala", price: 800, date: "2024-01-16", driver: "Maria S.", rating: 4.9 },
-      { from: "Tete", to: "Chimoio", price: 1200, date: "2024-01-17", driver: "Carlos A.", rating: 4.7 }
+      { from: "Tete", to: "Chimoio", price: 1200, date: "2024-01-17", driver: "Carlos A.", rating: 4.7 },
+      { from: "Beira", to: "Inhambane", price: 950, date: "2024-01-18", driver: "Ana L.", rating: 4.9 },
+      { from: "Maputo", to: "Xai-Xai", price: 350, date: "2024-01-19", driver: "Pedro K.", rating: 4.6 }
+    ],
+  
+    specialRideOffers: specialOffers || [
+      { from: "Maputo", to: "Vilanculos", price: 1800, date: "2024-01-20", driver: "Sofia R.", rating: 4.9, isSpecial: true, discount: "20% OFF" },
+      { from: "Beira", to: "Gorongosa", price: 800, date: "2024-01-21", driver: "Manuel C.", rating: 4.8, isSpecial: true, discount: "Oferta VIP" }
     ],
     topHotels: [
       { name: "Hotel Marisol", location: "Maputo", price: 3500, rating: 4.6, image: "🏨" },
@@ -316,21 +331,21 @@ export default function Home() {
                 <label className="block text-sm font-medium mb-2">
                   {searchType === "rides" ? "De onde" : searchType === "stays" ? "Destino" : "Localização"}
                 </label>
-                <Input
-                  placeholder={searchType === "rides" ? "Cidade de origem" : "Onde quer ficar"}
+                <LocationAutocomplete
+                  id="search-from"
                   value={searchQuery.from}
-                  onChange={(e) => setSearchQuery({...searchQuery, from: e.target.value})}
-                  data-testid="input-from"
+                  onChange={(value) => setSearchQuery({...searchQuery, from: value})}
+                  placeholder={searchType === "rides" ? "Cidade de origem (Moçambique)" : "Onde quer ficar (Moçambique)"}
                 />
               </div>
               {searchType === "rides" && (
                 <div>
                   <label className="block text-sm font-medium mb-2">Para onde</label>
-                  <Input
-                    placeholder="Cidade de destino"
+                  <LocationAutocomplete
+                    id="search-to"
                     value={searchQuery.to}
-                    onChange={(e) => setSearchQuery({...searchQuery, to: e.target.value})}
-                    data-testid="input-to"
+                    onChange={(value) => setSearchQuery({...searchQuery, to: value})}
+                    placeholder="Cidade de destino (Moçambique)"
                   />
                 </div>
               )}
@@ -372,12 +387,91 @@ export default function Home() {
           </CardContent>
         </Card>
 
+        {/* Ofertas Especiais de Motoristas */}
+        {searchType === "rides" && weeklyHighlights.specialRideOffers && (
+          <Card className="mb-8 border-2 border-dashed border-yellow-300 bg-gradient-to-r from-yellow-50 to-orange-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="w-5 h-5 text-yellow-600" />
+                <span className="bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
+                  Ofertas Especiais dos Motoristas
+                </span>
+                <Badge className="bg-yellow-500 text-white pulse animate-pulse">NOVO!</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {weeklyHighlights.specialRideOffers.map((offer: any, index: number) => (
+                  <Card key={index} className="border-2 border-yellow-400 bg-white shadow-lg hover:shadow-xl transition-shadow">
+                    <CardContent className="pt-4">
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge className="bg-red-500 text-white text-xs">{offer.discount}</Badge>
+                            <Badge variant="outline" className="text-xs border-green-500 text-green-700">Motorista Verificado</Badge>
+                          </div>
+                          <h3 className="font-bold text-lg text-gray-800">
+                            {offer.from} → {offer.to}
+                          </h3>
+                          <p className="text-sm text-gray-600 flex items-center gap-1">
+                            <Users className="w-3 h-3" />
+                            {offer.driver}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <div className="flex items-center gap-1 mb-1">
+                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                            <span className="font-medium">{offer.rating}</span>
+                          </div>
+                          <p className="text-2xl font-bold text-green-600">{offer.price} MZN</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-4 text-xs text-gray-600">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {offer.date}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            Saída: 07:00
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {user ? (
+                        <Button className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600" size="sm">
+                          <Award className="w-4 h-4 mr-2" />
+                          Reservar Oferta Especial
+                        </Button>
+                      ) : (
+                        <Link href="/signup" className="block w-full">
+                          <Button className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600" size="sm">
+                            Registar para Esta Oferta
+                          </Button>
+                        </Link>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              
+              <div className="mt-4 p-3 bg-yellow-100 border border-yellow-300 rounded-lg">
+                <p className="text-sm text-yellow-800 text-center">
+                  💡 <strong>Dica:</strong> Ofertas especiais são publicadas diretamente pelos motoristas e têm disponibilidade limitada!
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Weekly Highlights */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5" />
-              Destaques da Semana
+              {searchType === "rides" ? "Viagens Populares" : "Destaques da Semana"}
               {!user && <span className="text-sm text-gray-500 font-normal ml-2">- Veja o que está disponível</span>}
             </CardTitle>
           </CardHeader>
@@ -385,39 +479,54 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {searchType === "rides" && (
                 <>
-                  {weeklyHighlights.topRides.map((ride, index) => (
-                    <Card key={index} className="border-l-4 border-l-blue-500 overflow-hidden">
+                  {weeklyHighlights.topRides.slice(0, 6).map((ride, index) => (
+                    <Card key={index} className="border-l-4 border-l-blue-500 overflow-hidden hover:shadow-lg transition-shadow">
                       {/* Espaço para foto do veículo */}
-                      <div className="h-48 bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center border-b">
+                      <div className="h-40 bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center border-b relative">
                         <div className="text-center">
-                          <Car className="w-16 h-16 text-blue-600 mb-2" />
-                          <span className="text-sm text-gray-600">Foto do veículo</span>
+                          <Car className="w-12 h-12 text-blue-600 mb-2" />
+                          <span className="text-xs text-gray-600">Foto do veículo</span>
+                        </div>
+                        {/* Badge de popularidade */}
+                        <div className="absolute top-2 right-2">
+                          <Badge className="bg-blue-500 text-white text-xs">Popular</Badge>
                         </div>
                       </div>
                       <CardContent className="pt-4">
-                        <div className="mb-2">
-                          <h3 className="font-semibold text-lg flex items-center gap-2">
+                        <div className="mb-3">
+                          <h3 className="font-semibold text-lg flex items-center gap-2 mb-1">
                             <span>{ride.from} → {ride.to}</span>
                           </h3>
-                          <p className="text-sm text-gray-600 flex items-center gap-1">
-                            <Users className="w-3 h-3" />
-                            Motorista: {ride.driver}
-                          </p>
-                        </div>
-                        <div className="flex items-center justify-between mb-3">
-                          <p className="text-2xl font-bold text-green-600">{ride.price} MZN</p>
-                          <div className="flex items-center gap-1">
-                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                            <span className="font-medium">{ride.rating}</span>
+                          <div className="flex items-center justify-between text-sm text-gray-600">
+                            <div className="flex items-center gap-1">
+                              <Users className="w-3 h-3" />
+                              <span>{ride.driver}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                              <span className="font-medium">{ride.rating}</span>
+                            </div>
                           </div>
                         </div>
-                        <p className="text-sm text-gray-600 mb-3 flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          {ride.date}
-                        </p>
+                        
+                        <div className="space-y-2 mb-3">
+                          <div className="flex items-center justify-between">
+                            <p className="text-xl font-bold text-green-600">{ride.price} MZN</p>
+                            <div className="text-xs text-gray-500">
+                              por pessoa
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-gray-600">
+                            <Calendar className="w-3 h-3" />
+                            <span>{new Date(ride.date).toLocaleDateString('pt-MZ')}</span>
+                            <Clock className="w-3 h-3 ml-2" />
+                            <span>Partida às 07:00</span>
+                          </div>
+                        </div>
+                        
                         {user ? (
-                          <Button className="w-full" size="sm" data-testid={`button-book-ride-${index}`}>
-                            Reservar Boleia
+                          <Button className="w-full bg-blue-600 hover:bg-blue-700" size="sm" data-testid={`button-book-ride-${index}`}>
+                            Ver Detalhes & Reservar
                           </Button>
                         ) : (
                           <Link href="/signup" className="block w-full">
@@ -518,6 +627,19 @@ export default function Home() {
                 </>
               )}
             </div>
+            
+            {/* Link para ver todas as viagens */}
+            {searchType === "rides" && (
+              <div className="mt-6 text-center">
+                <Link href="/rides">
+                  <Button variant="outline" size="lg" className="border-blue-500 text-blue-600 hover:bg-blue-50">
+                    <Search className="w-4 h-4 mr-2" />
+                    Ver Todas as Viagens Disponíveis
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </Link>
+              </div>
+            )}
           </CardContent>
         </Card>
 
