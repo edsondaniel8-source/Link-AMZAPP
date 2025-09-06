@@ -5,7 +5,8 @@ import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
 import { Input } from "@/shared/components/ui/input";
 import { ArrowLeft, Search, Star, MapPin, Wifi, Car, Coffee, Users } from "lucide-react";
-import { accommodationService, type Accommodation } from "@/shared/lib/accommodationService";
+import apiService from '@/services/api';
+// import { type Accommodation } from "@/shared/lib/accommodationService";
 import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/shared/components/PageHeader";
 import MobileNavigation from "@/shared/components/MobileNavigation";
@@ -39,15 +40,19 @@ export default function HotelSearchPage() {
   }, []);
 
   // Buscar acomodações quando hasSearched muda
-  const { data: accommodations, isLoading, error } = useQuery({
+  const { data: accommodationsResponse, isLoading, error } = useQuery({
     queryKey: ['accommodations-search', searchParams],
-    queryFn: () => accommodationService.searchAccommodations({
+    queryFn: () => apiService.searchAccommodations({
       location: searchParams.location,
-      type: searchParams.type,
-      maxPrice: searchParams.maxPrice
+      checkIn: searchParams.checkIn,
+      checkOut: searchParams.checkOut,
+      guests: searchParams.guests
     }),
     enabled: hasSearched && !!searchParams.location
   });
+  
+  // Extrair as acomodações da resposta da API real
+  const accommodations = (accommodationsResponse as any)?.data?.accommodations || (accommodationsResponse as any)?.accommodations || [];
 
   const handleSearch = () => {
     setHasSearched(true);
@@ -63,15 +68,15 @@ export default function HotelSearchPage() {
     window.history.pushState({}, '', `/hotels/search?${newParams}`);
   };
 
-  const handleBookAccommodation = (accommodation: Accommodation) => {
+  const handleBookAccommodation = (accommodation: any) => {
     console.log('Reservar acomodação:', accommodation);
     // Implementar navegação para página de reserva
     setLocation(`/hotels/${accommodation.id}/book`);
   };
 
-  const formatPrice = (price: number) => {
-    return `${price.toFixed(2)} MT`;
-  };
+  // const formatPrice = (price: number) => {
+  //   return `${price.toFixed(2)} MT`;
+  // };
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
@@ -205,7 +210,7 @@ export default function HotelSearchPage() {
               </Card>
             )}
 
-            {accommodations && accommodations.map((accommodation) => (
+            {accommodations && accommodations.map((accommodation: any) => (
               <Card key={accommodation.id} className="hover:shadow-lg transition-shadow">
                 <CardContent className="pt-6">
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-start">
@@ -217,12 +222,12 @@ export default function HotelSearchPage() {
                           <Badge variant="outline">{accommodation.type}</Badge>
                           <div className="flex items-center gap-1">
                             <MapPin className="w-4 h-4 text-gray-500" />
-                            <span className="text-sm text-gray-600">{accommodation.location}</span>
+                            <span className="text-sm text-gray-600">{accommodation.address || accommodation.location}</span>
                           </div>
                         </div>
                         <div className="flex items-center gap-1 mb-3">
-                          {renderStars(accommodation.rating)}
-                          <span className="text-sm text-gray-600 ml-1">({accommodation.rating})</span>
+                          {renderStars(accommodation.rating || 4)}
+                          <span className="text-sm text-gray-600 ml-1">({accommodation.rating || 4.0})</span>
                         </div>
                       </div>
                       
@@ -232,7 +237,7 @@ export default function HotelSearchPage() {
                       
                       {accommodation.amenities && accommodation.amenities.length > 0 && (
                         <div className="flex flex-wrap gap-2">
-                          {accommodation.amenities.slice(0, 4).map((amenity, index) => (
+                          {accommodation.amenities.slice(0, 4).map((amenity: string, index: number) => (
                             <div key={index} className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded text-sm">
                               {getAmenityIcon(amenity)}
                               <span>{amenity}</span>
@@ -248,11 +253,17 @@ export default function HotelSearchPage() {
                     {/* Disponibilidade */}
                     <div className="text-center">
                       <div className="mb-2">
-                        <div className="text-sm text-gray-500">Quartos disponíveis</div>
-                        <div className="text-lg font-semibold">{accommodation.availableRooms}</div>
+                        <div className="text-sm text-gray-500">Disponibilidade</div>
+                        <div className="text-lg font-bold mb-2">
+                          {accommodation.isAvailable ? (
+                            <Badge className="bg-green-100 text-green-700">Disponível</Badge>
+                          ) : (
+                            <Badge className="bg-red-100 text-red-700">Indisponível</Badge>
+                          )}
+                        </div>
                       </div>
-                      <div className="text-2xl font-bold text-primary">
-                        {formatPrice(accommodation.price)}
+                      <div className="text-2xl font-bold text-blue-600">
+                        {accommodation.pricePerNight ? `${accommodation.pricePerNight} MT` : 'Sob consulta'}
                       </div>
                       <div className="text-sm text-gray-500">por noite</div>
                     </div>
@@ -261,11 +272,11 @@ export default function HotelSearchPage() {
                     <div className="text-center">
                       <Button 
                         onClick={() => handleBookAccommodation(accommodation)}
-                        className="w-full"
-                        disabled={accommodation.availableRooms === 0}
+                        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400"
+                        disabled={!accommodation.isAvailable}
                         data-testid={`button-book-accommodation-${accommodation.id}`}
                       >
-                        {accommodation.availableRooms > 0 ? 'Reservar' : 'Indisponível'}
+                        {accommodation.isAvailable ? 'Reservar' : 'Indisponível'}
                       </Button>
                     </div>
                   </div>

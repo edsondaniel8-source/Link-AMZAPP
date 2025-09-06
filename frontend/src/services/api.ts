@@ -126,16 +126,18 @@ class ApiService {
     guests?: number;
   }) {
     const searchParams = new URLSearchParams();
-    if (params.location) searchParams.append('location', params.location);
+    if (params.location) searchParams.append('address', params.location); // Backend usa 'address' não 'location'
     if (params.checkIn) searchParams.append('checkIn', params.checkIn);
     if (params.checkOut) searchParams.append('checkOut', params.checkOut);
     if (params.guests) searchParams.append('guests', params.guests.toString());
+    // Adicionar filtro para apenas acomodações disponíveis
+    searchParams.append('isAvailable', 'true');
 
-    return this.request('GET', `/api/accommodations/search?${searchParams}`);
+    return this.request('GET', `/api/hotels?${searchParams}`);
   }
 
   async createAccommodation(accommodationData: any) {
-    return this.request('POST', '/api/accommodations/create', accommodationData);
+    return this.request('POST', '/api/hotels', accommodationData);
   }
 
   // ===== ADMIN API =====

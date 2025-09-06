@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/shared/hooks/use-toast';
 import { Calendar, MapPin, Users, Search, Bed } from 'lucide-react';
 import { HotelSearchParams } from '@/shared/hooks/useModalState';
+import apiService from '@/services/api';
 
 interface HotelSearchModalProps {
   initialParams: HotelSearchParams;
@@ -25,10 +26,19 @@ export default function HotelSearchModal({ initialParams, onClose }: HotelSearch
   const [hasSearched, setHasSearched] = useState(false);
 
   // Query para buscar hotéis
-  const { data: hotels, refetch, isLoading } = useQuery({
-    queryKey: ['/api/accommodations/search', searchParams],
+  const { data: hotelsResponse, refetch, isLoading } = useQuery({
+    queryKey: ['/api/hotels/search', searchParams],
+    queryFn: () => apiService.searchAccommodations({
+      location: searchParams.location,
+      checkIn: searchParams.checkIn,
+      checkOut: searchParams.checkOut,
+      guests: searchParams.guests
+    }),
     enabled: false, // Só executa quando chamado manualmente
   });
+  
+  // Extrair os hotéis da resposta
+  const hotels = (hotelsResponse as any)?.data?.accommodations || [];
 
   // Se tem parâmetros iniciais, fazer busca automaticamente
   useEffect(() => {
