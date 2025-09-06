@@ -129,82 +129,58 @@ export default function RoutePublisher() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(rideData)
           });
-        } else {
-          // Produção: simular sucesso por enquanto (até backend estar configurado)
-          console.log('🌐 Modo produção: simulando publicação da viagem');
-          response = {
-            ok: true,
-            json: async () => ({
-              success: true,
-              ride: {
-                id: `ride-${Date.now()}`,
-                ...rideData,
-                driverName: user?.displayName || 'Motorista',
-                createdAt: new Date().toISOString()
-              }
-            })
-          };
+   } else {
+          // ✅ PRODUÇÃO: usar API real
+          response = await fetch('/api/rides', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(rideData)
+          });
         }
+      
+        if (!response.ok) {
+          throw new Error(`Erro ${response.status}: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+
+        console.log("✅ Viagem publicada com sucesso!", result);
+        setSuccess(true);
+        
+        // Mostrar toast de sucesso
+        toast({
+          title: "🎉 Viagem Publicada!",
+          description: `Rota ${formData.fromAddress} → ${formData.toAddress} está disponível!`,
+        });
+
+        // Reset form
+        setFormData({
+          fromAddress: "",
+          toAddress: "",
+          date: "",
+          time: "",
+          departureDate: "",
+          price: 0,
+          maxPassengers: 4,
+          vehicleType: "sedan",
+          description: "",
+          pickupPoint: "",
+          dropoffPoint: "",
+          vehiclePhoto: null,
+        });
+        setPhotoPreview(null);
       } catch (error) {
-        console.warn('🔄 API falhou, usando modo simulação:', error);
-        // Fallback: simular sucesso
-        response = {
-          ok: true,
-          json: async () => ({
-            success: true,
-            ride: {
-              id: `ride-${Date.now()}`,
-              ...rideData,
-              driverName: user?.displayName || 'Motorista',
-              createdAt: new Date().toISOString()
-            }
-          })
-        };
+        // Tratar o erro normalmente
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Erro ao publicar a rota. Tente novamente.";
+        console.error("❌ Erro ao publicar rota:", error);
+        setError(errorMessage);
+      } finally {
+        setIsLoading(false);
       }
-      
-      if (!response.ok) {
-        throw new Error(`Erro ${response.status}: ${response.statusText}`);
-      }
-      
-      const result = await response.json();
-
-      console.log("✅ Viagem publicada com sucesso!", result);
-      setSuccess(true);
-      
-      // Mostrar toast de sucesso
-      toast({
-        title: "🎉 Viagem Publicada!",
-        description: `Rota ${formData.fromAddress} → ${formData.toAddress} está disponível!`,
-      });
-
-      // Reset form
-      setFormData({
-        fromAddress: "",
-        toAddress: "",
-        date: "",
-        time: "",
-        departureDate: "",
-        price: 0,
-        maxPassengers: 4,
-        vehicleType: "sedan",
-        description: "",
-        pickupPoint: "",
-        dropoffPoint: "",
-        vehiclePhoto: null,
-      });
-      setPhotoPreview(null);
-    } catch (error) {
-      // 5. CORREÇÃO: Tratar o erro desconhecido
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Erro ao publicar a rota. Tente novamente.";
-      console.error("❌ Erro ao publicar rota:", error);
-      setError(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+};
 
   // Cidades removidas - agora usando LocationAutocomplete com lista completa de locais
 
