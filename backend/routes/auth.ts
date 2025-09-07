@@ -171,4 +171,72 @@ router.put('/roles', verifyFirebaseToken, async (req: any, res) => {
   }
 });
 
+// Setup user roles after Google OAuth signup
+router.post('/setup-user-roles', verifyFirebaseToken, async (req: any, res) => {
+  try {
+    const userId = req.user?.uid;
+    const { roles } = req.body;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Token inválido" });
+    }
+    
+    if (!roles || !Array.isArray(roles) || roles.length === 0) {
+      return res.status(400).json({ message: "Pelo menos um role deve ser selecionado" });
+    }
+
+    // Check if user exists, if not create them
+    let [user] = await db.select().from(users).where(eq(users.id, userId));
+    
+    if (!user) {
+      // Create new user with Firebase data
+      const userDisplayName = req.user?.name || '';
+      const [newUser] = await db.insert(users).values({
+        id: userId,
+        email: req.user?.email || '',
+        firstName: userDisplayName?.split(' ')[0] || '',
+        lastName: userDisplayName?.split(' ').slice(1).join(' ') || '',
+        profileImageUrl: req.user?.picture || null,
+        roles: roles,
+        userType: roles.includes('admin') ? 'admin' : roles.includes('hotel_manager') ? 'hotel_manager' : roles.includes('driver') ? 'driver' : 'client',
+        registrationCompleted: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }).returning();
+      
+      user = newUser;
+    } else {
+      // Update existing user
+      const [updatedUser] = await db.update(users)
+        .set({ 
+          roles,
+          userType: roles.includes('admin') ? 'admin' : roles.includes('hotel_manager') ? 'hotel_manager' : roles.includes('driver') ? 'driver' : 'client',
+          registrationCompleted: true,
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, userId))
+        .returning();
+      
+      user = updatedUser;
+    }
+    
+    res.json({ 
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        roles: user.roles,
+        userType: user.userType,
+        profileImageUrl: user.profileImageUrl,
+        isVerified: user.isVerified || false,
+        registrationCompleted: true
+      }
+    });
+  } catch (error) {
+    console.error('Erro ao configurar roles:', error);
+    res.status(500).json({ message: 'Erro interno do servidor' });
+  }
+});
+
 export default router;
