@@ -6,7 +6,7 @@ import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { Textarea } from '@/shared/components/ui/textarea';
@@ -19,7 +19,6 @@ import {
   Users, 
   TrendingUp,
   Star,
-  CheckCircle,
   DollarSign,
   UserCheck,
   Handshake,
@@ -37,7 +36,7 @@ import {
 } from 'lucide-react';
 import LocationAutocomplete from '@/shared/components/LocationAutocomplete';
 import apiService from '@/services/api';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/shared/hooks/use-toast';
 
 interface HotelAccommodation {
   id: string;
@@ -142,7 +141,7 @@ export default function HotelsHome() {
   });
 
   // Buscar acomodações do hotel
-  const { data: accommodations, isLoading } = useQuery({
+  const { data: accommodations } = useQuery({
     queryKey: ['hotel-accommodations', user?.uid],
     queryFn: async () => {
       try {
@@ -152,7 +151,7 @@ export default function HotelsHome() {
           checkOut: '',
           guests: 1
         });
-        return response?.data?.accommodations || [];
+        return (response as any)?.data?.accommodations || [];
       } catch (error) {
         return [
           {
@@ -318,12 +317,12 @@ export default function HotelsHome() {
   const stats = {
     totalAccommodations: accommodations?.length || 0,
     availableRooms: accommodations?.filter(a => a.isAvailable).length || 0,
-    totalBookings: accommodations?.reduce((sum, a) => sum + a.totalBookings, 0) || 0,
-    monthlyRevenue: accommodations?.reduce((sum, a) => sum + a.monthlyRevenue, 0) || 0,
-    averageRating: accommodations?.reduce((sum, a) => sum + a.rating, 0) / (accommodations?.length || 1) || 0,
-    averageOccupancy: accommodations?.reduce((sum, a) => sum + a.occupancyRate, 0) / (accommodations?.length || 1) || 0,
-    totalEvents: hotelEvents?.length || 0,
-    upcomingEvents: hotelEvents?.filter(e => e.status === 'upcoming').length || 0,
+    totalBookings: accommodations?.reduce((sum: number, a: HotelAccommodation) => sum + a.totalBookings, 0) || 0,
+    monthlyRevenue: accommodations?.reduce((sum: number, a: HotelAccommodation) => sum + a.monthlyRevenue, 0) || 0,
+    averageRating: accommodations?.reduce((sum: number, a: HotelAccommodation) => sum + a.rating, 0) / (accommodations?.length || 1) || 0,
+    averageOccupancy: accommodations?.reduce((sum: number, a: HotelAccommodation) => sum + a.occupancyRate, 0) / (accommodations?.length || 1) || 0,
+    totalEvents: (hotelEvents as HotelEvent[])?.length || 0,
+    upcomingEvents: (hotelEvents as HotelEvent[])?.filter((e: HotelEvent) => e.status === 'upcoming').length || 0,
     activePartnerships: driverPartnerships.filter(p => p.status === 'active').length || 0,
     partnershipEarnings: driverPartnerships.reduce((sum, p) => sum + p.lastMonth, 0) || 0
   };
@@ -497,7 +496,7 @@ export default function HotelsHome() {
                     <div className="space-y-3">
                       <div>
                         <p className="text-sm text-gray-600">Nome do Hotel</p>
-                        <p className="font-medium">{hotelProfile?.firstName || 'Hotel Costa do Sol'}</p>
+                        <p className="font-medium">{(hotelProfile as any)?.firstName || 'Hotel Costa do Sol'}</p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-600">Localização</p>
@@ -512,11 +511,12 @@ export default function HotelsHome() {
                     <div className="space-y-4">
                       <div>
                         <Label htmlFor="hotel-name">Nome do Hotel</Label>
-                        <Input id="hotel-name" defaultValue={hotelProfile?.firstName || 'Hotel Costa do Sol'} />
+                        <Input id="hotel-name" defaultValue={(hotelProfile as any)?.firstName || 'Hotel Costa do Sol'} />
                       </div>
                       <div>
                         <Label htmlFor="hotel-location">Localização</Label>
                         <LocationAutocomplete
+                          id="hotel-location"
                           value="Costa do Sol, Maputo"
                           onChange={(value) => console.log(value)}
                           placeholder="Localização do hotel..."
@@ -600,7 +600,7 @@ export default function HotelsHome() {
                   </TabsList>
 
                   <TabsContent value="published" className="space-y-4">
-                    {accommodations?.filter(acc => acc.isAvailable).length === 0 ? (
+                    {accommodations?.filter((acc: HotelAccommodation) => acc.isAvailable).length === 0 ? (
                       <div className="text-center py-12 text-gray-500">
                         <Building2 className="h-16 w-16 mx-auto mb-4 opacity-50" />
                         <h3 className="text-lg font-medium mb-2">Nenhuma acomodação publicada</h3>
@@ -615,7 +615,7 @@ export default function HotelsHome() {
                       </div>
                     ) : (
                       <div className="grid gap-4">
-                        {accommodations?.filter(acc => acc.isAvailable).map((accommodation: HotelAccommodation) => (
+                        {accommodations?.filter((acc: HotelAccommodation) => acc.isAvailable).map((accommodation: HotelAccommodation) => (
                           <Card key={accommodation.id} className="border-l-4 border-l-green-500 hover:shadow-md transition-shadow">
                             <CardContent className="pt-6">
                               <div className="flex justify-between items-start">
@@ -940,7 +940,7 @@ export default function HotelsHome() {
                   </TabsList>
                   
                   <TabsContent value="active" className="space-y-4">
-                    {hotelEvents?.filter(e => e.status === 'upcoming').length === 0 ? (
+                    {(hotelEvents as HotelEvent[])?.filter((e: HotelEvent) => e.status === 'upcoming').length === 0 ? (
                       <div className="text-center py-12 text-gray-500">
                         <PartyPopper className="h-16 w-16 mx-auto mb-4 opacity-50" />
                         <h3 className="text-lg font-medium mb-2">Nenhum evento ativo</h3>
@@ -955,7 +955,7 @@ export default function HotelsHome() {
                       </div>
                     ) : (
                       <div className="grid gap-4">
-                        {hotelEvents?.filter(e => e.status === 'upcoming').map((event: HotelEvent) => (
+                        {(hotelEvents as HotelEvent[])?.filter((e: HotelEvent) => e.status === 'upcoming').map((event: HotelEvent) => (
                           <Card key={event.id} className="border-l-4 border-l-purple-500">
                             <CardContent className="pt-6">
                               <div className="flex justify-between items-start">
@@ -1075,6 +1075,7 @@ export default function HotelsHome() {
               <div>
                 <Label htmlFor="address">Localização</Label>
                 <LocationAutocomplete 
+                  id="accommodation-address"
                   value={accommodationForm.address}
                   onChange={(value) => setAccommodationForm(prev => ({ ...prev, address: value }))}
                   placeholder="Endereço do alojamento..."
@@ -1189,6 +1190,7 @@ export default function HotelsHome() {
               <div>
                 <Label htmlFor="event-venue">Local do Evento</Label>
                 <LocationAutocomplete 
+                  id="event-venue"
                   value={eventForm.venue}
                   onChange={(value) => setEventForm(prev => ({ ...prev, venue: value }))}
                   placeholder="Local onde será realizado..."
