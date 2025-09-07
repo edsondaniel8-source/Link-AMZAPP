@@ -119,13 +119,34 @@ export default function RoutePublisher() {
 
       console.log("📝 Publicando viagem:", rideData);
       
-      // ✅ USAR RAILWAY: usar API centralizada
-      const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://link-amzapp-production.up.railway.app';
-      const response = await fetch(`${API_BASE_URL}/api/rides-simple/create`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(rideData)
-      });
+      console.log("🚀 Tentando criar viagem...");
+      let response;
+      
+      try {
+        // Primeiro tenta Railway
+        const RAILWAY_URL = 'https://link-amzapp-production.up.railway.app';
+        console.log("📡 Testando Railway...");
+        response = await fetch(`${RAILWAY_URL}/api/rides-simple/create`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(rideData)
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Railway falhou: ${response.status}`);
+        }
+        console.log("✅ Railway funcionou!");
+        
+      } catch (railwayError) {
+        console.log("⚠️ Railway falhou, usando backend local...", railwayError);
+        
+        // Fallback para backend local
+        response = await fetch('http://localhost:3001/api/rides-simple/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(rideData)
+        });
+      }
       
         if (!response.ok) {
           throw new Error(`Erro ${response.status}: ${response.statusText}`);
