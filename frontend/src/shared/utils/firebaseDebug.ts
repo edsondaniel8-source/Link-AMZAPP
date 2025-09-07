@@ -6,14 +6,14 @@ import {
 export const debugFirebaseConfig = () => {
   console.group('🔧 Firebase Debug Information');
   
-  // Check environment variables (supports both prefixes)
+  // Check environment variables
   console.log('Environment Variables:');
-  console.log('- FIREBASE_API_KEY:', (import.meta.env.NEXT_PUBLIC_FIREBASE_API_KEY || import.meta.env.VITE_FIREBASE_API_KEY) ? '✅ Set' : '❌ Missing');
-  console.log('- FIREBASE_PROJECT_ID:', (import.meta.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || import.meta.env.VITE_FIREBASE_PROJECT_ID) ? '✅ Set' : '❌ Missing');
-  console.log('- FIREBASE_APP_ID:', (import.meta.env.NEXT_PUBLIC_FIREBASE_APP_ID || import.meta.env.VITE_FIREBASE_APP_ID) ? '✅ Set' : '❌ Missing');
-  console.log('- FIREBASE_AUTH_DOMAIN:', (import.meta.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || import.meta.env.VITE_FIREBASE_AUTH_DOMAIN) ? '✅ Set' : '⚠️ Using default');
-  console.log('- FIREBASE_STORAGE_BUCKET:', (import.meta.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || import.meta.env.VITE_FIREBASE_STORAGE_BUCKET) ? '✅ Set' : '⚠️ Using default');
-  console.log('- FIREBASE_MESSAGING_SENDER_ID:', (import.meta.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID) ? '✅ Set' : '⚠️ Missing');
+  console.log('- VITE_FIREBASE_API_KEY:', import.meta.env.VITE_FIREBASE_API_KEY ? '✅ Set' : '❌ Missing');
+  console.log('- VITE_FIREBASE_PROJECT_ID:', import.meta.env.VITE_FIREBASE_PROJECT_ID ? '✅ Set' : '❌ Missing');
+  console.log('- VITE_FIREBASE_APP_ID:', import.meta.env.VITE_FIREBASE_APP_ID ? '✅ Set' : '❌ Missing');
+  console.log('- VITE_FIREBASE_AUTH_DOMAIN:', import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ? '✅ Set' : '⚠️ Using default');
+  console.log('- VITE_FIREBASE_STORAGE_BUCKET:', import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ? '✅ Set' : '⚠️ Using default');
+  console.log('- VITE_FIREBASE_MESSAGING_SENDER_ID:', import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID ? '✅ Set' : '⚠️ Missing');
   
   // Check configuration status
   console.log('\nConfiguration Status:');
@@ -55,17 +55,17 @@ export const diagnoseFirebaseIssues = () => {
   
   const issues: string[] = [];
   
-  // Check environment variables (supports both prefixes)
-  if (!(import.meta.env.NEXT_PUBLIC_FIREBASE_API_KEY || import.meta.env.VITE_FIREBASE_API_KEY)) {
-    issues.push('Missing FIREBASE_API_KEY environment variable (NEXT_PUBLIC_ or VITE_ prefix)');
+  // Check environment variables
+  if (!import.meta.env.VITE_FIREBASE_API_KEY) {
+    issues.push('Missing VITE_FIREBASE_API_KEY environment variable');
   }
   
-  if (!(import.meta.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || import.meta.env.VITE_FIREBASE_PROJECT_ID)) {
-    issues.push('Missing FIREBASE_PROJECT_ID environment variable (NEXT_PUBLIC_ or VITE_ prefix)');
+  if (!import.meta.env.VITE_FIREBASE_PROJECT_ID) {
+    issues.push('Missing VITE_FIREBASE_PROJECT_ID environment variable');
   }
   
-  if (!(import.meta.env.NEXT_PUBLIC_FIREBASE_APP_ID || import.meta.env.VITE_FIREBASE_APP_ID)) {
-    issues.push('Missing FIREBASE_APP_ID environment variable (NEXT_PUBLIC_ or VITE_ prefix)');
+  if (!import.meta.env.VITE_FIREBASE_APP_ID) {
+    issues.push('Missing VITE_FIREBASE_APP_ID environment variable');
   }
   
   // Check domain configuration

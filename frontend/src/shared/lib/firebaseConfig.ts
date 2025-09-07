@@ -13,14 +13,14 @@ import {
 } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
-// Firebase configuration from environment variables (supports both VITE_ and NEXT_PUBLIC_ prefixes)
+// Firebase configuration from environment variables
 const firebaseConfig = {
-  apiKey: import.meta.env.NEXT_PUBLIC_FIREBASE_API_KEY || import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || `${import.meta.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
-  projectId: import.meta.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || `${import.meta.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || import.meta.env.VITE_FIREBASE_PROJECT_ID}.appspot.com`,
-  messagingSenderId: import.meta.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.NEXT_PUBLIC_FIREBASE_APP_ID || import.meta.env.VITE_FIREBASE_APP_ID,
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.appspot.com`,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 // Validate Firebase configuration
@@ -37,14 +37,14 @@ console.log('🔥 Firebase Configuration Debug:', {
   isDev: import.meta.env.DEV,
   isProd: import.meta.env.PROD,
   
-  // Variable existence check (supports both prefixes)
+  // Variable existence check
   variables: {
-    FIREBASE_API_KEY: (import.meta.env.NEXT_PUBLIC_FIREBASE_API_KEY || import.meta.env.VITE_FIREBASE_API_KEY) ? '✅ Set' : '❌ Missing',
-    FIREBASE_PROJECT_ID: (import.meta.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || import.meta.env.VITE_FIREBASE_PROJECT_ID) ? '✅ Set' : '❌ Missing', 
-    FIREBASE_APP_ID: (import.meta.env.NEXT_PUBLIC_FIREBASE_APP_ID || import.meta.env.VITE_FIREBASE_APP_ID) ? '✅ Set' : '❌ Missing',
-    FIREBASE_AUTH_DOMAIN: (import.meta.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || import.meta.env.VITE_FIREBASE_AUTH_DOMAIN) ? '✅ Set' : '❌ Missing',
-    FIREBASE_STORAGE_BUCKET: (import.meta.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || import.meta.env.VITE_FIREBASE_STORAGE_BUCKET) ? '✅ Set' : '❌ Missing',
-    FIREBASE_MESSAGING_SENDER_ID: (import.meta.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID) ? '✅ Set' : '❌ Missing'
+    VITE_FIREBASE_API_KEY: import.meta.env.VITE_FIREBASE_API_KEY ? '✅ Set' : '❌ Missing',
+    VITE_FIREBASE_PROJECT_ID: import.meta.env.VITE_FIREBASE_PROJECT_ID ? '✅ Set' : '❌ Missing', 
+    VITE_FIREBASE_APP_ID: import.meta.env.VITE_FIREBASE_APP_ID ? '✅ Set' : '❌ Missing',
+    VITE_FIREBASE_AUTH_DOMAIN: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ? '✅ Set' : '❌ Missing',
+    VITE_FIREBASE_STORAGE_BUCKET: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ? '✅ Set' : '❌ Missing',
+    VITE_FIREBASE_MESSAGING_SENDER_ID: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID ? '✅ Set' : '❌ Missing'
   },
   
   // Final config status
@@ -67,12 +67,12 @@ if (!isFirebaseConfigured) {
   console.error('❌ FIREBASE SETUP REQUIRED:', {
     message: 'Add these environment variables to your Railway deployment:',
     required: [
-      'NEXT_PUBLIC_FIREBASE_API_KEY',
-      'NEXT_PUBLIC_FIREBASE_PROJECT_ID', 
-      'NEXT_PUBLIC_FIREBASE_APP_ID',
-      'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
-      'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
-      'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID'
+      'VITE_FIREBASE_API_KEY',
+      'VITE_FIREBASE_PROJECT_ID', 
+      'VITE_FIREBASE_APP_ID',
+      'VITE_FIREBASE_AUTH_DOMAIN',
+      'VITE_FIREBASE_STORAGE_BUCKET',
+      'VITE_FIREBASE_MESSAGING_SENDER_ID'
     ],
     note: 'Add these variables in Vercel deployment settings, then redeploy'
   });
@@ -99,7 +99,7 @@ if (isFirebaseConfigured) {
     googleProvider = new GoogleAuthProvider();
     
     // Configure Google provider with Web Client ID
-    const googleClientId = import.meta.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
     if (googleClientId) {
       googleProvider.setCustomParameters({
         'client_id': googleClientId,
