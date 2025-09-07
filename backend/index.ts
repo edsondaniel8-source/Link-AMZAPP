@@ -17,20 +17,32 @@ const __dirname = path.dirname(__filename);
 // Middleware - CORS configurado para Railway e desenvolvimento
 app.use(
   cors({
-    origin: [
-      // Domínios de produção
-      "https://link-aturismomoz.com",
-      "https://www.link-aturismomoz.com",
-      "link-amzapp-production.up.railway.app",
-
-      // Railway backend URL
-      process.env.CORS_ORIGIN ||
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        // Domínios de produção
+        "https://link-aturismomoz.com",
+        "https://www.link-aturismomoz.com",
         "https://link-amzapp-production.up.railway.app",
-      // Desenvolvimento
-      "http://localhost:3000",
-      "http://localhost:5000",
-      "http://localhost:8000",
-    ],
+        
+        // Railway backend URL
+        process.env.CORS_ORIGIN || "https://link-amzapp-production.up.railway.app",
+        
+        // Desenvolvimento
+        "http://localhost:3000",
+        "http://localhost:5000",
+        "http://localhost:8000",
+        
+        // Replit development
+        undefined // Para ferramentas de desenvolvimento
+      ];
+      
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.log(`❌ CORS blocked origin: ${origin}`);
+        callback(new Error(`CORS policy: Origin ${origin} not allowed`));
+      }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
