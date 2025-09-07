@@ -26,9 +26,11 @@ export async function apiRequest(
     console.debug('No auth token available:', error);
   }
 
-  // Use full URL if it includes protocol, otherwise prepend API base URL
+  // ✅ Railway centralizado para TUDO (auth + rides + hotéis)
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://link-a-backend-production.up.railway.app';
   const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
+  
+  console.log('🚀 Requisição Railway:', fullUrl);
 
   const res = await fetch(fullUrl, {
     method,

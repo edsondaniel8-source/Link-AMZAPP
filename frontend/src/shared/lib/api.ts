@@ -5,7 +5,7 @@ const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
   "https://link-a-backend-production.up.railway.app";
 
-console.log('🌐 API Base URL:', API_BASE_URL);
+console.log('🌐 API Base URL (Railway Centralizado):', API_BASE_URL);
 
 // Função para obter o token ID do utilizador atual
 async function getIdToken(): Promise<string | null> {

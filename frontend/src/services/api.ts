@@ -8,8 +8,9 @@ class ApiService {
   private baseURL: string;
 
   constructor() {
-    // URL do backend Railway (produção) ou local (desenvolvimento)
+    // ✅ Railway centralizado - backend completo
     this.baseURL = import.meta.env.VITE_API_URL || 'https://link-a-backend-production.up.railway.app';
+    console.log('🏗️ ApiService inicializado com Railway:', this.baseURL);
   }
 
   private async getAuthHeaders(): Promise<Record<string, string>> {
