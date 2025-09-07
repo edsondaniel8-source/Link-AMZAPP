@@ -119,24 +119,23 @@ export default function RoutePublisher() {
 
       console.log("📝 Publicando viagem:", rideData);
       
-      // Tentar API local primeiro, fallback para simulação se falhar
+      // Decidir qual API usar baseado no ambiente
       let response;
-      try {
-        if (window.location.hostname === 'localhost') {
-          // Desenvolvimento: usar API local
-          response = await fetch('http://localhost:3001/api/rides-simple/create', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(rideData)
-          });
-   } else {
-          // ✅ PRODUÇÃO: usar API real
-          response = await fetch('/api/rides', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(rideData)
-          });
-        }
+      if (window.location.hostname === 'localhost') {
+        // Desenvolvimento: usar API local
+        response = await fetch('http://localhost:3001/api/rides-simple/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(rideData)
+        });
+      } else {
+        // ✅ PRODUÇÃO: usar API real
+        response = await fetch('/api/rides', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(rideData)
+        });
+      }
       
         if (!response.ok) {
           throw new Error(`Erro ${response.status}: ${response.statusText}`);
