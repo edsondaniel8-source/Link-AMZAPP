@@ -89,6 +89,52 @@ export const bookings = pgTable("bookings", {
 });
 
 // Accommodations table (mantendo estrutura do schema original)
+// Hotels table - One profile per hotel manager
+export const hotels = pgTable("hotels", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  managerId: varchar("manager_id").references(() => users.id).notNull(),
+  address: text("address").notNull(),
+  lat: decimal("lat", { precision: 10, scale: 7 }),
+  lng: decimal("lng", { precision: 10, scale: 7 }),
+  description: text("description"),
+  phone: text("phone"),
+  email: text("email"),
+  website: text("website"),
+  checkInTime: text("check_in_time").default("14:00"),
+  checkOutTime: text("check_out_time").default("12:00"),
+  images: text("images").array(),
+  amenities: text("amenities").array(), // Hotel-wide amenities
+  rating: decimal("rating", { precision: 3, scale: 1 }).default("0.0"),
+  reviewCount: integer("review_count").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Room Types table - Multiple room types per hotel
+export const roomTypes = pgTable("room_types", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  hotelId: varchar("hotel_id").references(() => hotels.id).notNull(),
+  name: text("name").notNull(), // ex: "Suite Vista Mar", "Quarto Standard"
+  type: text("type").notNull(), // ex: "suite", "standard", "deluxe"
+  description: text("description"),
+  pricePerNight: decimal("price_per_night", { precision: 8, scale: 2 }).notNull(),
+  maxOccupancy: integer("max_occupancy").default(2),
+  totalRooms: integer("total_rooms").default(1), // Quantos quartos deste tipo existem
+  availableRooms: integer("available_rooms").default(1),
+  images: text("images").array(), // Fotos específicas deste tipo de quarto
+  amenities: text("amenities").array(), // Amenities específicas do quarto
+  size: decimal("size", { precision: 5, scale: 1 }), // Tamanho em m²
+  bedType: text("bed_type"), // ex: "Cama de Casal", "Duas Camas Solteiro"
+  hasBalcony: boolean("has_balcony").default(false),
+  hasSeaView: boolean("has_sea_view").default(false),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Legacy accommodations table (manter por compatibilidade)
 export const accommodations = pgTable("accommodations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
