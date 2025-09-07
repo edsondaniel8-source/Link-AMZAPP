@@ -35,7 +35,7 @@ import { getAuth } from 'firebase-admin/auth';
 if (!getApps().length) {
   initializeApp({
     credential: cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY!)),
-    projectId: process.env.VITE_FIREBASE_PROJECT_ID
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
   });
 }
 

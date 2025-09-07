@@ -1,6 +1,5 @@
 import { 
-  isFirebaseConfigured, 
-  testFirebaseConnection 
+  isFirebaseConfigured
 } from '../lib/firebaseConfig';
 
 // Debug utilities for Firebase troubleshooting
@@ -9,12 +8,12 @@ export const debugFirebaseConfig = () => {
   
   // Check environment variables
   console.log('Environment Variables:');
-  console.log('- VITE_FIREBASE_API_KEY:', import.meta.env.VITE_FIREBASE_API_KEY ? '✅ Set' : '❌ Missing');
-  console.log('- VITE_FIREBASE_PROJECT_ID:', import.meta.env.VITE_FIREBASE_PROJECT_ID ? '✅ Set' : '❌ Missing');
-  console.log('- VITE_FIREBASE_APP_ID:', import.meta.env.VITE_FIREBASE_APP_ID ? '✅ Set' : '❌ Missing');
-  console.log('- VITE_FIREBASE_AUTH_DOMAIN:', import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ? '✅ Set' : '⚠️ Using default');
-  console.log('- VITE_FIREBASE_STORAGE_BUCKET:', import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ? '✅ Set' : '⚠️ Using default');
-  console.log('- VITE_FIREBASE_MESSAGING_SENDER_ID:', import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID ? '✅ Set' : '⚠️ Missing');
+  console.log('- NEXT_PUBLIC_FIREBASE_API_KEY:', import.meta.env.NEXT_PUBLIC_FIREBASE_API_KEY ? '✅ Set' : '❌ Missing');
+  console.log('- NEXT_PUBLIC_FIREBASE_PROJECT_ID:', import.meta.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ? '✅ Set' : '❌ Missing');
+  console.log('- NEXT_PUBLIC_FIREBASE_APP_ID:', import.meta.env.NEXT_PUBLIC_FIREBASE_APP_ID ? '✅ Set' : '❌ Missing');
+  console.log('- NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN:', import.meta.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ? '✅ Set' : '⚠️ Using default');
+  console.log('- NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET:', import.meta.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ? '✅ Set' : '⚠️ Using default');
+  console.log('- NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID:', import.meta.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ? '✅ Set' : '⚠️ Missing');
   
   // Check configuration status
   console.log('\nConfiguration Status:');
@@ -33,10 +32,9 @@ export const testFirebaseSetup = async () => {
   console.group('🧪 Firebase Connection Test');
   
   try {
-    const connected = await testFirebaseConnection();
-    console.log('Connection Test:', connected ? '✅ Passed' : '❌ Failed');
+    console.log('Configuration Status:', isFirebaseConfigured ? '✅ Configured' : '❌ Not Configured');
     
-    if (!connected && isFirebaseConfigured) {
+    if (!isFirebaseConfigured) {
       console.log('\n💡 Troubleshooting Tips:');
       console.log('1. Check Firebase Console for authorized domains');
       console.log('2. Verify API keys are not restricted');
@@ -58,16 +56,16 @@ export const diagnoseFirebaseIssues = () => {
   const issues: string[] = [];
   
   // Check environment variables
-  if (!import.meta.env.VITE_FIREBASE_API_KEY) {
-    issues.push('Missing VITE_FIREBASE_API_KEY environment variable');
+  if (!import.meta.env.NEXT_PUBLIC_FIREBASE_API_KEY) {
+    issues.push('Missing NEXT_PUBLIC_FIREBASE_API_KEY environment variable');
   }
   
-  if (!import.meta.env.VITE_FIREBASE_PROJECT_ID) {
-    issues.push('Missing VITE_FIREBASE_PROJECT_ID environment variable');
+  if (!import.meta.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) {
+    issues.push('Missing NEXT_PUBLIC_FIREBASE_PROJECT_ID environment variable');
   }
   
-  if (!import.meta.env.VITE_FIREBASE_APP_ID) {
-    issues.push('Missing VITE_FIREBASE_APP_ID environment variable');
+  if (!import.meta.env.NEXT_PUBLIC_FIREBASE_APP_ID) {
+    issues.push('Missing NEXT_PUBLIC_FIREBASE_APP_ID environment variable');
   }
   
   // Check domain configuration
