@@ -3,7 +3,7 @@
 Multi-service marketplace platform for Mozambique connecting transportation, accommodation, events, and partnerships.
 
 ## Project Structure
-
+...
 ```
 link-a-app/
 ├── frontend/          # React/Vite frontend

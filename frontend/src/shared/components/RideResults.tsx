@@ -11,7 +11,27 @@ import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/shared/components/ui/dialog";
 import { formatPriceStringAsMzn } from "@/shared/lib/currency";
-import type { Ride } from "@shared/schema";
+// import type { Ride } from "@shared/schema";
+interface Ride {
+  id: string;
+  type: string;
+  price: string;
+  availableIn?: number;
+  driverName?: string;
+  availableSeats?: number;
+  estimatedDuration?: number;
+  estimatedDistance?: string;
+  allowNegotiation?: boolean;
+  allowPickupEnRoute?: boolean;
+  isRoundTrip?: boolean;
+  route?: string[];
+  returnDate?: string;
+  returnDepartureTime?: string;
+  vehicleInfo?: string;
+  departureDate?: string;
+  fromLat?: string;
+  fromLng?: string;
+}
 
 interface RideResultsProps {
   searchParams: {
@@ -32,7 +52,7 @@ export default function RideResults({ searchParams }: RideResultsProps) {
   const [pickupRide, setPickupRide] = useState<Ride | null>(null);
 
   const { data: rides = [], isLoading } = useQuery<Ride[]>({
-    queryKey: ["/api/rides/search", searchParams.from, searchParams.to],
+    queryKey: ["/api/rides-simple/search", searchParams.from, searchParams.to],
     enabled: !!searchParams.from && !!searchParams.to,
   });
 
@@ -182,7 +202,7 @@ export default function RideResults({ searchParams }: RideResultsProps) {
                     <div className="mb-3">
                       <p className="text-xs text-gray-medium mb-1">Rota:</p>
                       <div className="flex flex-wrap gap-1">
-                        {ride.route.map((stop, index) => (
+                        {ride.route.map((stop: string, index: number) => (
                           <Badge key={index} variant="outline" className="text-xs">
                             {stop}
                           </Badge>

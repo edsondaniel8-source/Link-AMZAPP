@@ -1,29 +1,38 @@
 import express from 'express';
 import { createServer } from 'http';
-import authRoutes from './auth.js';
-import ridesRoutes from './rides.js';
-import hotelsRoutes from './hotels.js';
-import eventsRoutes from './events.js';
-import bookingsRoutes from './bookings.js';
-import highlightsRoutes from './highlights.js';
-import billingRoutes from './billing.js';
-import chatRoutes from './chat.js';
-import pmsRoutes from './pms.js';
-import { initializeChatService } from '../services/chatService.js';
 
-export async function registerRoutes(app: express.Express) {
-  // Centralizar todas as rotas da API
-  app.use('/api/auth', authRoutes);
-  app.use('/api/rides', ridesRoutes);
-  app.use('/api/hotels', hotelsRoutes);
-  app.use('/api/events', eventsRoutes);
-  app.use('/api/bookings', bookingsRoutes);
+// ===== ROTAS COMPARTILHADAS =====
+import sharedHealthRoutes from './shared/health';
+
+// ===== NOVA API DRIZZLE UNIFICADA =====
+import drizzleApiRoutes from './drizzle-api';
+
+// ===== SISTEMAS FUNCIONAIS (Firebase Auth apenas) =====
+import authRoutes from './auth';
+import bookingsRoutes from './bookings';
+import geoRoutes from './geo';
+import billingRoutes from './billing';
+import chatRoutes from './chat';
+import pmsRoutes from './pms';
+import { initializeChatService } from '../services/chatService';
+
+export async function registerRoutes(app: express.Express): Promise<void> {
+  // ===== ROTAS COMPARTILHADAS =====
+  app.use('/api/health', sharedHealthRoutes);
+  console.log('✅ Rotas básicas registradas com sucesso');
+
+  // ===== NOVA API DRIZZLE UNIFICADA (principal) =====
+  app.use('/api/rides-simple', drizzleApiRoutes); // Compatibilidade com frontend
+  app.use('/api/drizzle', drizzleApiRoutes); // Nova API principal
+  console.log('🗃️ API Drizzle principal configurada');
+
+  // ===== SISTEMAS FUNCIONAIS (Firebase Auth) =====
+  app.use('/api/auth', authRoutes); // Firebase Auth
+  app.use('/api/bookings', bookingsRoutes); // Sistema de reservas
+  app.use('/api/geo', geoRoutes); // Geolocalização para Moçambique
   app.use('/api/billing', billingRoutes);
   app.use('/api/chat', chatRoutes);
   app.use('/api/pms', pmsRoutes);
-  app.use('/', highlightsRoutes);
-
-  // Rota delegada para highlights (implementada em highlights.ts)
 
   // Rota de estatísticas para o painel admin
   app.get('/api/admin/stats', async (req, res) => {
@@ -44,10 +53,7 @@ export async function registerRoutes(app: express.Express) {
     }
   });
 
-  const httpServer = createServer(app);
-  
-  // Inicializar sistema de chat WebSocket
-  initializeChatService(httpServer);
-  
-  return httpServer;
+  // Inicializar sistema de chat WebSocket apenas se necessário
+  // initializeChatService será chamado quando o servidor HTTP for criado
+  console.log('🔌 Rotas registradas - pronto para criar servidor HTTP');
 }

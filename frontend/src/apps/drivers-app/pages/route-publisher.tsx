@@ -1,53 +1,211 @@
 import { useState } from "react";
 import { useAuth } from "@/shared/hooks/useAuth";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
-import { MapPin, Calendar, Clock, Users, DollarSign, Car, Plus } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
+import LocationAutocomplete from "@/shared/components/LocationAutocomplete";
+import { useToast } from "@/shared/hooks/use-toast";
+import {
+  MapPin,
+  Calendar,
+  Clock,
+  Users,
+  DollarSign,
+  Car,
+  Plus,
+} from "lucide-react";
 
 export default function RoutePublisher() {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  // 3. CORREÇÃO: Adicione os campos 'date' e 'time' ao estado
   const [formData, setFormData] = useState({
-    from: "",
-    to: "",
-    date: "",
-    time: "",
-    totalSeats: 4,
-    price: "",
+    fromAddress: "",
+    toAddress: "",
+    date: "", // Campo separado para data
+    time: "", // Campo separado para hora
+    departureDate: "", // Isto será combinado de date + time
+    price: 0,
+    maxPassengers: 4,
     vehicleType: "",
     description: "",
     pickupPoint: "",
-    dropoffPoint: ""
+    dropoffPoint: "",
+    vehiclePhoto: null as File | null, // Foto do veículo
   });
+  
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   const handleInputChange = (field: string, value: string | number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
-  const handlePublish = () => {
-    console.log("Publicar rota:", formData);
-    // TODO: Implementar publicação da rota
-    alert("Rota publicada com sucesso!");
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFormData((prev) => ({
+        ...prev,
+        vehiclePhoto: file,
+      }));
+      
+      // Criar preview da imagem
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPhotoPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
-  const cities = [
-    "Maputo", "Matola", "Beira", "Nampula", "Chimoio", "Nacala", "Quelimane", 
-    "Tete", "Xai-Xai", "Inhambane", "Pemba", "Lichinga", "Angoche", "Maxixe"
-  ];
+  const handlePublish = async () => {
+    // Validações simples
+    if (!user) {
+      setError("Deve estar autenticado para publicar uma rota.");
+      return;
+    }
+
+    if (!formData.fromAddress || !formData.toAddress) {
+      setError("Por favor preencha origem e destino.");
+      return;
+    }
+
+    if (!formData.date || !formData.time) {
+      setError("Por favor preencha data e hora da viagem.");
+      return;
+    }
+
+    if (formData.price <= 0) {
+      setError("Por favor defina um preço válido.");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    setSuccess(false);
+
+    try {
+      // Dados limpos para enviar
+      const rideData = {
+        fromAddress: formData.fromAddress,
+        toAddress: formData.toAddress,
+        departureDate: `${formData.date}T${formData.time}:00`,
+        price: Number(formData.price),
+        maxPassengers: Number(formData.maxPassengers),
+        type: formData.vehicleType || "sedan",
+        description: formData.description || "Viagem confortável",
+        driverId: user?.uid || 'temp-driver-id'
+      };
+
+      console.log("📝 Publicando viagem:", rideData);
+      
+      // Tentar API local primeiro, fallback para simulação se falhar
+      let response;
+      try {
+        if (window.location.hostname === 'localhost') {
+          // Desenvolvimento: usar API local
+          response = await fetch('http://localhost:3001/api/rides-simple/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(rideData)
+          });
+   } else {
+          // ✅ PRODUÇÃO: usar API real
+          response = await fetch('/api/rides', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(rideData)
+          });
+        }
+      
+        if (!response.ok) {
+          throw new Error(`Erro ${response.status}: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+
+        console.log("✅ Viagem publicada com sucesso!", result);
+        setSuccess(true);
+        
+        // Mostrar toast de sucesso
+        toast({
+          title: "🎉 Viagem Publicada!",
+          description: `Rota ${formData.fromAddress} → ${formData.toAddress} está disponível!`,
+        });
+
+        // Reset form
+        setFormData({
+          fromAddress: "",
+          toAddress: "",
+          date: "",
+          time: "",
+          departureDate: "",
+          price: 0,
+          maxPassengers: 4,
+          vehicleType: "sedan",
+          description: "",
+          pickupPoint: "",
+          dropoffPoint: "",
+          vehiclePhoto: null,
+        });
+        setPhotoPreview(null);
+      } catch (error) {
+        // Tratar o erro normalmente
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Erro ao publicar a rota. Tente novamente.";
+        console.error("❌ Erro ao publicar rota:", error);
+        setError(errorMessage);
+      } finally {
+        setIsLoading(false);
+      }
+};
+
+  // Cidades removidas - agora usando LocationAutocomplete com lista completa de locais
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto p-4">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Publicar Nova Rota</h1>
-          <p className="text-gray-600">Ofereça lugares na sua viagem e ganhe dinheiro</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Publicar Nova Rota
+          </h1>
+          <p className="text-gray-600">
+            Ofereça lugares na sua viagem e ganhe dinheiro
+          </p>
         </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-4">
+            ❌ {error}
+          </div>
+        )}
+        {success && (
+          <div className="bg-green-50 border border-green-200 text-green-700 p-4 rounded-lg mb-4">
+            ✅ Viagem publicada com sucesso! Já está disponível para reservas.
+          </div>
+        )}
 
         <Card>
           <CardHeader>
@@ -57,40 +215,34 @@ export default function RoutePublisher() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Origem e Destino */}
+            {/* Origem e Destino com AutoComplete */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="from" className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-orange-600" />
-                  De onde
+                  Saindo de
                 </Label>
-                <Select onValueChange={(value) => handleInputChange("from", value)}>
-                  <SelectTrigger data-testid="select-from">
-                    <SelectValue placeholder="Cidade de origem" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {cities.map(city => (
-                      <SelectItem key={city} value={city}>{city}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <LocationAutocomplete
+                  id="from-location"
+                  value={formData.fromAddress}
+                  onChange={(value) => handleInputChange("fromAddress", value)}
+                  placeholder="Saindo de... (qualquer local em Moçambique)"
+                  className="w-full"
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="to" className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-blue-600" />
-                  Para onde
+                  Indo para
                 </Label>
-                <Select onValueChange={(value) => handleInputChange("to", value)}>
-                  <SelectTrigger data-testid="select-to">
-                    <SelectValue placeholder="Cidade de destino" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {cities.map(city => (
-                      <SelectItem key={city} value={city}>{city}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <LocationAutocomplete
+                  id="to-location"
+                  value={formData.toAddress}
+                  onChange={(value) => handleInputChange("toAddress", value)}
+                  placeholder="Indo para... (qualquer local em Moçambique)"
+                  className="w-full"
+                />
               </div>
             </div>
 
@@ -106,7 +258,7 @@ export default function RoutePublisher() {
                   type="date"
                   value={formData.date}
                   onChange={(e) => handleInputChange("date", e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
+                  min={new Date().toISOString().split("T")[0]}
                   data-testid="input-date"
                 />
               </div>
@@ -133,7 +285,11 @@ export default function RoutePublisher() {
                   <Users className="w-4 h-4 text-indigo-600" />
                   Lugares Disponíveis
                 </Label>
-                <Select onValueChange={(value) => handleInputChange("totalSeats", parseInt(value))}>
+                <Select
+                  onValueChange={(value) =>
+                    handleInputChange("maxPassengers", parseInt(value))
+                  }
+                >
                   <SelectTrigger data-testid="select-seats">
                     <SelectValue placeholder="Quantos lugares" />
                   </SelectTrigger>
@@ -168,7 +324,11 @@ export default function RoutePublisher() {
                   <Car className="w-4 h-4 text-red-600" />
                   Tipo de Veículo
                 </Label>
-                <Select onValueChange={(value) => handleInputChange("vehicleType", value)}>
+                <Select
+                  onValueChange={(value) =>
+                    handleInputChange("vehicleType", value)
+                  }
+                >
                   <SelectTrigger data-testid="select-vehicle">
                     <SelectValue placeholder="Seu veículo" />
                   </SelectTrigger>
@@ -195,7 +355,9 @@ export default function RoutePublisher() {
                   id="pickup"
                   placeholder="Ex: Shopping Maputo Sul, entrada principal"
                   value={formData.pickupPoint}
-                  onChange={(e) => handleInputChange("pickupPoint", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("pickupPoint", e.target.value)
+                  }
                   data-testid="input-pickup"
                 />
               </div>
@@ -209,9 +371,67 @@ export default function RoutePublisher() {
                   id="dropoff"
                   placeholder="Ex: Terminal Rodoviário de Beira"
                   value={formData.dropoffPoint}
-                  onChange={(e) => handleInputChange("dropoffPoint", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("dropoffPoint", e.target.value)
+                  }
                   data-testid="input-dropoff"
                 />
+              </div>
+            </div>
+
+            {/* Foto do Veículo */}
+            <div className="space-y-4">
+              <Label className="flex items-center gap-2">
+                <Car className="w-4 h-4 text-blue-600" />
+                Foto do Veículo
+              </Label>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                {photoPreview ? (
+                  <div className="space-y-4">
+                    <div className="relative">
+                      <img 
+                        src={photoPreview} 
+                        alt="Preview do veículo" 
+                        className="w-full h-48 object-cover rounded-lg"
+                      />
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        className="absolute top-2 right-2"
+                        onClick={() => {
+                          setPhotoPreview(null);
+                          setFormData(prev => ({ ...prev, vehiclePhoto: null }));
+                        }}
+                        data-testid="button-remove-photo"
+                      >
+                        Remover
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <Car className="mx-auto h-12 w-12 text-gray-400" />
+                    <div className="mt-4">
+                      <Label htmlFor="vehicle-photo" className="cursor-pointer">
+                        <span className="mt-2 block text-sm font-medium text-gray-900">
+                          Clique para adicionar uma foto do seu veículo
+                        </span>
+                        <span className="mt-1 block text-xs text-gray-500">
+                          PNG, JPG até 5MB
+                        </span>
+                      </Label>
+                      <Input
+                        id="vehicle-photo"
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoChange}
+                        className="hidden"
+                        data-testid="input-vehicle-photo"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -224,7 +444,9 @@ export default function RoutePublisher() {
                 id="description"
                 placeholder="Ex: Aceito bagagem extra por 100 MZN, não fumadores, etc."
                 value={formData.description}
-                onChange={(e) => handleInputChange("description", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("description", e.target.value)
+                }
                 rows={3}
                 data-testid="textarea-description"
               />
@@ -236,15 +458,22 @@ export default function RoutePublisher() {
                 onClick={handlePublish}
                 className="flex-1"
                 size="lg"
-                disabled={!formData.from || !formData.to || !formData.date || !formData.time || !formData.price}
+                disabled={
+                  !formData.fromAddress ||
+                  !formData.toAddress ||
+                  !formData.date ||
+                  !formData.time ||
+                  !formData.price ||
+                  isLoading
+                }
                 data-testid="button-publish"
               >
-                <Plus className="w-4 h-4 mr-2" />
-                Publicar Rota
+                {isLoading ? "A Publicar..." : "Publicar Rota"}
+                {!isLoading && <Plus className="w-4 h-4 ml-2" />}
               </Button>
-              
-              <Button 
-                variant="outline" 
+
+              <Button
+                variant="outline"
                 size="lg"
                 onClick={() => window.history.back()}
                 data-testid="button-cancel"
@@ -253,9 +482,38 @@ export default function RoutePublisher() {
               </Button>
             </div>
 
+            {/* Resumo da Viagem */}
+            {formData.fromAddress && formData.toAddress && formData.date && formData.time && formData.price > 0 && (
+              <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-lg border border-green-200">
+                <h3 className="font-semibold text-green-800 mb-3">📋 Resumo da sua Viagem</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p><strong className="text-green-700">Rota:</strong> {formData.fromAddress} → {formData.toAddress}</p>
+                    <p><strong className="text-green-700">Data:</strong> {new Date(`${formData.date}T${formData.time}`).toLocaleDateString('pt-PT', { 
+                      weekday: 'long', 
+                      day: '2-digit', 
+                      month: 'long', 
+                      hour: '2-digit', 
+                      minute: '2-digit'
+                    })}</p>
+                  </div>
+                  <div>
+                    <p><strong className="text-green-700">Lugares:</strong> {formData.maxPassengers} disponíveis</p>
+                    <p><strong className="text-green-700">Preço:</strong> {formData.price} MT por pessoa</p>
+                    <p><strong className="text-blue-700">Receita máxima:</strong> {formData.price * formData.maxPassengers} MT</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             <div className="bg-blue-50 p-4 rounded-lg">
-              <h3 className="font-medium text-blue-900 mb-2">💡 Dicas para uma boa oferta:</h3>
+              <h3 className="font-medium text-blue-900 mb-2">
+                💡 Dicas para uma boa oferta:
+              </h3>
               <ul className="text-sm text-blue-800 space-y-1">
+                <li>
+                  • Use locais específicos (ex: "Shopping Maputo Sul" em vez de "Maputo")
+                </li>
                 <li>• Defina pontos de encontro conhecidos e de fácil acesso</li>
                 <li>• Seja claro sobre regras (bagagem, fumar, etc.)</li>
                 <li>• Defina preços justos e competitivos</li>

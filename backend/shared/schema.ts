@@ -54,35 +54,20 @@ export const users = pgTable("users", {
   badgeEarnedDate: timestamp("badge_earned_date"),
 });
 
+// Simplified Rides table following the proposed SQL schema
 export const rides = pgTable("rides", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  type: text("type").notNull(), // UberX, Comfort, UberXL
-  fromAddress: text("from_address").notNull(),
-  toAddress: text("to_address").notNull(),
-  fromLat: decimal("from_lat", { precision: 10, scale: 7 }),
-  fromLng: decimal("from_lng", { precision: 10, scale: 7 }),
-  toLat: decimal("to_lat", { precision: 10, scale: 7 }),
-  toLng: decimal("to_lng", { precision: 10, scale: 7 }),
-  price: decimal("price", { precision: 8, scale: 2 }).notNull(),
-  estimatedDuration: integer("estimated_duration"), // minutes
-  estimatedDistance: decimal("estimated_distance", { precision: 5, scale: 2 }), // miles
-  availableIn: integer("available_in"), // minutes until pickup
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`), // Keep existing UUID format
   driverId: varchar("driver_id").references(() => users.id),
-  driverName: text("driver_name"),
-  vehicleInfo: text("vehicle_info"),
-  maxPassengers: integer("max_passengers").default(4), // Maximum seats in vehicle
-  availableSeats: integer("available_seats").default(4), // Currently available seats
-  isActive: boolean("is_active").default(true),
-  // New advanced features
-  route: text("route").array(), // Array of intermediate stops/cities along the route
-  allowPickupEnRoute: boolean("allow_pickup_en_route").default(false),
-  allowNegotiation: boolean("allow_negotiation").default(false),
-  isRoundTrip: boolean("is_round_trip").default(false),
-  returnDate: timestamp("return_date"), // For round trips
-  returnDepartureTime: timestamp("return_departure_time"), // For round trips
-  minPrice: decimal("min_price", { precision: 8, scale: 2 }), // Minimum acceptable price for negotiation
-  maxPrice: decimal("max_price", { precision: 8, scale: 2 }), // Maximum price for negotiation
-  departureDate: timestamp("departure_date"), // Date of departure
+  fromLocation: varchar("from_location", { length: 255 }).notNull(),
+  toLocation: varchar("to_location", { length: 255 }).notNull(),
+  departureDate: timestamp("departure_date").notNull(),
+  departureTime: text("departure_time").notNull(), // Store as text like "14:30"
+  availableSeats: integer("available_seats").notNull(),
+  pricePerSeat: decimal("price_per_seat", { precision: 10, scale: 2 }).notNull(),
+  vehicleType: varchar("vehicle_type", { length: 50 }),
+  additionalInfo: text("additional_info"),
+  status: varchar("status", { length: 20 }).default("active"),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const accommodations = pgTable("accommodations", {
@@ -225,49 +210,15 @@ export const payments = pgTable("payments", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Simplified Bookings table following the proposed SQL schema
 export const bookings = pgTable("bookings", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id),
-  type: text("type").notNull(), // "ride", "stay", "event"
-  status: text("status").notNull().default("pending_approval"), // pending_approval, approved, confirmed, completed, cancelled, rejected
-  
-  // Provider approval tracking
-  providerId: varchar("provider_id").references(() => users.id), // Driver, host, or event manager
-  requestedAt: timestamp("requested_at").defaultNow(),
-  approvedAt: timestamp("approved_at"),
-  rejectedAt: timestamp("rejected_at"),
-  confirmedAt: timestamp("confirmed_at"),
-  rejectionReason: text("rejection_reason"),
-  
-  // Approval notifications
-  customerNotified: boolean("customer_notified").default(false),
-  providerNotified: boolean("provider_notified").default(false),
-  
-  // Ride booking fields
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`), // Keep existing UUID format
   rideId: varchar("ride_id").references(() => rides.id),
-  pickupTime: timestamp("pickup_time"),
-  
-  // Stay booking fields
-  accommodationId: varchar("accommodation_id").references(() => accommodations.id),
-  checkInDate: timestamp("check_in_date"),
-  checkOutDate: timestamp("check_out_date"),
-  guests: integer("guests"),
-  nights: integer("nights"),
-  
-  // Event booking fields (merged from eventBookings)
-  eventId: varchar("event_id").references(() => events.id),
-  ticketQuantity: integer("ticket_quantity").default(1),
-  ticketNumbers: text("ticket_numbers").array(), // Array of ticket numbers
-  qrCodes: text("qr_codes").array(), // Array of QR codes
-  
-  // Pricing with discounts
-  originalPrice: decimal("original_price", { precision: 10, scale: 2 }).notNull(),
-  discountApplied: decimal("discount_applied", { precision: 10, scale: 2 }).default("0.00"),
+  passengerId: varchar("passenger_id").references(() => users.id),
+  seatsBooked: integer("seats_booked").notNull(),
   totalPrice: decimal("total_price", { precision: 10, scale: 2 }).notNull(),
-  
-  paymentMethod: text("payment_method"), // visa_4242, mastercard_5555, etc
+  status: varchar("status", { length: 20 }).default("pending"),
   createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // REMOVED: accommodationPartnershipPrograms, driverHotelPartnerships

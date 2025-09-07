@@ -12,6 +12,7 @@ import Loyalty from './pages/loyalty';
 import Chat from './pages/chat';
 import Notifications from './pages/notifications';
 import Profile from './pages/profile';
+// Imports removidos - agora usamos modais na HomePage
 import ProtectedRoute from '@/shared/components/ProtectedRoute';
 import NotFound from './pages/not-found';
 
@@ -20,11 +21,12 @@ function MainApp() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <div className="min-h-screen bg-gray-50">
-          <Header activeService="rides" onServiceChange={() => {}} />
+          <Header />
           <main className="container mx-auto px-4 py-8 pb-20 md:pb-8">
             <Switch>
               <Route path="/" component={Home} />
               <Route path="/eventos" component={Events} />
+              {/* Rotas URL antigas removidas - agora usamos modais */}
               <Route path="/reservas">
                 <ProtectedRoute>
                   <Bookings />

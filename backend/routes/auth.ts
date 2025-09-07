@@ -2,7 +2,7 @@ import { Router } from 'express';
 import admin from 'firebase-admin';
 import { z } from 'zod';
 import { db } from '../db.js';
-import { users } from '../shared/schema.js';
+import { users } from '../shared/database-schema.js';
 import { eq } from 'drizzle-orm';
 
 const router = Router();

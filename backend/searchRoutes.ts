@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { storage } from "./storage";
-import { verifyFirebaseToken, type AuthenticatedRequest } from "./firebaseAuth";
+import { storage } from "./src/shared/storage";
+import { verifyFirebaseToken, type AuthenticatedRequest } from "./src/shared/firebaseAuth";
 
 const router = Router();
 
@@ -330,8 +330,8 @@ router.get("/events", async (req, res) => {
         category: "cultura",
         venue: "Estádio Nacional do Zimpeto",
         address: `${city}, Estádio Nacional`,
-        startDate: `${year}-${month.padStart(2, '0')}-15`,
-        endDate: `${year}-${month.padStart(2, '0')}-17`,
+        startDate: `${year}-${String(month).padStart(2, '0')}-15`,
+        endDate: `${year}-${String(month).padStart(2, '0')}-17`,
         startTime: "18:00",
         endTime: "23:00",
         isPaid: true,
@@ -364,8 +364,8 @@ router.get("/events", async (req, res) => {
         category: "negocios",
         venue: "Hotel VIP Executive Beira",
         address: `${city}, Centro da Cidade`,
-        startDate: `${year}-${month.padStart(2, '0')}-08`,
-        endDate: `${year}-${month.padStart(2, '0')}-08`,
+        startDate: `${year}-${String(month).padStart(2, '0')}-08`,
+        endDate: `${year}-${String(month).padStart(2, '0')}-08`,
         startTime: "09:00",
         endTime: "17:00",
         isPaid: true,
@@ -398,8 +398,8 @@ router.get("/events", async (req, res) => {
         category: "entretenimento",
         venue: "Praia do Tofo",
         address: `${city}, Praia do Tofo`,
-        startDate: `${year}-${month.padStart(2, '0')}-22`,
-        endDate: `${year}-${month.padStart(2, '0')}-23`,
+        startDate: `${year}-${String(month).padStart(2, '0')}-22`,
+        endDate: `${year}-${String(month).padStart(2, '0')}-23`,
         startTime: "20:00",
         endTime: "04:00",
         isPaid: true,
@@ -493,9 +493,9 @@ router.get("/all", async (req, res) => {
     const searchTerm = (query as string).toLowerCase();
     
     const results = {
-      rides: [],
-      accommodations: [],
-      events: [],
+      rides: [] as any[],
+      accommodations: [] as any[],
+      events: [] as any[],
       total: 0
     };
 
