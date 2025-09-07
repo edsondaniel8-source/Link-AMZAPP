@@ -119,23 +119,13 @@ export default function RoutePublisher() {
 
       console.log("📝 Publicando viagem:", rideData);
       
-      // Decidir qual API usar baseado no ambiente
-      let response;
-      if (window.location.hostname === 'localhost') {
-        // Desenvolvimento: usar API local
-        response = await fetch('http://localhost:3001/api/rides-simple/create', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(rideData)
-        });
-      } else {
-        // ✅ PRODUÇÃO: usar API real
-        response = await fetch('/api/rides', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(rideData)
-        });
-      }
+      // ✅ USAR RAILWAY: usar API centralizada
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://link-amzapp-production.up.railway.app';
+      const response = await fetch(`${API_BASE_URL}/api/rides-simple/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(rideData)
+      });
       
         if (!response.ok) {
           throw new Error(`Erro ${response.status}: ${response.statusText}`);
