@@ -31,9 +31,10 @@ export const useUserSetup = () => {
         console.log("🔍 Verificando perfil do usuário...");
         let response;
         
-        // ✅ AUTH: Sempre usar backend LOCAL (Railway não tem auth)
-        console.log("🔐 Usando backend local para autenticação...");
-        response = await fetch('http://localhost:3001/api/auth/profile', {
+        // ✅ AUTH: Usar Railway (agora tem auth completa)
+        console.log("🔐 Usando Railway para autenticação...");
+        const RAILWAY_URL = 'https://link-a-backend-production.up.railway.app';
+        response = await fetch(`${RAILWAY_URL}/api/auth/profile`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -78,10 +79,11 @@ export const useUserSetup = () => {
       console.log("🚀 Configurando roles do usuário...", roles);
       let registerResponse, response;
       
-      // ✅ AUTH SETUP: Sempre usar backend LOCAL (Railway não tem auth)
-      console.log("🔐 Registrando usuário no backend local...");
+      // ✅ AUTH SETUP: Usar Railway (agora tem auth completa)
+      console.log("🔐 Registrando usuário no Railway...");
+      const RAILWAY_URL = 'https://link-a-backend-production.up.railway.app';
       
-      registerResponse = await fetch('http://localhost:3001/api/auth/register', {
+      registerResponse = await fetch(`${RAILWAY_URL}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -96,10 +98,10 @@ export const useUserSetup = () => {
       });
 
       if (!registerResponse.ok) {
-        throw new Error('Failed to register user locally');
+        throw new Error('Failed to register user in Railway');
       }
 
-      response = await fetch('http://localhost:3001/api/auth/roles', {
+      response = await fetch(`${RAILWAY_URL}/api/auth/roles`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
