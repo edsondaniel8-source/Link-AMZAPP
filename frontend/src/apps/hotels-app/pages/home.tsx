@@ -762,12 +762,12 @@ export default function HotelsHome() {
                                   <div className="space-y-2 mb-4">
                                     <div className="flex items-center gap-2 text-gray-600">
                                       <MapPin className="h-4 w-4" />
-                                      <span className="text-sm">{accommodation.address}</span>
+                                      <span className="text-sm">{hotel?.address}</span>
                                     </div>
                                     
-                                    {accommodation.amenities && accommodation.amenities.length > 0 && (
+                                    {roomType.amenities && roomType.amenities.length > 0 && (
                                       <div className="flex flex-wrap gap-1">
-                                        {accommodation.amenities.map((amenity, index) => (
+                                        {roomType.amenities.map((amenity, index) => (
                                           <Badge key={index} variant="outline" className="text-xs">{amenity}</Badge>
                                         ))}
                                       </div>
@@ -777,19 +777,19 @@ export default function HotelsHome() {
                                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                                     <div className="flex items-center gap-1 text-gray-600">
                                       <Star className="h-4 w-4 text-yellow-500" />
-                                      <span>{accommodation.rating} ({accommodation.reviewCount})</span>
+                                      <span>{hotel?.rating} ({hotel?.reviewCount})</span>
                                     </div>
                                     <div className="flex items-center gap-1 text-gray-600">
                                       <DollarSign className="h-4 w-4" />
-                                      <span className="font-semibold">{accommodation.pricePerNight} MT</span>
+                                      <span className="font-semibold">{roomType.pricePerNight.toLocaleString()} MT</span>
                                     </div>
                                     <div className="flex items-center gap-1 text-gray-600">
                                       <Users className="h-4 w-4" />
-                                      <span>{accommodation.totalBookings} reservas</span>
+                                      <span>{roomType.totalRooms} quartos</span>
                                     </div>
                                     <div className="flex items-center gap-1 text-gray-600">
                                       <TrendingUp className="h-4 w-4" />
-                                      <span>{accommodation.occupancyRate}% ocupação</span>
+                                      <span>{roomType.availableRooms} disponíveis</span>
                                     </div>
                                   </div>
                                 </div>
@@ -1162,21 +1162,21 @@ export default function HotelsHome() {
 
         {/* Modais */}
         
-        {/* Modal para criar acomodação */}
-        <Dialog open={showCreateAccommodation} onOpenChange={setShowCreateAccommodation}>
+        {/* Modal para configurar hotel */}
+        <Dialog open={showHotelSetup} onOpenChange={setShowHotelSetup}>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
-              <DialogTitle>Adicionar Nova Acomodação</DialogTitle>
+              <DialogTitle>Configurar Perfil do Hotel</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="name">Nome do Quarto</Label>
+                  <Label htmlFor="hotel-name">Nome do Hotel</Label>
                   <Input 
-                    id="name" 
-                    placeholder="ex: Suite Vista Mar"
-                    value={accommodationForm.name}
-                    onChange={(e) => setAccommodationForm(prev => ({ ...prev, name: e.target.value }))}
+                    id="hotel-name" 
+                    placeholder="ex: Hotel Vista Mar Maputo"
+                    value={hotelForm.name}
+                    onChange={(e) => setHotelForm(prev => ({ ...prev, name: e.target.value }))}
                   />
                 </div>
                 <div>
@@ -1250,13 +1250,12 @@ export default function HotelsHome() {
               
               <div className="flex gap-3 pt-4">
                 <Button 
-                  onClick={handleCreateAccommodation}
-                  className="bg-green-600 hover:bg-green-700"
-                  disabled={createAccommodationMutation.isPending}
+                  onClick={handleCreateHotel}
+                  className="bg-blue-600 hover:bg-blue-700"
                 >
-                  {createAccommodationMutation.isPending ? 'Criando...' : 'Adicionar Quarto'}
+                  Criar Hotel
                 </Button>
-                <Button variant="outline" onClick={() => setShowCreateAccommodation(false)}>
+                <Button variant="outline" onClick={() => setShowHotelSetup(false)}>
                   Cancelar
                 </Button>
               </div>
