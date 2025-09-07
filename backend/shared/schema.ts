@@ -522,6 +522,140 @@ export const hotelFinancialReports = pgTable("hotel_financial_reports", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// ===== NOVA ESTRUTURA DE HOTÉIS - MELHORADA =====
+// Perfil único por hotel (substitui o accommodations para hotéis)
+export const hotels = pgTable("hotels", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  managerId: varchar("manager_id").references(() => users.id).notNull(),
+  
+  // Informações básicas do hotel
+  name: text("name").notNull(),
+  description: text("description"),
+  address: text("address").notNull(),
+  city: text("city").notNull(),
+  province: text("province").notNull(),
+  postalCode: text("postal_code"),
+  
+  // Localização
+  lat: decimal("lat", { precision: 10, scale: 7 }),
+  lng: decimal("lng", { precision: 10, scale: 7 }),
+  
+  // Contactos
+  phone: text("phone"),
+  email: text("email"),
+  website: text("website"),
+  
+  // Classificação e avaliações
+  starRating: integer("star_rating").default(1), // 1-5 estrelas
+  averageRating: decimal("average_rating", { precision: 3, scale: 2 }).default("0.00"),
+  totalReviews: integer("total_reviews").default(0),
+  
+  // Media e apresentação
+  images: text("images").array(), // URLs das fotos do hotel
+  mainImage: text("main_image"), // Foto principal
+  logo: text("logo"), // Logo do hotel
+  
+  // Comodidades gerais do hotel
+  amenities: text("amenities").array(), // ["WiFi", "Pool", "Gym", "Restaurant", "Spa"]
+  
+  // Informações de check-in/out
+  checkInTime: text("check_in_time").default("14:00"),
+  checkOutTime: text("check_out_time").default("11:00"),
+  
+  // Parcerias com motoristas
+  offerDriverDiscounts: boolean("offer_driver_discounts").default(false),
+  driverDiscountRate: decimal("driver_discount_rate", { precision: 5, scale: 2 }).default("10.00"),
+  minimumDriverLevel: text("minimum_driver_level").default("bronze"),
+  
+  // Status do hotel
+  isActive: boolean("is_active").default(true),
+  isVerified: boolean("is_verified").default(false),
+  verificationDate: timestamp("verification_date"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Tipos de quartos disponíveis no hotel (Standard, Deluxe, Suite, etc)
+export const roomTypes = pgTable("room_types", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  hotelId: varchar("hotel_id").references(() => hotels.id).notNull(),
+  
+  // Informações básicas do tipo de quarto
+  name: text("name").notNull(), // "Standard Room", "Deluxe Suite", "Presidential Suite"
+  description: text("description"),
+  
+  // Capacidade
+  maxOccupancy: integer("max_occupancy").notNull().default(2), // Máximo de pessoas
+  bedType: text("bed_type"), // "Single", "Double", "Queen", "King", "Twin"
+  bedCount: integer("bed_count").default(1),
+  roomSize: decimal("room_size", { precision: 6, scale: 2 }), // m² do quarto
+  
+  // Preços
+  basePrice: decimal("base_price", { precision: 8, scale: 2 }).notNull(),
+  weekendPrice: decimal("weekend_price", { precision: 8, scale: 2 }),
+  holidayPrice: decimal("holiday_price", { precision: 8, scale: 2 }),
+  
+  // Quartos disponíveis deste tipo
+  totalRooms: integer("total_rooms").notNull().default(1), // Quantos quartos deste tipo existem
+  availableRooms: integer("available_rooms").notNull().default(1), // Quantos estão disponíveis
+  
+  // Comodidades específicas do tipo de quarto
+  amenities: text("amenities").array(), // ["Private Bathroom", "Air Conditioning", "Mini Bar", "Balcony"]
+  hasPrivateBathroom: boolean("has_private_bathroom").default(true),
+  hasAirConditioning: boolean("has_air_conditioning").default(false),
+  hasWifi: boolean("has_wifi").default(true),
+  hasTV: boolean("has_tv").default(true),
+  hasMiniBar: boolean("has_mini_bar").default(false),
+  hasBalcony: boolean("has_balcony").default(false),
+  hasKitchenette: boolean("has_kitchenette").default(false),
+  
+  // Media
+  images: text("images").array(), // Fotos específicas deste tipo de quarto
+  mainImage: text("main_image"), // Foto principal do tipo
+  
+  // Disponibilidade
+  isActive: boolean("is_active").default(true),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Reservas de quartos de hotel
+export const hotelBookings = pgTable("hotel_bookings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  hotelId: varchar("hotel_id").references(() => hotels.id).notNull(),
+  roomTypeId: varchar("room_type_id").references(() => roomTypes.id).notNull(),
+  guestId: varchar("guest_id").references(() => users.id).notNull(),
+  
+  // Datas da reserva
+  checkInDate: timestamp("check_in_date").notNull(),
+  checkOutDate: timestamp("check_out_date").notNull(),
+  numberOfNights: integer("number_of_nights").notNull(),
+  
+  // Detalhes da reserva
+  guestCount: integer("guest_count").notNull().default(1),
+  roomsBooked: integer("rooms_booked").notNull().default(1),
+  
+  // Informações do hóspede
+  guestName: text("guest_name").notNull(),
+  guestPhone: text("guest_phone"),
+  guestEmail: text("guest_email"),
+  
+  // Preços
+  pricePerNight: decimal("price_per_night", { precision: 8, scale: 2 }).notNull(),
+  totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
+  
+  // Status
+  status: text("status").default("pending"), // "pending", "confirmed", "checked_in", "checked_out", "cancelled"
+  
+  // Notas especiais
+  specialRequests: text("special_requests"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users);
 export const upsertUserSchema = createInsertSchema(users).pick({
   id: true,
@@ -537,6 +671,9 @@ export const insertAccommodationSchema = createInsertSchema(accommodations);
 export const insertPartnershipProposalSchema = createInsertSchema(partnershipProposals);
 export const insertHotelRoomSchema = createInsertSchema(hotelRooms);
 export const insertHotelFinancialReportSchema = createInsertSchema(hotelFinancialReports);
+export const insertHotelSchema = createInsertSchema(hotels);
+export const insertRoomTypeSchema = createInsertSchema(roomTypes);
+export const insertHotelBookingSchema = createInsertSchema(hotelBookings);
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type UpsertUser = z.infer<typeof upsertUserSchema>;
@@ -546,10 +683,16 @@ export type InsertAccommodation = z.infer<typeof insertAccommodationSchema>;
 export type InsertPartnershipProposal = z.infer<typeof insertPartnershipProposalSchema>;
 export type InsertHotelRoom = z.infer<typeof insertHotelRoomSchema>;
 export type InsertHotelFinancialReport = z.infer<typeof insertHotelFinancialReportSchema>;
+export type InsertHotel = z.infer<typeof insertHotelSchema>;
+export type InsertRoomType = z.infer<typeof insertRoomTypeSchema>;
+export type InsertHotelBooking = z.infer<typeof insertHotelBookingSchema>;
 
 export type User = typeof users.$inferSelect;
 export type Ride = typeof rides.$inferSelect;
 export type Accommodation = typeof accommodations.$inferSelect;
+export type Hotel = typeof hotels.$inferSelect;
+export type RoomType = typeof roomTypes.$inferSelect;
+export type HotelBooking = typeof hotelBookings.$inferSelect;
 export type Booking = typeof bookings.$inferSelect;
 export type Rating = typeof ratings.$inferSelect;
 export type Event = typeof events.$inferSelect;
