@@ -33,7 +33,7 @@ export const useUserSetup = () => {
         
         try {
           // Primeiro tenta Railway
-          const RAILWAY_URL = 'https://link-amzapp-production.up.railway.app';
+          const RAILWAY_URL = 'https://link-a-backend-production.up.railway.app';
           response = await fetch(`${RAILWAY_URL}/api/auth/profile`, {
             headers: {
               'Authorization': `Bearer ${token}`
@@ -97,7 +97,7 @@ export const useUserSetup = () => {
       
       try {
         // Primeiro tenta Railway
-        const RAILWAY_URL = 'https://link-amzapp-production.up.railway.app';
+        const RAILWAY_URL = 'https://link-a-backend-production.up.railway.app';
         console.log("📡 Tentando Railway para registrar usuário...");
         
         registerResponse = await fetch(`${RAILWAY_URL}/api/auth/register`, {

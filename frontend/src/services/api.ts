@@ -9,7 +9,7 @@ class ApiService {
 
   constructor() {
     // URL do backend Railway (produção) ou local (desenvolvimento)
-    this.baseURL = import.meta.env.VITE_API_URL || 'https://link-amzapp-production.up.railway.app';
+    this.baseURL = import.meta.env.VITE_API_URL || 'https://link-a-backend-production.up.railway.app';
   }
 
   private async getAuthHeaders(): Promise<Record<string, string>> {

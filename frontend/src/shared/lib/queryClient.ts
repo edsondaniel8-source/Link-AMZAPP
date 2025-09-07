@@ -27,7 +27,7 @@ export async function apiRequest(
   }
 
   // Use full URL if it includes protocol, otherwise prepend API base URL
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://link-amzapp-production.up.railway.app';
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://link-a-backend-production.up.railway.app';
   const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
 
   const res = await fetch(fullUrl, {
@@ -61,7 +61,7 @@ export const getQueryFn: <T>(options: {
     }
 
     // Use full URL if it includes protocol, otherwise prepend API base URL
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://link-amzapp-production.up.railway.app';
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://link-a-backend-production.up.railway.app';
     const url = queryKey.join("/") as string;
     const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
 

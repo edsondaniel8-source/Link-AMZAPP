@@ -124,7 +124,7 @@ export default function RoutePublisher() {
       
       try {
         // Primeiro tenta Railway
-        const RAILWAY_URL = 'https://link-amzapp-production.up.railway.app';
+        const RAILWAY_URL = 'https://link-a-backend-production.up.railway.app';
         console.log("📡 Testando Railway...");
         response = await fetch(`${RAILWAY_URL}/api/rides-simple/create`, {
           method: 'POST',

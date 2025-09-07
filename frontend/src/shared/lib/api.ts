@@ -3,7 +3,7 @@ import { auth } from "./firebaseConfig";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
-  "https://link-amzapp-production.up.railway.app";
+  "https://link-a-backend-production.up.railway.app";
 
 console.log('🌐 API Base URL:', API_BASE_URL);
 

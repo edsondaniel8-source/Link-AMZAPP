@@ -22,10 +22,10 @@ app.use(
         // Domínios de produção
         "https://link-aturismomoz.com",
         "https://www.link-aturismomoz.com",
-        "https://link-amzapp-production.up.railway.app",
+        "https://link-a-backend-production.up.railway.app",
         
         // Railway backend URL
-        process.env.CORS_ORIGIN || "https://link-amzapp-production.up.railway.app",
+        process.env.CORS_ORIGIN || "https://link-a-backend-production.up.railway.app",
         
         // Desenvolvimento
         "http://localhost:3000",
