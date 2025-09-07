@@ -31,30 +31,13 @@ export const useUserSetup = () => {
         console.log("🔍 Verificando perfil do usuário...");
         let response;
         
-        try {
-          // Primeiro tenta Railway
-          const RAILWAY_URL = 'https://link-a-backend-production.up.railway.app';
-          response = await fetch(`${RAILWAY_URL}/api/auth/profile`, {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-          
-          if (!response.ok) {
-            throw new Error(`Railway auth falhou: ${response.status}`);
+        // ✅ AUTH: Sempre usar backend LOCAL (Railway não tem auth)
+        console.log("🔐 Usando backend local para autenticação...");
+        response = await fetch('http://localhost:3001/api/auth/profile', {
+          headers: {
+            'Authorization': `Bearer ${token}`
           }
-          console.log("✅ Railway auth funcionou!");
-          
-        } catch (railwayError) {
-          console.log("⚠️ Railway auth falhou, usando backend local...", railwayError);
-          
-          // Fallback para backend local
-          response = await fetch('http://localhost:3001/api/auth/profile', {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-        }
+        });
 
         if (response.ok) {
           const userData = await response.json();
@@ -95,76 +78,35 @@ export const useUserSetup = () => {
       console.log("🚀 Configurando roles do usuário...", roles);
       let registerResponse, response;
       
-      try {
-        // Primeiro tenta Railway
-        const RAILWAY_URL = 'https://link-a-backend-production.up.railway.app';
-        console.log("📡 Tentando Railway para registrar usuário...");
-        
-        registerResponse = await fetch(`${RAILWAY_URL}/api/auth/register`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName,
-            photoURL: user.photoURL
-          })
-        });
+      // ✅ AUTH SETUP: Sempre usar backend LOCAL (Railway não tem auth)
+      console.log("🔐 Registrando usuário no backend local...");
+      
+      registerResponse = await fetch('http://localhost:3001/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL
+        })
+      });
 
-        if (!registerResponse.ok) {
-          throw new Error('Failed to register user in Railway');
-        }
-
-        // Depois atualiza os roles
-        response = await fetch(`${RAILWAY_URL}/api/auth/roles`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({ roles })
-        });
-        
-        if (!response.ok) {
-          throw new Error('Failed to update roles in Railway');
-        }
-        
-        console.log("✅ Railway setup funcionou!");
-        
-      } catch (railwayError) {
-        console.log("⚠️ Railway setup falhou, usando backend local...", railwayError);
-        
-        // Fallback para backend local
-        registerResponse = await fetch('http://localhost:3001/api/auth/register', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName,
-            photoURL: user.photoURL
-          })
-        });
-
-        if (!registerResponse.ok) {
-          throw new Error('Failed to register user locally');
-        }
-
-        response = await fetch('http://localhost:3001/api/auth/roles', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({ roles })
-        });
+      if (!registerResponse.ok) {
+        throw new Error('Failed to register user locally');
       }
+
+      response = await fetch('http://localhost:3001/api/auth/roles', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ roles })
+      });
 
       if (response.ok) {
         setSetupState(prev => ({

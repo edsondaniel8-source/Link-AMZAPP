@@ -105,16 +105,19 @@ export default function RoutePublisher() {
     setSuccess(false);
 
     try {
-      // Dados limpos para enviar
+      // ✅ Dados para Railway (formato específico)
       const rideData = {
+        driverName: user?.displayName || user?.email || 'Motorista',
         fromAddress: formData.fromAddress,
         toAddress: formData.toAddress,
         departureDate: `${formData.date}T${formData.time}:00`,
         price: Number(formData.price),
         maxPassengers: Number(formData.maxPassengers),
         type: formData.vehicleType || "sedan",
-        description: formData.description || "Viagem confortável",
-        driverId: user?.uid || 'temp-driver-id'
+        vehicleInfo: `${formData.vehicleType || "sedan"} - ${formData.description || "Viagem confortável"}`,
+        isActive: true,
+        allowPickupEnRoute: true,
+        allowNegotiation: false
       };
 
       console.log("📝 Publicando viagem:", rideData);
@@ -122,31 +125,14 @@ export default function RoutePublisher() {
       console.log("🚀 Tentando criar viagem...");
       let response;
       
-      try {
-        // Primeiro tenta Railway
-        const RAILWAY_URL = 'https://link-a-backend-production.up.railway.app';
-        console.log("📡 Testando Railway...");
-        response = await fetch(`${RAILWAY_URL}/api/rides-simple/create`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(rideData)
-        });
-        
-        if (!response.ok) {
-          throw new Error(`Railway falhou: ${response.status}`);
-        }
-        console.log("✅ Railway funcionou!");
-        
-      } catch (railwayError) {
-        console.log("⚠️ Railway falhou, usando backend local...", railwayError);
-        
-        // Fallback para backend local
-        response = await fetch('http://localhost:3001/api/rides-simple/create', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(rideData)
-        });
-      }
+      // ✅ RIDES: Usar Railway (especializado em viagens)
+      console.log("🚗 Criando viagem no Railway...");
+      const RAILWAY_URL = 'https://link-a-backend-production.up.railway.app';
+      response = await fetch(`${RAILWAY_URL}/api/rides-simple/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(rideData)
+      });
       
         if (!response.ok) {
           throw new Error(`Erro ${response.status}: ${response.statusText}`);
