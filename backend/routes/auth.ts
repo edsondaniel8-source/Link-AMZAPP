@@ -186,9 +186,9 @@ router.post('/setup-user-roles', verifyFirebaseToken, async (req: any, res) => {
     }
 
     // Check if user exists, if not create them
-    let [user] = await db.select().from(users).where(eq(users.id, userId));
+    const [existingUser] = await db.select().from(users).where(eq(users.id, userId));
     
-    if (!user) {
+    if (!existingUser) {
       // Create new user with Firebase data
       const userDisplayName = req.user?.name || '';
       const [newUser] = await db.insert(users).values({
@@ -198,41 +198,45 @@ router.post('/setup-user-roles', verifyFirebaseToken, async (req: any, res) => {
         lastName: userDisplayName?.split(' ').slice(1).join(' ') || '',
         profileImageUrl: req.user?.picture || null,
         roles: roles,
-        userType: roles.includes('admin') ? 'admin' : roles.includes('hotel_manager') ? 'hotel_manager' : roles.includes('driver') ? 'driver' : 'client',
-        registrationCompleted: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        userType: roles.includes('admin') ? 'admin' : roles.includes('hotel_manager') ? 'hotel_manager' : roles.includes('driver') ? 'driver' : 'client'
       }).returning();
       
-      user = newUser;
+      res.json({ 
+        user: {
+          id: newUser.id,
+          email: newUser.email,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName,
+          roles: newUser.roles,
+          userType: newUser.userType,
+          profileImageUrl: newUser.profileImageUrl,
+          isVerified: newUser.isVerified || false
+        }
+      });
     } else {
-      // Update existing user
+      // Update existing user roles
       const [updatedUser] = await db.update(users)
         .set({ 
           roles,
           userType: roles.includes('admin') ? 'admin' : roles.includes('hotel_manager') ? 'hotel_manager' : roles.includes('driver') ? 'driver' : 'client',
-          registrationCompleted: true,
           updatedAt: new Date()
         })
         .where(eq(users.id, userId))
         .returning();
       
-      user = updatedUser;
+      res.json({ 
+        user: {
+          id: updatedUser.id,
+          email: updatedUser.email,
+          firstName: updatedUser.firstName,
+          lastName: updatedUser.lastName,
+          roles: updatedUser.roles,
+          userType: updatedUser.userType,
+          profileImageUrl: updatedUser.profileImageUrl,
+          isVerified: updatedUser.isVerified || false
+        }
+      });
     }
-    
-    res.json({ 
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        roles: user.roles,
-        userType: user.userType,
-        profileImageUrl: user.profileImageUrl,
-        isVerified: user.isVerified || false,
-        registrationCompleted: true
-      }
-    });
   } catch (error) {
     console.error('Erro ao configurar roles:', error);
     res.status(500).json({ message: 'Erro interno do servidor' });
