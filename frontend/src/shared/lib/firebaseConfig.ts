@@ -13,14 +13,14 @@ import {
 } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
-// Firebase configuration from environment variables
+// Firebase configuration from environment variables (supports both VITE_ and NEXT_PUBLIC_ prefixes)
 const firebaseConfig = {
-  apiKey: import.meta.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: import.meta.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || `${import.meta.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}.firebaseapp.com`,
-  projectId: import.meta.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || `${import.meta.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}.appspot.com`,
-  messagingSenderId: import.meta.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: import.meta.env.NEXT_PUBLIC_FIREBASE_API_KEY || import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || `${import.meta.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
+  projectId: import.meta.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || `${import.meta.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || import.meta.env.VITE_FIREBASE_PROJECT_ID}.appspot.com`,
+  messagingSenderId: import.meta.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.NEXT_PUBLIC_FIREBASE_APP_ID || import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 // Validate Firebase configuration
@@ -37,14 +37,14 @@ console.log('🔥 Firebase Configuration Debug:', {
   isDev: import.meta.env.DEV,
   isProd: import.meta.env.PROD,
   
-  // Variable existence check
+  // Variable existence check (supports both prefixes)
   variables: {
-    NEXT_PUBLIC_FIREBASE_API_KEY: import.meta.env.NEXT_PUBLIC_FIREBASE_API_KEY ? '✅ Set' : '❌ Missing',
-    NEXT_PUBLIC_FIREBASE_PROJECT_ID: import.meta.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ? '✅ Set' : '❌ Missing', 
-    NEXT_PUBLIC_FIREBASE_APP_ID: import.meta.env.NEXT_PUBLIC_FIREBASE_APP_ID ? '✅ Set' : '❌ Missing',
-    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: import.meta.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ? '✅ Set' : '❌ Missing',
-    NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: import.meta.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ? '✅ Set' : '❌ Missing',
-    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: import.meta.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ? '✅ Set' : '❌ Missing'
+    FIREBASE_API_KEY: (import.meta.env.NEXT_PUBLIC_FIREBASE_API_KEY || import.meta.env.VITE_FIREBASE_API_KEY) ? '✅ Set' : '❌ Missing',
+    FIREBASE_PROJECT_ID: (import.meta.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || import.meta.env.VITE_FIREBASE_PROJECT_ID) ? '✅ Set' : '❌ Missing', 
+    FIREBASE_APP_ID: (import.meta.env.NEXT_PUBLIC_FIREBASE_APP_ID || import.meta.env.VITE_FIREBASE_APP_ID) ? '✅ Set' : '❌ Missing',
+    FIREBASE_AUTH_DOMAIN: (import.meta.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || import.meta.env.VITE_FIREBASE_AUTH_DOMAIN) ? '✅ Set' : '❌ Missing',
+    FIREBASE_STORAGE_BUCKET: (import.meta.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || import.meta.env.VITE_FIREBASE_STORAGE_BUCKET) ? '✅ Set' : '❌ Missing',
+    FIREBASE_MESSAGING_SENDER_ID: (import.meta.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID) ? '✅ Set' : '❌ Missing'
   },
   
   // Final config status
@@ -99,10 +99,13 @@ if (isFirebaseConfigured) {
     googleProvider = new GoogleAuthProvider();
     
     // Configure Google provider with Web Client ID
-    googleProvider.setCustomParameters({
-      'client_id': import.meta.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
-  'prompt': 'select_account'
-});
+    const googleClientId = import.meta.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (googleClientId) {
+      googleProvider.setCustomParameters({
+        'client_id': googleClientId,
+        'prompt': 'select_account'
+      });
+    }
     
     // Force popup mode to avoid multiple windows
     googleProvider.setCustomParameters({ 
