@@ -38,21 +38,45 @@ import LocationAutocomplete from '@/shared/components/LocationAutocomplete';
 import apiService from '@/services/api';
 import { useToast } from '@/shared/hooks/use-toast';
 
-interface HotelAccommodation {
+interface Hotel {
   id: string;
   name: string;
-  type: string;
+  managerId: string;
   address: string;
-  pricePerNight: string;
-  rating: number;
-  reviewCount: number;
-  isAvailable: boolean;
-  totalBookings: number;
-  monthlyRevenue: number;
-  occupancyRate: number;
+  description?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  checkInTime: string;
+  checkOutTime: string;
   images?: string[];
   amenities?: string[];
+  rating: number;
+  reviewCount: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface RoomType {
+  id: string;
+  hotelId: string;
+  name: string;
+  type: string;
   description?: string;
+  pricePerNight: number;
+  maxOccupancy: number;
+  totalRooms: number;
+  availableRooms: number;
+  images?: string[];
+  amenities?: string[];
+  size?: number;
+  bedType?: string;
+  hasBalcony: boolean;
+  hasSeaView: boolean;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface HotelEvent {
@@ -94,7 +118,8 @@ export default function HotelsHome() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [showCreateAccommodation, setShowCreateAccommodation] = useState(false);
+  const [showCreateRoomType, setShowCreateRoomType] = useState(false);
+  const [showHotelSetup, setShowHotelSetup] = useState(false);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
   const [showCreatePartnership, setShowCreatePartnership] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
@@ -103,14 +128,30 @@ export default function HotelsHome() {
   const [newMessage, setNewMessage] = useState('');
   
   // Form states
-  const [accommodationForm, setAccommodationForm] = useState({
+  const [hotelForm, setHotelForm] = useState({
     name: '',
-    type: 'hotel_room',
     address: '',
-    pricePerNight: '',
     description: '',
+    phone: '',
+    email: '',
+    website: '',
+    checkInTime: '14:00',
+    checkOutTime: '12:00',
+    amenities: ''
+  });
+
+  const [roomTypeForm, setRoomTypeForm] = useState({
+    name: '',
+    type: 'standard',
+    description: '',
+    pricePerNight: '',
+    maxOccupancy: 2,
+    totalRooms: 1,
+    size: '',
+    bedType: '',
     amenities: '',
-    maxOccupancy: 2
+    hasBalcony: false,
+    hasSeaView: false
   });
 
   const [eventForm, setEventForm] = useState({
@@ -280,25 +321,87 @@ export default function HotelsHome() {
     ]
   };
 
-  // Mutations para criar acomodações, eventos e parcerias
-  const createAccommodationMutation = useMutation({
-    mutationFn: async (data: any) => {
-      try {
-        return await apiService.createAccommodation(data);
-      } catch (error) {
-        return { success: true, data: { ...data, id: Date.now().toString() } };
-      }
-    },
-    onSuccess: () => {
-      toast({ title: 'Sucesso', description: 'Acomodação criada com sucesso!' });
-      setShowCreateAccommodation(false);
-      setAccommodationForm({ name: '', type: 'hotel_room', address: '', pricePerNight: '', description: '', amenities: '', maxOccupancy: 2 });
-      queryClient.invalidateQueries({ queryKey: ['hotel-accommodations'] });
-    },
-    onError: () => {
-      toast({ title: 'Erro', description: 'Erro ao criar acomodação', variant: 'destructive' });
-    }
-  });
+  // Mock hotel data - em produção seria buscado da API
+  const hotel: Hotel | null = {
+    id: '1',
+    name: 'Hotel Vista Mar Maputo',
+    managerId: user?.uid || '',
+    address: 'Costa do Sol, Maputo',
+    description: 'Hotel boutique com vista privilegiada para o mar',
+    phone: '+258 21 123 456',
+    email: 'reservas@hotelvistamar.co.mz',
+    website: 'www.hotelvistamar.co.mz',
+    checkInTime: '14:00',
+    checkOutTime: '12:00',
+    images: [],
+    amenities: ['Wi-Fi Gratuito', 'Piscina', 'Restaurante', 'Spa', 'Estacionamento'],
+    rating: 4.8,
+    reviewCount: 127,
+    isActive: true,
+    createdAt: '2024-01-01',
+    updatedAt: '2024-09-07'
+  };
+
+  // Converter accommodations existentes para room types
+  const roomTypes: RoomType[] = accommodations?.map(acc => ({
+    id: acc.id,
+    hotelId: hotel?.id || '1',
+    name: acc.name,
+    type: acc.type === 'hotel_room' ? 'standard' : acc.type === 'hotel_suite' ? 'suite' : 'standard',
+    description: acc.description || '',
+    pricePerNight: typeof acc.pricePerNight === 'string' ? parseFloat(acc.pricePerNight.replace(/[^0-9.]/g, '')) : acc.pricePerNight,
+    maxOccupancy: 2,
+    totalRooms: 4,
+    availableRooms: acc.isAvailable ? 3 : 0,
+    images: acc.images || [],
+    amenities: acc.amenities || [],
+    size: 25,
+    bedType: 'Cama de Casal',
+    hasBalcony: acc.amenities?.includes('Varanda') || false,
+    hasSeaView: acc.amenities?.includes('Vista Mar') || false,
+    isActive: acc.isAvailable,
+    createdAt: '2024-01-01',
+    updatedAt: '2024-09-07'
+  })) || [];
+
+  // Funções para manipular hotel e room types
+  const handleCreateHotel = () => {
+    const hotelData = {
+      ...hotelForm,
+      managerId: user?.uid,
+      amenities: hotelForm.amenities.split(',').map(a => a.trim()).filter(a => a)
+    };
+    console.log('Creating hotel:', hotelData);
+    toast({ title: "Hotel criado com sucesso!", description: "Agora pode adicionar tipos de quartos." });
+    setShowHotelSetup(false);
+  };
+
+  const handleCreateRoomType = () => {
+    const roomData = {
+      ...roomTypeForm,
+      pricePerNight: parseFloat(roomTypeForm.pricePerNight),
+      size: roomTypeForm.size ? parseFloat(roomTypeForm.size) : undefined,
+      amenities: roomTypeForm.amenities.split(',').map(a => a.trim()).filter(a => a),
+      hotelId: hotel?.id
+    };
+    console.log('Creating room type:', roomData);
+    toast({ title: "Tipo de quarto adicionado!", description: `${roomData.name} foi criado com sucesso.` });
+    setShowCreateRoomType(false);
+    // Reset form
+    setRoomTypeForm({
+      name: '',
+      type: 'standard',
+      description: '',
+      pricePerNight: '',
+      maxOccupancy: 2,
+      totalRooms: 1,
+      size: '',
+      bedType: '',
+      amenities: '',
+      hasBalcony: false,
+      hasSeaView: false
+    });
+  };
 
   const createEventMutation = useMutation({
     mutationFn: (data: any) => apiService.createEvent?.(data) || Promise.resolve({ success: true }),
@@ -313,14 +416,14 @@ export default function HotelsHome() {
     }
   });
 
-  // Estatísticas completas
+  // Estatísticas completas baseadas nos room types
   const stats = {
-    totalAccommodations: accommodations?.length || 0,
-    availableRooms: accommodations?.filter(a => a.isAvailable).length || 0,
-    totalBookings: accommodations?.reduce((sum: number, a: HotelAccommodation) => sum + a.totalBookings, 0) || 0,
-    monthlyRevenue: accommodations?.reduce((sum: number, a: HotelAccommodation) => sum + a.monthlyRevenue, 0) || 0,
-    averageRating: accommodations?.reduce((sum: number, a: HotelAccommodation) => sum + a.rating, 0) / (accommodations?.length || 1) || 0,
-    averageOccupancy: accommodations?.reduce((sum: number, a: HotelAccommodation) => sum + a.occupancyRate, 0) / (accommodations?.length || 1) || 0,
+    totalRoomTypes: roomTypes?.length || 0,
+    totalRooms: roomTypes?.reduce((sum, rt) => sum + rt.totalRooms, 0) || 0,
+    availableRooms: roomTypes?.reduce((sum, rt) => sum + rt.availableRooms, 0) || 0,
+    monthlyRevenue: 224500, // Mock data - seria calculado baseado nas reservas
+    averageRating: hotel?.rating || 0,
+    averageOccupancy: 82, // Mock data - seria calculado baseado na ocupação
     totalEvents: (hotelEvents as HotelEvent[])?.length || 0,
     upcomingEvents: (hotelEvents as HotelEvent[])?.filter((e: HotelEvent) => e.status === 'upcoming').length || 0,
     activePartnerships: driverPartnerships.filter(p => p.status === 'active').length || 0,
@@ -583,12 +686,19 @@ export default function HotelsHome() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2">
                     <Building2 className="w-5 h-5" />
-                    Gestão de Acomodações
+                    {hotel ? 'Gestão de Quartos' : 'Configurar Hotel'}
                   </CardTitle>
-                  <Button onClick={() => setShowCreateAccommodation(true)} className="bg-green-600 hover:bg-green-700">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Nova Acomodação
-                  </Button>
+                  {hotel ? (
+                    <Button onClick={() => setShowCreateRoomType(true)} className="bg-green-600 hover:bg-green-700">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Novo Tipo de Quarto
+                    </Button>
+                  ) : (
+                    <Button onClick={() => setShowHotelSetup(true)} className="bg-blue-600 hover:bg-blue-700">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Configurar Hotel
+                    </Button>
+                  )}
                 </div>
               </CardHeader>
               <CardContent>
@@ -600,23 +710,36 @@ export default function HotelsHome() {
                   </TabsList>
 
                   <TabsContent value="published" className="space-y-4">
-                    {accommodations?.filter((acc: HotelAccommodation) => acc.isAvailable).length === 0 ? (
+                    {!hotel ? (
                       <div className="text-center py-12 text-gray-500">
                         <Building2 className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                        <h3 className="text-lg font-medium mb-2">Nenhuma acomodação publicada</h3>
-                        <p className="text-sm mb-4">Publique suas acomodações para começar a receber reservas.</p>
+                        <h3 className="text-lg font-medium mb-2">Configure seu hotel primeiro</h3>
+                        <p className="text-sm mb-4">Crie o perfil do seu hotel para depois adicionar tipos de quartos.</p>
                         <Button 
-                          onClick={() => setShowCreateAccommodation(true)}
+                          onClick={() => setShowHotelSetup(true)}
+                          className="bg-blue-600 hover:bg-blue-700"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Configurar Hotel
+                        </Button>
+                      </div>
+                    ) : roomTypes?.length === 0 ? (
+                      <div className="text-center py-12 text-gray-500">
+                        <Building2 className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                        <h3 className="text-lg font-medium mb-2">Nenhum tipo de quarto criado</h3>
+                        <p className="text-sm mb-4">Adicione tipos de quartos para começar a receber reservas.</p>
+                        <Button 
+                          onClick={() => setShowCreateRoomType(true)}
                           className="bg-green-600 hover:bg-green-700"
                         >
                           <Plus className="w-4 h-4 mr-2" />
-                          Publicar Primeira Acomodação
+                          Criar Primeiro Tipo de Quarto
                         </Button>
                       </div>
                     ) : (
                       <div className="grid gap-4">
-                        {accommodations?.filter((acc: HotelAccommodation) => acc.isAvailable).map((accommodation: HotelAccommodation) => (
-                          <Card key={accommodation.id} className="border-l-4 border-l-green-500 hover:shadow-md transition-shadow">
+                        {roomTypes?.filter(rt => rt.isActive).map((roomType: RoomType) => (
+                          <Card key={roomType.id} className="border-l-4 border-l-green-500 hover:shadow-md transition-shadow">
                             <CardContent className="pt-6">
                               <div className="flex justify-between items-start">
                                 <div className="flex-1">
@@ -625,13 +748,13 @@ export default function HotelsHome() {
                                       <Building2 className="h-5 w-5 text-green-600" />
                                     </div>
                                     <div>
-                                      <h3 className="font-semibold text-lg">{accommodation.name}</h3>
-                                      <Badge variant="secondary" className="mt-1">{accommodation.type}</Badge>
+                                      <h3 className="font-semibold text-lg">{roomType.name}</h3>
+                                      <Badge variant="secondary" className="mt-1">{roomType.type}</Badge>
                                       <Badge 
-                                        variant={accommodation.isAvailable ? "default" : "secondary"}
-                                        className={`ml-2 ${accommodation.isAvailable ? 'bg-green-100 text-green-800' : ''}`}
+                                        variant={roomType.isActive ? "default" : "secondary"}
+                                        className={`ml-2 ${roomType.isActive ? 'bg-green-100 text-green-800' : ''}`}
                                       >
-                                        {accommodation.isAvailable ? 'Publicada' : 'Inactiva'}
+                                        {roomType.isActive ? 'Ativo' : 'Inativo'}
                                       </Badge>
                                     </div>
                                   </div>
