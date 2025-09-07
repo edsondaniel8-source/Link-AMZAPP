@@ -70,7 +70,7 @@ export const useUserSetup = () => {
     
     try {
       const token = await user.getIdToken();
-      const response = await fetch('/api/auth/setup-roles', {
+      const response = await fetch('/api/auth/setup-user-roles', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
