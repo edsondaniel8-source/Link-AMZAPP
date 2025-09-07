@@ -3,10 +3,7 @@ import { Toaster } from "@/shared/components/ui/toaster";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import HotelsHeader from "./components/HotelsHeader";
 import HotelsMobileNav from "./components/HotelsMobileNav";
-import Dashboard from "./pages/dashboard";
-import CreateOffer from "./pages/create-offer";
-import Partnerships from "./pages/partnerships";
-import DriverChat from "./pages/driver-chat";
+import Home from "./pages/home";
 
 const queryClient = new QueryClient();
 
@@ -17,11 +14,9 @@ export default function HotelsApp() {
         <HotelsHeader />
         <main className="pb-20 md:pb-0">
           <Switch>
-            <Route path="/hotels" component={Dashboard} />
-            <Route path="/hotels/create-offer" component={CreateOffer} />
-            <Route path="/hotels/partnerships" component={Partnerships} />
-            <Route path="/hotels/driver-chat" component={DriverChat} />
-            <Route component={Dashboard} />
+            <Route path="/hotels" component={Home} />
+            <Route path="/hotels/*" component={Home} />
+            <Route component={Home} />
           </Switch>
         </main>
         

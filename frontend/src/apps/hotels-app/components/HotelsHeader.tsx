@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/shared/hooks/useAuth";
 import { Button } from "@/shared/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/shared/components/ui/dropdown-menu";
-import { UserCircle, LogOut, Settings, Hotel, Plus, MessageCircle, TrendingUp, Home } from "lucide-react";
+import { UserCircle, LogOut, Settings, Hotel, TrendingUp, Home } from "lucide-react";
 
 export default function HotelsHeader() {
   const { user, signOut } = useAuth();
@@ -36,42 +36,12 @@ export default function HotelsHeader() {
         <nav className="hidden md:flex items-center space-x-1">
           <Link href="/hotels">
             <Button 
-              variant={location === "/hotels" ? "default" : "ghost"} 
+              variant={location.startsWith("/hotels") ? "default" : "ghost"} 
               size="sm"
               className="h-9"
             >
               <TrendingUp className="h-4 w-4 mr-2" />
               Dashboard
-            </Button>
-          </Link>
-          <Link href="/hotels/create-offer">
-            <Button 
-              variant={location.startsWith("/hotels/create-offer") ? "default" : "ghost"} 
-              size="sm"
-              className="h-9"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Criar Oferta
-            </Button>
-          </Link>
-          <Link href="/hotels/partnerships">
-            <Button 
-              variant={location.startsWith("/hotels/partnerships") ? "default" : "ghost"} 
-              size="sm"
-              className="h-9"
-            >
-              <TrendingUp className="h-4 w-4 mr-2" />
-              Parcerias
-            </Button>
-          </Link>
-          <Link href="/hotels/driver-chat">
-            <Button 
-              variant={location.startsWith("/hotels/driver-chat") ? "default" : "ghost"} 
-              size="sm"
-              className="h-9"
-            >
-              <MessageCircle className="h-4 w-4 mr-2" />
-              Chat Motoristas
             </Button>
           </Link>
           <Link href="/">
