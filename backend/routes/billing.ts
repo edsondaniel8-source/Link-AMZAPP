@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { billingService } from '../services/billingService';
 import { calculateDistance, getLocationCoordinates, calculateSuggestedPrice } from '../services/distanceService';
+import { type AuthenticatedRequest } from '../src/shared/firebaseAuth';
 
 const router = Router();
 
@@ -25,7 +26,8 @@ router.get('/fee-percentage', async (req, res) => {
 router.put('/fee-percentage', async (req, res) => {
   try {
     const { percentage } = req.body;
-    const adminUserId = req.user?.id; // Assumindo middleware de autenticação
+    const authReq = req as AuthenticatedRequest;
+    const adminUserId = authReq.user?.uid; // Firebase usa 'uid' ao invés de 'id'
 
     if (!adminUserId) {
       return res.status(401).json({ error: 'Não autorizado' });
@@ -168,7 +170,7 @@ router.get('/financial-report', async (req, res) => {
  * POST /api/billing/create-ride-fee
  * Cria fee para motorista após viagem concluída
  */
-router.post('/create-ride-fee', async (req: any, res: any) => {
+router.post('/create-ride-fee', async (req, res) => {
   try {
     const { fromLat, fromLng, toLat, toLng, driverId, clientId, pricePerKm = 15 } = req.body;
 
@@ -209,7 +211,7 @@ router.post('/create-ride-fee', async (req: any, res: any) => {
  * POST /api/billing/create-hotel-fee
  * Cria fee para hotel após reserva confirmada
  */
-router.post('/create-hotel-fee', async (req: any, res: any) => {
+router.post('/create-hotel-fee', async (req, res) => {
   try {
     const { nights, pricePerNight, hotelId, clientId } = req.body;
 
