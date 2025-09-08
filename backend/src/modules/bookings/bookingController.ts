@@ -1,34 +1,10 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { storage } from "../../../storage";
-// import { insertBookingSchema } from "../../shared/storage";
 import { z } from "zod";
 
 const router = Router();
 
-// Middleware de autenticação temporário
-interface AuthenticatedRequest extends Request {
-  user?: {
-    claims?: {
-      sub?: string;
-      email?: string;
-    };
-  };
-}
-
-const verifyFirebaseToken = async (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers.authorization;
-  
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: "Token não fornecido" });
-  }
-  
-  // Mock validation - replace with real Firebase verification
-  (req as AuthenticatedRequest).user = {
-    claims: { sub: `firebase-${Date.now()}`, email: "test@linkamz.com" }
-  };
-  
-  next();
-};
+import { verifyFirebaseToken, type AuthenticatedRequest } from "../../shared/firebaseAuth";
 
 // GET /api/bookings - Lista reservas do usuário
 router.get("/", verifyFirebaseToken, async (req, res) => {

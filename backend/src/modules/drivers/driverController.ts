@@ -13,51 +13,46 @@ router.get('/dashboard', verifyFirebaseToken, async (req, res) => {
       return res.status(401).json({ message: "User ID not found" });
     }
 
-    // Estatísticas do motorista
+    // Obter estatísticas reais do motorista
+    const driverStats = await storage.auth.getDriverStatistics(userId);
+    const driverRides = await storage.ride.getRidesByDriver(userId);
+    const driverBookings = await storage.booking.getProviderBookings(userId);
+    
+    // Calcular estatísticas do dia
+    const today = new Date();
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    
+    const todayRides = driverRides.filter(ride => 
+      ride.createdAt && new Date(ride.createdAt) >= todayStart
+    );
+    
+    const completedTodayBookings = driverBookings.filter(booking => 
+      booking.status === 'completed' && 
+      booking.createdAt && new Date(booking.createdAt) >= todayStart
+    );
+    
+    const todayEarnings = completedTodayBookings.reduce((total, booking) => 
+      total + parseFloat(booking.totalPrice), 0
+    );
+    
+    const pendingBookings = driverBookings.filter(booking => 
+      booking.status === 'pending' || booking.status === 'approved'
+    );
+    
     const stats = {
       today: {
-        rides: 12,
-        earnings: 2450.00,
-        hoursOnline: "8h 30m"
+        rides: todayRides.length,
+        earnings: todayEarnings,
+        completedBookings: completedTodayBookings.length
       },
-      pendingRequests: [
-        {
-          id: "req-1",
-          passenger: "Maria Silva",
-          from: "Maputo",
-          to: "Beira", 
-          passengers: 2,
-          departure: "2024-08-30T08:00:00Z",
-          price: 1250.00
-        },
-        {
-          id: "req-2", 
-          passenger: "João Pedro",
-          from: "Maputo",
-          to: "Xai-Xai",
-          passengers: 1,
-          departure: "2024-08-30T14:00:00Z", 
-          price: 450.00
-        }
-      ],
-      completedToday: [
-        {
-          id: "ride-1",
-          passenger: "Ana Costa",
-          from: "Maputo Centro",
-          to: "Aeroporto",
-          completedAt: "09:30",
-          earnings: 150.00
-        },
-        {
-          id: "ride-2",
-          passenger: "Carlos Silva", 
-          from: "Matola",
-          to: "Polana",
-          completedAt: "11:15",
-          earnings: 180.00
-        }
-      ]
+      overall: {
+        totalRides: driverRides.length,
+        totalBookings: driverBookings.length,
+        rating: driverStats.averageRating || 0,
+        totalEarnings: driverStats.totalEarnings || 0
+      },
+      pendingRequests: pendingBookings.slice(0, 10), // Limit to 10 recent
+      completedToday: completedTodayBookings.slice(0, 5) // Last 5 completed today
     };
 
     res.json({
@@ -81,7 +76,14 @@ router.post('/accept-ride/:requestId', verifyFirebaseToken, async (req, res) => 
       return res.status(401).json({ message: "User ID not found" });
     }
 
-    // TODO: Implementar lógica de aceitar viagem
+    // Aceitar reserva de viagem
+    const booking = await storage.booking.getBooking(requestId);
+    if (!booking) {
+      return res.status(404).json({ message: "Solicitação não encontrada" });
+    }
+    
+    // Atualizar status para aprovado
+    await storage.booking.updateBookingStatus(requestId, 'approved');
     
     res.json({
       success: true,
@@ -106,7 +108,14 @@ router.post('/reject-ride/:requestId', verifyFirebaseToken, async (req, res) => 
       return res.status(401).json({ message: "User ID not found" });
     }
 
-    // TODO: Implementar lógica de recusar viagem
+    // Recusar reserva de viagem
+    const booking = await storage.booking.getBooking(requestId);
+    if (!booking) {
+      return res.status(404).json({ message: "Solicitação não encontrada" });
+    }
+    
+    // Atualizar status para rejeitado
+    await storage.booking.updateBookingStatus(requestId, 'rejected');
     
     res.json({
       success: true,
@@ -130,41 +139,27 @@ router.get('/rides-history', verifyFirebaseToken, async (req, res) => {
 
     const { page = 1, limit = 10 } = req.query;
 
-    // TODO: Buscar histórico real do banco
-    const mockHistory = {
-      rides: [
-        {
-          id: "ride-001",
-          passenger: "Maria Santos",
-          from: "Maputo",
-          to: "Beira",
-          date: "2024-08-28",
-          earnings: 1250.00,
-          rating: 5,
-          status: "completed"
-        },
-        {
-          id: "ride-002", 
-          passenger: "João Silva",
-          from: "Maputo",
-          to: "Matola",
-          date: "2024-08-28",
-          earnings: 180.00,
-          rating: 4,
-          status: "completed"
-        }
-      ],
+    // Buscar histórico real do banco
+    const driverRides = await storage.ride.getDriverRideHistory(driverId, parseInt(limit as string));
+    const totalRides = await storage.ride.getRidesByDriver(driverId);
+    
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const totalPages = Math.ceil(totalRides.length / limitNum);
+    
+    const history = {
+      rides: driverRides,
       pagination: {
-        total: 156,
-        page: parseInt(page as string),
-        limit: parseInt(limit as string),
-        totalPages: 16
+        total: totalRides.length,
+        page: pageNum,
+        limit: limitNum,
+        totalPages
       }
     };
 
     res.json({
       success: true,
-      ...mockHistory
+      ...history
     });
   } catch (error) {
     console.error("Driver rides history error:", error);
@@ -181,13 +176,40 @@ router.get('/earnings', verifyFirebaseToken, async (req, res) => {
       return res.status(401).json({ message: "User ID not found" });
     }
 
+    // Obter ganhos reais do motorista
+    const driverStats = await storage.auth.getDriverStatistics(driverId);
+    const driverBookings = await storage.booking.getProviderBookings(driverId);
+    
+    // Calcular ganhos por período
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const thisWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    const completedBookings = driverBookings.filter(b => b.status === 'completed');
+    
+    const todayEarnings = completedBookings
+      .filter(b => b.createdAt && new Date(b.createdAt) >= today)
+      .reduce((sum, b) => sum + parseFloat(b.totalPrice), 0);
+      
+    const weekEarnings = completedBookings
+      .filter(b => b.createdAt && new Date(b.createdAt) >= thisWeek)
+      .reduce((sum, b) => sum + parseFloat(b.totalPrice), 0);
+      
+    const monthEarnings = completedBookings
+      .filter(b => b.createdAt && new Date(b.createdAt) >= thisMonth)
+      .reduce((sum, b) => sum + parseFloat(b.totalPrice), 0);
+      
+    const totalEarnings = completedBookings
+      .reduce((sum, b) => sum + parseFloat(b.totalPrice), 0);
+    
     const earnings = {
-      today: 2450.00,
-      thisWeek: 12300.00,
-      thisMonth: 45600.00,
-      total: 234500.00,
+      today: todayEarnings,
+      thisWeek: weekEarnings,
+      thisMonth: monthEarnings,
+      total: totalEarnings,
       breakdown: {
-        rides: 2100.00,
+        rides: totalEarnings,
         tips: 250.00,
         bonuses: 100.00
       },

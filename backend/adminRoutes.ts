@@ -1,64 +1,41 @@
 import { Router } from "express";
+import { storage } from "./storage";
+import { verifyFirebaseToken, type AuthenticatedRequest } from "./src/shared/firebaseAuth";
 
 const router = Router();
 
 // Get all users for admin management
-router.get("/users", async (req, res) => {
+router.get("/users", verifyFirebaseToken, async (req, res) => {
+  const authReq = req as AuthenticatedRequest;
   try {
+    const userId = authReq.user?.claims?.sub;
+    if (!userId) {
+      return res.status(401).json({ message: "User ID not found" });
+    }
+
+    // Verificar se é admin
+    const user = await storage.auth.getUser(userId);
+    if (!user || user.userType !== 'admin') {
+      return res.status(403).json({ message: "Acesso negado" });
+    }
+
     const { search, status, userType, page = 1, limit = 20 } = req.query;
     
-    // Mock data for demonstration
-    const mockUsers = [
-      {
-        id: "u1",
-        username: "joao_silva",
-        firstName: "João",
-        lastName: "Silva",
-        email: "joao@email.com",
-        userType: "driver",
-        rating: "4.80",
-        totalReviews: 245,
-        isVerified: true,
-        isBlocked: false,
-        createdAt: new Date("2023-01-15"),
-      },
-      {
-        id: "u2",
-        username: "maria_santos", 
-        firstName: "Maria",
-        lastName: "Santos",
-        email: "maria@email.com",
-        userType: "host",
-        rating: "4.20",
-        totalReviews: 89,
-        isVerified: false,
-        isBlocked: false,
-        createdAt: new Date("2023-03-22"),
-      },
-      {
-        id: "u3",
-        username: "pedro_machado",
-        firstName: "Pedro", 
-        lastName: "Machado",
-        email: "pedro@email.com",
-        userType: "user",
-        rating: "3.80",
-        totalReviews: 12,
-        isVerified: true,
-        isBlocked: true,
-        createdAt: new Date("2023-06-10"),
-      }
-    ];
+    // Buscar usuários reais da base de dados
+    const { users: allUsers } = await storage.auth.getUsersWithPagination(
+      parseInt(page as string), 
+      parseInt(limit as string)
+    );
     
-    // Apply filters to mock data
-    let filteredUsers = mockUsers;
+    // Apply filters to real data
+    let filteredUsers = allUsers;
     
     if (search) {
       const searchTerm = (search as string).toLowerCase();
       filteredUsers = filteredUsers.filter(user => 
-        user.firstName.toLowerCase().includes(searchTerm) ||
-        user.lastName.toLowerCase().includes(searchTerm) ||
-        user.email.toLowerCase().includes(searchTerm)
+        (user.firstName?.toLowerCase().includes(searchTerm)) ||
+        (user.lastName?.toLowerCase().includes(searchTerm)) ||
+        (user.email?.toLowerCase().includes(searchTerm))
       );
     }
     
@@ -100,10 +77,34 @@ router.post("/users/:userId/actions", async (req, res) => {
       return res.status(400).json({ error: "Action and reason are required" });
     }
     
-    // Mock admin action creation
+    // Verificar se usuário existe
+    const targetUser = await storage.auth.getUser(userId);
+    if (!targetUser) {
+      return res.status(404).json({ error: "Usuário não encontrado" });
+    }
+    
+    // Aplicar ação administrativa real
+    let updatedUser;
+    switch (action) {
+      case 'block':
+        updatedUser = await storage.auth.updateUser(userId, { isBlocked: true });
+        break;
+      case 'unblock':
+        updatedUser = await storage.auth.updateUser(userId, { isBlocked: false });
+        break;
+      case 'verify':
+        updatedUser = await storage.auth.updateVerificationStatus(userId, 'verified');
+        break;
+      case 'unverify':
+        updatedUser = await storage.auth.updateVerificationStatus(userId, 'pending');
+        break;
+      default:
+        return res.status(400).json({ error: "Ação inválida" });
+    }
+    
     const adminAction = {
       id: `action-${Date.now()}`,
-      adminId: adminId || "admin-1",
+      adminId: adminId || req.user?.claims?.sub,
       targetUserId: userId,
       action,
       reason,
@@ -111,10 +112,8 @@ router.post("/users/:userId/actions", async (req, res) => {
       notes,
       isActive: true,
       createdAt: new Date(),
+      updatedUser
     };
-    
-    // In real implementation, this would update the user in the database
-    console.log(`Admin action applied: ${action} to user ${userId} for reason: ${reason}`);
     
     res.json({ success: true, adminAction });
   } catch (error) {
