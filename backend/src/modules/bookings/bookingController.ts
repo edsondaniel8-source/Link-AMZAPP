@@ -150,7 +150,7 @@ router.post("/", verifyFirebaseToken, async (req, res) => {
 
     // Verificar se o serviço está disponível
     if (validatedData.type === 'ride' && validatedData.rideId) {
-      const ride = await storage.getRide(validatedData.rideId);
+      const ride = await storage.ride.getRide(validatedData.rideId);
       if (!ride) {
         return res.status(404).json({
           success: false,
@@ -170,7 +170,7 @@ router.post("/", verifyFirebaseToken, async (req, res) => {
     }
 
     if (validatedData.type === 'stay' && validatedData.accommodationId) {
-      const accommodation = await storage.getAccommodation(validatedData.accommodationId);
+      const accommodation = await storage.accommodation.getAccommodation(validatedData.accommodationId);
       if (!accommodation) {
         return res.status(404).json({
           success: false,
@@ -189,7 +189,7 @@ router.post("/", verifyFirebaseToken, async (req, res) => {
     }
 
     if (validatedData.type === 'event' && validatedData.eventId) {
-      const event = await storage.getEvent(validatedData.eventId);
+      const event = await storage.event.getEvent(validatedData.eventId);
       if (!event) {
         return res.status(404).json({
           success: false,
@@ -276,7 +276,7 @@ router.put("/:id/status", verifyFirebaseToken, async (req, res) => {
       updateData.confirmedAt = new Date();
     }
 
-    const updatedBooking = await storage.updateBooking(id, updateData);
+    const updatedBooking = await storage.booking.updateBooking(id, updateData);
 
     res.json({
       success: true,
@@ -328,7 +328,7 @@ router.put("/:id/cancel", verifyFirebaseToken, async (req, res) => {
       });
     }
 
-    const updatedBooking = await storage.updateBooking(id, { 
+    const updatedBooking = await storage.booking.updateBooking(id, { 
       status: 'cancelled' 
     });
 
@@ -373,7 +373,7 @@ router.get("/provider/:providerId", verifyFirebaseToken, async (req, res) => {
       limit = 20 
     } = req.query;
 
-    let bookings = await storage.getProviderBookings(providerId);
+    let bookings = await storage.booking.getProviderBookings(providerId);
     
     // Aplicar filtros
     if (type) {
@@ -418,10 +418,10 @@ router.get("/stats", verifyFirebaseToken, async (req, res) => {
     }
 
     // Buscar reservas como cliente
-    const userBookings = await storage.getUserBookings(userId);
+    const userBookings = await storage.booking.getUserBookings(userId);
     
     // Buscar reservas como provedor
-    const providerBookings = await storage.getProviderBookings(userId);
+    const providerBookings = await storage.booking.getProviderBookings(userId);
 
     const stats = {
       asCustomer: {

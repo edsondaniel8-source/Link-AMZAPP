@@ -100,7 +100,7 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const event = await storage.getEvent(id);
+    const event = await storage.event.getEvent(id);
 
     if (!event) {
       return res.status(404).json({
@@ -146,7 +146,7 @@ router.post("/", verifyFirebaseToken, async (req, res) => {
       endDate: new Date(req.body.endDate)
     });
 
-    const newEvent = await storage.createEvent(validatedData);
+    const newEvent = await storage.event.createEvent(validatedData);
 
     res.status(201).json({
       success: true,
@@ -183,7 +183,7 @@ router.put("/:id", verifyFirebaseToken, async (req, res) => {
     }
 
     // Verificar se o evento existe e pertence ao usuário
-    const existingEvent = await storage.getEvent(id);
+    const existingEvent = await storage.event.getEvent(id);
     if (!existingEvent) {
       return res.status(404).json({
         success: false,
@@ -204,7 +204,7 @@ router.put("/:id", verifyFirebaseToken, async (req, res) => {
       endDate: req.body.endDate ? new Date(req.body.endDate) : undefined
     };
 
-    const updatedEvent = await storage.updateEvent(id, updateData);
+    const updatedEvent = await storage.event.updateEvent(id, updateData);
 
     res.json({
       success: true,
@@ -233,7 +233,7 @@ router.delete("/:id", verifyFirebaseToken, async (req, res) => {
     }
 
     // Verificar se o evento existe e pertence ao usuário
-    const existingEvent = await storage.getEvent(id);
+    const existingEvent = await storage.event.getEvent(id);
     if (!existingEvent) {
       return res.status(404).json({
         success: false,
@@ -248,7 +248,7 @@ router.delete("/:id", verifyFirebaseToken, async (req, res) => {
       });
     }
 
-    const deleted = await storage.deleteEvent(id);
+    const deleted = await storage.event.deleteEvent(id);
     
     if (!deleted) {
       return res.status(500).json({
@@ -438,7 +438,7 @@ router.get('/bookings', verifyFirebaseToken, async (req, res) => {
       return res.status(401).json({ message: "User ID not found" });
     }
 
-    const bookings = await storage.getProviderBookings(organizerId);
+    const bookings = await storage.booking.getProviderBookings(organizerId);
 
     res.json({
       success: true,

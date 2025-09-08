@@ -168,7 +168,7 @@ router.get('/users', verifyFirebaseToken, async (req, res) => {
     }
 
     // Verificar se é admin
-    const adminUser = await storage.getUser(userId);
+    const adminUser = await storage.auth.getUser(userId);
     if (!adminUser || adminUser.userType !== 'admin') {
       return res.status(403).json({ message: "Acesso negado" });
     }
@@ -288,13 +288,13 @@ router.post('/approve/:userId', verifyFirebaseToken, async (req, res) => {
     }
 
     // Verificar se é admin
-    const admin = await storage.getUser(adminId);
+    const admin = await storage.auth.getUser(adminId);
     if (!admin || admin.userType !== 'admin') {
       return res.status(403).json({ message: "Acesso negado" });
     }
 
     // Buscar o usuário a ser aprovado
-    const targetUser = await storage.getUser(targetUserId);
+    const targetUser = await storage.auth.getUser(targetUserId);
     if (!targetUser) {
       return res.status(404).json({ message: "Usuário não encontrado" });
     }
@@ -352,13 +352,13 @@ router.post('/reject/:userId', verifyFirebaseToken, async (req, res) => {
     }
 
     // Verificar se é admin
-    const admin = await storage.getUser(adminId);
+    const admin = await storage.auth.getUser(adminId);
     if (!admin || admin.userType !== 'admin') {
       return res.status(403).json({ message: "Acesso negado" });
     }
 
     // Buscar o usuário a ser rejeitado
-    const targetUser = await storage.getUser(targetUserId);
+    const targetUser = await storage.auth.getUser(targetUserId);
     if (!targetUser) {
       return res.status(404).json({ message: "Usuário não encontrado" });
     }
@@ -411,7 +411,7 @@ router.get('/analytics', verifyFirebaseToken, async (req, res) => {
     }
 
     // Verificar se é admin
-    const admin = await storage.getUser(userId);
+    const admin = await storage.auth.getUser(userId);
     if (!admin || admin.userType !== 'admin') {
       return res.status(403).json({ message: "Acesso negado" });
     }

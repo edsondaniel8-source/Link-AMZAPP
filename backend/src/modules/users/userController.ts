@@ -320,8 +320,8 @@ router.get("/dashboard/stats", verifyFirebaseToken, async (req, res) => {
     }
 
     // Buscar estatísticas básicas
-    const userBookings = await storage.auth.getUserBookings(userId);
-    const providerBookings = await storage.getProviderBookings(userId);
+    const userBookings = await storage.booking.getUserBookings(userId);
+    const providerBookings = await storage.booking.getProviderBookings(userId);
 
     const stats = {
       profile: {

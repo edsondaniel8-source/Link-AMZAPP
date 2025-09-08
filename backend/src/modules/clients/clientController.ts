@@ -61,7 +61,7 @@ router.post('/rides/request', verifyFirebaseToken, async (req, res) => {
       paymentMethod: req.body.paymentMethod || "pending"
     };
 
-    const booking = await storage.createBooking(bookingData);
+    const booking = await storage.booking.createBooking(bookingData);
 
     res.status(201).json({
       success: true,
@@ -83,7 +83,7 @@ router.get('/bookings', verifyFirebaseToken, async (req, res) => {
       return res.status(401).json({ message: "User ID not found" });
     }
 
-    const bookings = await storage.getUserBookings(userId);
+    const bookings = await storage.booking.getUserBookings(userId);
 
     res.json({
       success: true,
@@ -106,7 +106,7 @@ router.post('/bookings/:bookingId/cancel', verifyFirebaseToken, async (req, res)
       return res.status(401).json({ message: "User ID not found" });
     }
 
-    const booking = await storage.updateBookingStatus(bookingId, 'cancelled');
+    const booking = await storage.booking.updateBookingStatus(bookingId, 'cancelled');
 
     if (!booking) {
       return res.status(404).json({ message: "Reserva não encontrada" });
