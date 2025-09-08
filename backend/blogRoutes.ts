@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { verifyFirebaseToken, type AuthenticatedRequest } from "./src/shared/firebaseAuth";
+import { verifyFirebaseToken } from "./middleware/role-auth";
 
 const router = Router();
 
@@ -228,9 +228,8 @@ router.get("/posts/:slug", async (req, res) => {
 
 // Create new blog post (admin only)
 router.post("/posts", verifyFirebaseToken, async (req, res) => {
-  const authReq = req as AuthenticatedRequest;
   try {
-    const userId = authReq.user?.claims?.sub;
+    const userId = req.user?.uid;
     
     // TODO: Verify admin role
     // const user = await storage.getUser(userId);
@@ -273,7 +272,7 @@ router.post("/posts", verifyFirebaseToken, async (req, res) => {
       isFeatured,
       author: {
         id: userId,
-        name: authReq.user?.displayName || "Admin",
+        name: req.user?.uid || "Admin",
         avatar: null
       },
       publishedAt: new Date().toISOString(),
@@ -300,10 +299,9 @@ router.post("/posts", verifyFirebaseToken, async (req, res) => {
 
 // Update blog post (admin only)
 router.put("/posts/:id", verifyFirebaseToken, async (req, res) => {
-  const authReq = req as AuthenticatedRequest;
   try {
     const { id } = req.params;
-    const userId = authReq.user?.claims?.sub;
+    const userId = req.user?.uid;
     
     // TODO: Verify admin role and ownership
     
@@ -330,7 +328,6 @@ router.put("/posts/:id", verifyFirebaseToken, async (req, res) => {
 
 // Delete blog post (admin only)
 router.delete("/posts/:id", verifyFirebaseToken, async (req, res) => {
-  const authReq = req as AuthenticatedRequest;
   try {
     const { id } = req.params;
     

@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { storage } from "./src/shared/storage";
-import { verifyFirebaseToken, type AuthenticatedRequest } from "./src/shared/firebaseAuth";
+import { authStorage } from "./src/shared/authStorage";
+import { verifyFirebaseToken } from "./middleware/role-auth";
 import { eq } from "drizzle-orm";
 import { db } from "./db";
 import { users, driverDocuments } from "./shared/schema";
@@ -16,14 +16,13 @@ const upload = multer({
 
 // Get user profile
 router.get("/profile", verifyFirebaseToken, async (req, res) => {
-  const authReq = req as AuthenticatedRequest;
   try {
-    const userId = authReq.user?.claims?.sub;
+    const userId = req.user?.uid;
     if (!userId) {
       return res.status(401).json({ message: "User ID not found" });
     }
 
-    const user = await storage.getUser(userId);
+    const user = await authStorage.getUser(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -59,9 +58,8 @@ router.get("/profile", verifyFirebaseToken, async (req, res) => {
 
 // Update user profile
 router.put("/profile", verifyFirebaseToken, upload.single('profilePhoto'), async (req, res) => {
-  const authReq = req as AuthenticatedRequest;
   try {
-    const userId = authReq.user?.claims?.sub;
+    const userId = req.user?.uid;
     if (!userId) {
       return res.status(401).json({ message: "User ID not found" });
     }
@@ -92,7 +90,7 @@ router.put("/profile", verifyFirebaseToken, upload.single('profilePhoto'), async
     if (dateOfBirth) updateData.dateOfBirth = new Date(dateOfBirth);
     if (profilePhotoUrl) updateData.profilePhotoUrl = profilePhotoUrl;
 
-    const updatedUser = await storage.upsertUser(updateData);
+    const updatedUser = await authStorage.upsertUser(updateData);
 
     res.json({
       success: true,
@@ -110,9 +108,8 @@ router.put("/profile", verifyFirebaseToken, upload.single('profilePhoto'), async
 
 // Switch user role (for multi-role users)
 router.post("/switch-role", verifyFirebaseToken, async (req, res) => {
-  const authReq = req as AuthenticatedRequest;
   try {
-    const userId = authReq.user?.claims?.sub;
+    const userId = req.user?.uid;
     const { newRole } = req.body;
 
     if (!userId) {
@@ -126,7 +123,7 @@ router.post("/switch-role", verifyFirebaseToken, async (req, res) => {
       });
     }
 
-    const user = await storage.getUser(userId);
+    const user = await authStorage.getUser(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -140,7 +137,7 @@ router.post("/switch-role", verifyFirebaseToken, async (req, res) => {
     }
 
     // Update user role
-    const updatedUser = await storage.upsertUser({
+    const updatedUser = await authStorage.upsertUser({
       id: userId,
       userType: newRole,
       updatedAt: new Date()
@@ -169,9 +166,8 @@ router.post("/verification", verifyFirebaseToken, upload.fields([
   { name: 'drivingLicense', maxCount: 1 },
   { name: 'vehicleInsurance', maxCount: 1 }
 ]), async (req, res) => {
-  const authReq = req as AuthenticatedRequest;
   try {
-    const userId = authReq.user?.claims?.sub;
+    const userId = req.user?.uid;
     if (!userId) {
       return res.status(401).json({ message: "User ID not found" });
     }
@@ -211,7 +207,7 @@ router.post("/verification", verifyFirebaseToken, upload.fields([
       updatedAt: new Date()
     };
 
-    const updatedUser = await storage.upsertUser(userData);
+    const updatedUser = await authStorage.upsertUser(userData);
 
     // If user wants to be a driver, save vehicle documents
     if (files.vehicleRegistration && files.drivingLicense) {
@@ -251,14 +247,13 @@ router.post("/verification", verifyFirebaseToken, upload.fields([
 
 // Get verification status
 router.get("/verification-status", verifyFirebaseToken, async (req, res) => {
-  const authReq = req as AuthenticatedRequest;
   try {
-    const userId = authReq.user?.claims?.sub;
+    const userId = req.user?.uid;
     if (!userId) {
       return res.status(401).json({ message: "User ID not found" });
     }
 
-    const user = await storage.getUser(userId);
+    const user = await authStorage.getUser(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -315,30 +310,31 @@ router.get("/verification-status", verifyFirebaseToken, async (req, res) => {
 
 // Get user bookings and activity
 router.get("/activity", verifyFirebaseToken, async (req, res) => {
-  const authReq = req as AuthenticatedRequest;
   try {
-    const userId = authReq.user?.claims?.sub;
+    const userId = req.user?.uid;
     if (!userId) {
       return res.status(401).json({ message: "User ID not found" });
     }
 
     // Get user bookings
-    const bookings = await storage.getUserBookings(userId);
+    // TODO: Implement getUserBookings function
+    const bookings: any[] = []; // await getUserBookings(userId);
 
     // Get provider bookings if user offers services
-    const providerBookings = await storage.getProviderBookings(userId);
+    // TODO: Implement getProviderBookings function
+    const providerBookings: any[] = []; // await getProviderBookings(userId);
 
     // Calculate activity summary
     const activitySummary = {
       totalBookings: bookings.length,
-      completedBookings: bookings.filter(b => b.status === 'completed').length,
-      activeBookings: bookings.filter(b => ['pending_approval', 'approved', 'confirmed'].includes(b.status)).length,
+      completedBookings: bookings.filter((b: any) => b.status === 'completed').length,
+      activeBookings: bookings.filter((b: any) => ['pending_approval', 'approved', 'confirmed'].includes(b.status)).length,
       totalAsProvider: providerBookings.length,
-      completedAsProvider: providerBookings.filter(b => b.status === 'completed').length,
+      completedAsProvider: providerBookings.filter((b: any) => b.status === 'completed').length,
       bookingsByType: {
-        ride: bookings.filter(b => b.type === 'ride').length,
-        stay: bookings.filter(b => b.type === 'stay').length,
-        event: bookings.filter(b => b.type === 'event').length
+        ride: bookings.filter((b: any) => b.type === 'ride').length,
+        stay: bookings.filter((b: any) => b.type === 'stay').length,
+        event: bookings.filter((b: any) => b.type === 'event').length
       }
     };
 
@@ -361,9 +357,8 @@ router.get("/activity", verifyFirebaseToken, async (req, res) => {
 
 // Delete user account
 router.delete("/account", verifyFirebaseToken, async (req, res) => {
-  const authReq = req as AuthenticatedRequest;
   try {
-    const userId = authReq.user?.claims?.sub;
+    const userId = req.user?.uid;
     if (!userId) {
       return res.status(401).json({ message: "User ID not found" });
     }

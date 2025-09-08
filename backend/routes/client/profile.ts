@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { verifyFirebaseToken, requireClientRole } from '../../middleware/role-auth';
+import { verifyFirebaseToken } from '../../src/shared/firebaseAuth';
+import { requireClientRole } from '../../middleware/role-auth';
 
 const router = Router();
 
