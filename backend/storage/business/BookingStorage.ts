@@ -46,6 +46,9 @@ export interface IBookingStorage {
   // Analytics
   getBookingStatistics(dateRange?: DateRange): Promise<BookingStats>;
   getBookingsByStatus(status: BookingStatus): Promise<Booking[]>;
+  
+  // Additional methods needed by controllers
+  updateBooking(bookingId: string, data: any): Promise<Booking>;
 }
 
 export class DatabaseBookingStorage implements IBookingStorage {
@@ -332,6 +335,26 @@ export class DatabaseBookingStorage implements IBookingStorage {
     } catch (error) {
       console.error('Error fetching booking with details:', error);
       return null;
+    }
+  }
+
+  // ===== ADDITIONAL METHODS FOR CONTROLLERS =====
+  
+  async updateBooking(bookingId: string, data: any): Promise<Booking> {
+    try {
+      const [booking] = await db
+        .update(bookings)
+        .set({
+          ...data,
+          updatedAt: new Date(),
+        })
+        .where(eq(bookings.id, bookingId))
+        .returning();
+      
+      return booking as Booking;
+    } catch (error) {
+      console.error('Error updating booking:', error);
+      throw new Error('Failed to update booking');
     }
   }
 }

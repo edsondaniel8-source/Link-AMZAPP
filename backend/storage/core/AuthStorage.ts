@@ -42,6 +42,10 @@ export interface IAuthStorage {
   // Search and listing
   searchUsers(query: string): Promise<User[]>;
   getUsersWithPagination(page: number, limit: number): Promise<{ users: User[], total: number }>;
+  
+  // Additional methods needed by controllers
+  upsertUser(userData: any): Promise<User>;
+  getUsersByType(userType: string): Promise<User[]>;
 }
 
 export class DatabaseAuthStorage implements IAuthStorage {
@@ -336,6 +340,46 @@ export class DatabaseAuthStorage implements IAuthStorage {
     } catch (error) {
       console.error('Error fetching users with pagination:', error);
       return { users: [], total: 0 };
+    }
+  }
+
+  // ===== ADDITIONAL METHODS FOR CONTROLLERS =====
+  
+  async upsertUser(userData: any): Promise<User> {
+    try {
+      if (userData.id) {
+        // Update existing user
+        const [user] = await db
+          .update(users)
+          .set({
+            ...userData,
+            updatedAt: new Date(),
+          })
+          .where(eq(users.id, userData.id))
+          .returning();
+        return user as User;
+      } else {
+        // Create new user
+        return this.createUser(userData);
+      }
+    } catch (error) {
+      console.error('Error upserting user:', error);
+      throw new Error('Failed to upsert user');
+    }
+  }
+
+  async getUsersByType(userType: string): Promise<User[]> {
+    try {
+      const userList = await db
+        .select()
+        .from(users)
+        .where(eq(users.userType, userType))
+        .orderBy(desc(users.createdAt));
+      
+      return userList as User[];
+    } catch (error) {
+      console.error('Error fetching users by type:', error);
+      return [];
     }
   }
 }

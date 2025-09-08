@@ -2,7 +2,7 @@ import { Router } from "express";
 import { verifyFirebaseToken, type AuthenticatedRequest } from "../../shared/firebaseAuth";
 import { storage } from "../../../storage";
 import { db } from "../../../db";
-import { users, rides, accommodations, bookings, transactions } from "../../../shared/schema";
+import { users, rides, accommodations, bookings } from "../../../shared/schema";
 import { sql, eq, count, sum, desc, and, gte, like, or } from "drizzle-orm";
 
 const router = Router();

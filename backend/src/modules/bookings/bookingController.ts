@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { storage } from "../../../storage";
-import { insertBookingSchema } from "../../shared/storage";
+// import { insertBookingSchema } from "../../shared/storage";
 import { z } from "zod";
 
 const router = Router();
