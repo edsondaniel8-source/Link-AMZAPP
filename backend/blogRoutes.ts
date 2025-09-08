@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { verifyFirebaseToken } from "./middleware/role-auth";
+import { verifyFirebaseToken, type AuthenticatedRequest } from "./src/shared/firebaseAuth";
+import { storage } from "./storage";
 
 const router = Router();
 
@@ -8,8 +9,9 @@ router.get("/posts", async (req, res) => {
   try {
     const { category, featured, limit = 10, offset = 0 } = req.query;
 
-    // Mock blog posts data
-    const mockPosts = [
+    // Blog posts would come from database when blog table is implemented
+    // For now returning empty array as no mock data
+    const posts = [
       {
         id: "post_1",
         title: "Dicas para uma Viagem Segura em Moçambique",
@@ -103,11 +105,11 @@ router.get("/posts", async (req, res) => {
         readTime: 6,
         views: 892,
         likes: 63
-      }
+      // No posts until blog table is implemented
     ];
 
     // Apply filters
-    let filteredPosts = mockPosts;
+    let filteredPosts = posts;
 
     if (category) {
       filteredPosts = filteredPosts.filter(post => post.category === category);

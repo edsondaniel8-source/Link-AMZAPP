@@ -1,9 +1,12 @@
 import { Router } from "express";
+import { storage } from "./storage";
+import { verifyFirebaseToken, type AuthenticatedRequest } from "./src/shared/firebaseAuth";
 
 const router = Router();
 
 // Process payment
-router.post("/process", async (req, res) => {
+router.post("/process", verifyFirebaseToken, async (req, res) => {
+  const authReq = req as AuthenticatedRequest;
   try {
     const {
       bookingId,
@@ -24,63 +27,60 @@ router.post("/process", async (req, res) => {
       });
     }
 
-    // Mock payment processing
-    const paymentReference = `PAY_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-    
-    // Simulate payment processing based on method
-    let paymentStatus = "completed";
-    let processingMessage = "";
-
-    switch (paymentMethod) {
-      case "card":
-        if (!cardDetails?.number || !cardDetails?.cvv) {
-          return res.status(400).json({ error: "Invalid card details" });
-        }
-        processingMessage = "Card payment processed successfully";
-        break;
-        
-      case "mpesa":
-        if (!mpesaNumber) {
-          return res.status(400).json({ error: "M-Pesa number required" });
-        }
-        processingMessage = "M-Pesa payment initiated. Please check your phone for confirmation.";
-        break;
-        
-      case "bank":
-        if (!bankAccount) {
-          return res.status(400).json({ error: "Bank account details required" });
-        }
-        paymentStatus = "pending";
-        processingMessage = "Bank transfer initiated. Payment will be processed within 1-3 business days.";
-        break;
-        
-      default:
-        return res.status(400).json({ error: "Invalid payment method" });
+    const userId = authReq.user?.claims?.sub;
+    if (!userId) {
+      return res.status(401).json({ message: "User ID not found" });
     }
 
-    // Mock transaction creation
-    const transaction = {
-      id: `trans_${Date.now()}`,
-      bookingId,
-      userId: "user_123", // Would get from session in real app
-      serviceType,
-      subtotal: Number(subtotal),
-      platformFee: Number(platformFee),
-      total: Number(total),
-      paymentMethod,
-      paymentStatus,
-      paymentReference,
-      paidAt: paymentStatus === "completed" ? new Date() : null,
-      createdAt: new Date(),
-    };
+    // Verificar se a reserva existe
+    const booking = await storage.booking.getBooking(bookingId);
+    if (!booking) {
+      return res.status(404).json({ error: "Reserva não encontrada" });
+    }
 
-    console.log("Payment processed:", transaction);
+    // Verificar se o usuário tem permissão
+    if (booking.passengerId !== userId) {
+      return res.status(403).json({ error: "Sem permissão para processar este pagamento" });
+    }
 
-    res.json({
-      success: true,
-      transaction,
-      message: processingMessage,
-    });
+    // Processar pagamento real usando o storage
+    try {
+      const paymentData = {
+        amount: Number(total),
+        method: paymentMethod,
+        details: cardDetails || { mpesaNumber, bankAccount }
+      };
+
+      const payment = await storage.booking.processPayment(bookingId, paymentData);
+      
+      // Atualizar status da reserva
+      await storage.booking.updateBookingStatus(bookingId, 'confirmed');
+
+      const transaction = {
+        id: payment.id,
+        bookingId,
+        userId,
+        serviceType,
+        subtotal: Number(subtotal),
+        platformFee: Number(platformFee),
+        total: Number(total),
+        paymentMethod,
+        paymentStatus: payment.status,
+        paymentReference: payment.transactionId,
+        paidAt: payment.status === "completed" ? new Date() : null,
+        createdAt: new Date(),
+      };
+
+      res.json({
+        success: true,
+        transaction,
+        payment,
+        message: payment.status === "completed" ? "Pagamento processado com sucesso" : "Pagamento iniciado"
+      });
+    } catch (paymentError) {
+      console.error("Payment processing error:", paymentError);
+      res.status(500).json({ error: "Erro ao processar pagamento" });
+    }
   } catch (error) {
     console.error("Payment processing error:", error);
     res.status(500).json({ 
@@ -90,22 +90,27 @@ router.post("/process", async (req, res) => {
 });
 
 // Get payment methods for user
-router.get("/methods", async (req, res) => {
+router.get("/methods", verifyFirebaseToken, async (req, res) => {
+  const authReq = req as AuthenticatedRequest;
   try {
-    // Mock payment methods
+    const userId = authReq.user?.claims?.sub;
+    if (!userId) {
+      return res.status(401).json({ message: "User ID not found" });
+    }
+
+    // Get user's real payment methods (placeholder implementation)
     const paymentMethods = [
       {
-        id: "pm_1",
-        type: "card",
-        cardLast4: "1234",
-        cardBrand: "visa",
+        id: "mpesa",
+        type: "mpesa",
+        label: "M-Pesa",
         isDefault: true,
         isActive: true,
       },
       {
-        id: "pm_2", 
-        type: "mpesa",
-        mpesaNumber: "+258 84 ***4567",
+        id: "bank", 
+        type: "bank",
+        label: "Transferência Bancária",
         isDefault: false,
         isActive: true,
       },

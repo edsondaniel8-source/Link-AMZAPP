@@ -413,70 +413,10 @@ export class DatabaseEventStorage implements IEventStorage {
   
   async getEventsByFilter(filters: any): Promise<Event[]> {
     try {
-      // Since events table doesn't exist, return placeholder data
-      const mockEvents: Event[] = [
-        {
-          id: 'event_1',
-          name: 'Evento de Tecnologia em Maputo',
-          description: 'Conferência sobre inovação tecnológica em Moçambique',
-          organizerId: 'organizer_1',
-          eventDate: new Date('2024-12-15'),
-          startTime: '09:00',
-          endTime: '17:00',
-          location: 'Centro de Conferências, Maputo',
-          price: '500',
-          maxAttendees: 200,
-          currentAttendees: 45,
-          category: 'Technology',
-          tags: ['tecnologia', 'inovação', 'moçambique'],
-          images: [],
-          isPublic: true,
-          requiresApproval: false,
-          status: 'active',
-          createdAt: new Date(),
-        },
-        {
-          id: 'event_2',
-          name: 'Festival Cultural de Beira',
-          description: 'Celebração da cultura moçambicana com música e dança',
-          organizerId: 'organizer_2',
-          eventDate: new Date('2024-12-20'),
-          startTime: '18:00',
-          endTime: '23:00',
-          location: 'Praça Central, Beira',
-          price: '0',
-          maxAttendees: 1000,
-          currentAttendees: 250,
-          category: 'Arts & Culture',
-          tags: ['cultura', 'música', 'dança'],
-          images: [],
-          isPublic: true,
-          requiresApproval: false,
-          status: 'active',
-          createdAt: new Date(),
-        }
-      ];
-
-      // Apply filters if provided
-      let filteredEvents = mockEvents;
-
-      if (filters.eventType) {
-        filteredEvents = filteredEvents.filter(event => event.category === filters.eventType);
-      }
-
-      if (filters.category) {
-        filteredEvents = filteredEvents.filter(event => event.category === filters.category);
-      }
-
-      if (filters.status) {
-        filteredEvents = filteredEvents.filter(event => event.status === filters.status);
-      }
-
-      if (filters.isPublic !== undefined) {
-        filteredEvents = filteredEvents.filter(event => event.isPublic === filters.isPublic);
-      }
-
-      return filteredEvents;
+      // Since events table doesn't exist in current schema, return empty array
+      // TODO: Implement when events table is added to schema
+      console.log('Events table not implemented yet, returning empty array for filters:', filters);
+      return [];
     } catch (error) {
       console.error('Error getting events by filter:', error);
       return [];
