@@ -18,7 +18,8 @@ import {
 
 import { 
   IFileStorage, 
-  DatabaseFileStorage, 
+  GoogleCloudFileStorage, 
+  LocalFileStorage,
   fileStorage as defaultFileStorage 
 } from './core/FileStorage';
 
@@ -442,7 +443,8 @@ export type {
 export {
   // Core classes
   DatabaseAuthStorage,
-  DatabaseFileStorage,
+  GoogleCloudFileStorage,
+  LocalFileStorage,
   DatabaseSessionStorage,
   
   // Business classes
