@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { db } from '../db';
-import { bookings, rides } from '../shared/database-schema';
+import { bookings, rides } from '../shared/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
-import { verifyFirebaseToken } from './auth';
+import { verifyFirebaseToken } from '../middleware/role-auth';
 
 const router = Router();
 

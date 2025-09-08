@@ -4,6 +4,9 @@ import { db } from '../db';
 import { chatMessages as messages, bookings, users } from '../shared/schema';
 import { eq, and, or, desc } from 'drizzle-orm';
 
+// ⚠️ TEMPORARIAMENTE DESABILITADO - FALTAM TABELAS DE chatRooms
+// import { chatRooms } from '../shared/schema';
+
 interface ChatUser {
   id: string;
   firstName: string;
@@ -89,6 +92,8 @@ export class ChatService {
             return;
           }
 
+          // ⚠️ TEMPORARIAMENTE COMENTADO - FALTA TABELA chatRooms
+          /*
           // Guardar mensagem na base de dados
           const [newMessage] = await db
             .insert(messages)
@@ -101,14 +106,26 @@ export class ChatService {
             })
             .returning();
 
+          // ⚠️ COMENTADO - FALTA TABELA chatRooms
+          /*
           // Actualizar última mensagem da sala
           await db
-            .update(chatRooms)
+            // .update(chatRooms) // ⚠️ COMENTADO - FALTA TABELA
             .set({
               lastMessage: message,
               lastMessageAt: new Date()
             })
-            .where(eq(chatRooms.id, chatRoomId));
+            // .where(eq(chatRooms.id, chatRoomId)) // ⚠️ COMENTADO - FALTA TABELA
+          */
+          
+          // MOCK temporário
+          const newMessage = {
+            id: Date.now().toString(),
+            senderId,
+            message,
+            messageType: messageType || 'text',
+            createdAt: new Date()
+          };
 
           // Obter dados do remetente
           const [sender] = await db
@@ -290,8 +307,8 @@ export class ChatService {
     // Obter participantes da sala
     const [room] = await db
       .select()
-      .from(chatRooms)
-      .where(eq(chatRooms.id, chatRoomId))
+      // .from(chatRooms) // ⚠️ COMENTADO - FALTA TABELA
+      // .where(eq(chatRooms.id, chatRoomId)) // ⚠️ COMENTADO - FALTA TABELA
       .limit(1);
 
     if (!room) return;
@@ -314,9 +331,9 @@ export class ChatService {
    */
   async deactivateChatRoom(chatRoomId: string): Promise<void> {
     await db
-      .update(chatRooms)
+      // .update(chatRooms) // ⚠️ COMENTADO - FALTA TABELA
       .set({ isActive: false })
-      .where(eq(chatRooms.id, chatRoomId));
+      // .where(eq(chatRooms.id, chatRoomId)) // ⚠️ COMENTADO - FALTA TABELA;
   }
 
   /**
@@ -325,8 +342,8 @@ export class ChatService {
   async getChatStatistics() {
     const totalRooms = await db
       .select()
-      .from(chatRooms)
-      .where(eq(chatRooms.isActive, true));
+      // .from(chatRooms) // ⚠️ COMENTADO - FALTA TABELA
+      // .where(eq(chatRooms.isActive, true)) // ⚠️ COMENTADO - FALTA TABELA;
 
     const totalMessages = await db
       .select()
@@ -334,7 +351,7 @@ export class ChatService {
 
     const recentActivity = await db
       .select()
-      .from(chatRooms)
+      // .from(chatRooms) // ⚠️ COMENTADO - FALTA TABELA
       .where(and(
         eq(chatRooms.isActive, true),
         // Actividade nos últimos 7 dias

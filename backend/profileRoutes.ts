@@ -258,7 +258,22 @@ router.get("/verification-status", verifyFirebaseToken, async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const verificationInfo = {
+    const verificationInfo: {
+      status?: string | null;
+      isVerified?: boolean | null;
+      canOfferServices?: boolean | null;
+      verificationDate?: Date | null;
+      verificationNotes?: string | null;
+      verificationBadge?: string | null;
+      documents: {
+        identityDocument: boolean;
+        profilePhoto: boolean;
+        vehicleRegistration?: boolean;
+        drivingLicense?: boolean;
+        vehicleInsurance?: boolean;
+        vehicleInfo?: any;
+      }
+    } = {
       status: user.verificationStatus,
       isVerified: user.isVerified,
       canOfferServices: user.canOfferServices,
