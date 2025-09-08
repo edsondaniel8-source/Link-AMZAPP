@@ -1,33 +1,36 @@
 import { Router, Request, Response, NextFunction } from "express";
-import { storage } from "../../shared/storage";
-import { insertRideSchema } from "../../shared/storage";
+import { db } from "../../../db";
+import { rides, type Ride, insertRideSchema } from "../../../shared/schema";
+import { authStorage } from "../../shared/authStorage";
+import { type AuthenticatedRequest, verifyFirebaseToken } from "../../shared/firebaseAuth";
 import { z } from "zod";
+import { eq } from "drizzle-orm";
 
 const router = Router();
 
-// Middleware de autenticação temporário
-interface AuthenticatedRequest extends Request {
-  user?: {
-    claims?: {
-      sub?: string;
-      email?: string;
-    };
-  };
-}
+// Helper functions for database queries
+const getRides = async (filters: any = {}): Promise<Ride[]> => {
+  return await db.select().from(rides);
+};
 
-const verifyFirebaseToken = async (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers.authorization;
-  
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: "Token não fornecido" });
-  }
-  
-  // Mock validation - replace with real Firebase verification
-  (req as AuthenticatedRequest).user = {
-    claims: { sub: `firebase-${Date.now()}`, email: "test@linkamz.com" }
-  };
-  
-  next();
+const getRide = async (id: string): Promise<Ride | undefined> => {
+  const [ride] = await db.select().from(rides).where(eq(rides.id, id));
+  return ride;
+};
+
+const createRide = async (data: any): Promise<Ride> => {
+  const [ride] = await db.insert(rides).values(data).returning();
+  return ride;
+};
+
+const updateRide = async (id: string, data: any): Promise<Ride | null> => {
+  const [ride] = await db.update(rides).set(data).where(eq(rides.id, id)).returning();
+  return ride || null;
+};
+
+const deleteRide = async (id: string): Promise<boolean> => {
+  const result = await db.delete(rides).where(eq(rides.id, id));
+  return (result.rowCount || 0) > 0;
 };
 
 // GET /api/rides - Lista todas as viagens com filtros
@@ -51,7 +54,7 @@ router.get("/", async (req, res) => {
     if (isActive !== undefined) filters.isActive = isActive === 'true';
     if (departureDate) filters.departureDate = new Date(departureDate as string);
 
-    const rides = await storage.getRides(filters);
+    const rides = await getRides(filters);
     
     // Aplicar paginação
     const startIndex = (Number(page) - 1) * Number(limit);
@@ -81,7 +84,7 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const ride = await storage.getRide(id);
+    const ride = await getRide(id);
 
     if (!ride) {
       return res.status(404).json({
@@ -116,8 +119,7 @@ router.post("/", verifyFirebaseToken, async (req, res) => {
     // Validar dados com Zod
     const createRideSchema = insertRideSchema.omit({
       id: true,
-      createdAt: true,
-      updatedAt: true
+      createdAt: true
     });
 
     const validatedData = createRideSchema.parse({
@@ -127,7 +129,7 @@ router.post("/", verifyFirebaseToken, async (req, res) => {
       returnDate: req.body.returnDate ? new Date(req.body.returnDate) : undefined
     });
 
-    const newRide = await storage.createRide(validatedData);
+    const newRide = await createRide(validatedData);
 
     res.status(201).json({
       success: true,
@@ -164,7 +166,7 @@ router.put("/:id", verifyFirebaseToken, async (req, res) => {
     }
 
     // Verificar se a viagem existe e pertence ao usuário
-    const existingRide = await storage.getRide(id);
+    const existingRide = await getRide(id);
     if (!existingRide) {
       return res.status(404).json({
         success: false,
@@ -185,7 +187,7 @@ router.put("/:id", verifyFirebaseToken, async (req, res) => {
       returnDate: req.body.returnDate ? new Date(req.body.returnDate) : undefined
     };
 
-    const updatedRide = await storage.updateRide(id, updateData);
+    const updatedRide = await updateRide(id, updateData);
 
     res.json({
       success: true,
@@ -214,7 +216,7 @@ router.delete("/:id", verifyFirebaseToken, async (req, res) => {
     }
 
     // Verificar se a viagem existe e pertence ao usuário
-    const existingRide = await storage.getRide(id);
+    const existingRide = await getRide(id);
     if (!existingRide) {
       return res.status(404).json({
         success: false,
@@ -229,7 +231,7 @@ router.delete("/:id", verifyFirebaseToken, async (req, res) => {
       });
     }
 
-    const deleted = await storage.deleteRide(id);
+    const deleted = await deleteRide(id);
     
     if (!deleted) {
       return res.status(500).json({
@@ -259,16 +261,16 @@ router.get("/driver/:driverId", async (req, res) => {
 
     let filters: any = {};
     
-    const rides = await storage.getRides(filters);
+    const rides = await getRides(filters);
     
     // Filtrar por motorista
-    let driverRides = rides.filter(ride => ride.driverId === driverId);
+    let driverRides = rides.filter((ride: Ride) => ride.driverId === driverId);
     
     // Filtrar por status se fornecido
     if (status === 'active') {
-      driverRides = driverRides.filter(ride => ride.isActive);
+      driverRides = driverRides.filter((ride: Ride) => ride.status === 'active');
     } else if (status === 'inactive') {
-      driverRides = driverRides.filter(ride => !ride.isActive);
+      driverRides = driverRides.filter((ride: Ride) => ride.status !== 'active');
     }
 
     res.json({
@@ -303,12 +305,12 @@ router.get("/search", async (req, res) => {
     if (destination) filters.toAddress = destination;
     if (type) filters.type = type;
     
-    let rides = await storage.getRides(filters);
+    let rides = await getRides(filters);
     
     // Filtros adicionais
     if (date) {
       const searchDate = new Date(date as string);
-      rides = rides.filter(ride => {
+      rides = rides.filter((ride: Ride) => {
         if (!ride.departureDate) return true;
         const rideDate = new Date(ride.departureDate);
         return rideDate.toDateString() === searchDate.toDateString();
@@ -323,14 +325,14 @@ router.get("/search", async (req, res) => {
     }
     
     if (maxPrice) {
-      rides = rides.filter(ride => 
-        Number(ride.price) <= Number(maxPrice)
+      rides = rides.filter((ride: Ride) => 
+        Number(ride.pricePerSeat) <= Number(maxPrice)
       );
     }
 
     // Ordenação
     if (sortBy === 'price') {
-      rides = rides.sort((a, b) => Number(a.price) - Number(b.price));
+      rides = rides.sort((a: Ride, b: Ride) => Number(a.pricePerSeat) - Number(b.pricePerSeat));
     } else if (sortBy === 'departureDate') {
       rides = rides.sort((a, b) => {
         if (!a.departureDate || !b.departureDate) return 0;

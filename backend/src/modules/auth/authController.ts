@@ -1,54 +1,8 @@
 import { Router, Request, Response, NextFunction } from "express";
-import { storage } from "../../shared/storage";
+import { authStorage } from "../../shared/authStorage";
+import { type AuthenticatedRequest, verifyFirebaseToken } from "../../shared/firebaseAuth";
 
 const router = Router();
-
-// Middleware temporário de autenticação (substituir com Firebase em produção)
-interface AuthenticatedRequest extends Request {
-  user?: {
-    claims?: {
-      sub?: string;
-      email?: string;
-    };
-    displayName?: string;
-  };
-}
-
-const verifyFirebaseToken = async (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers.authorization;
-  
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: "Token não fornecido" });
-  }
-  
-  const token = authHeader.split(' ')[1];
-  
-  try {
-    // TODO: Implementar verificação real do Firebase Admin SDK
-    // Por agora, simular com dados básicos extraídos do token
-    console.log('🔐 Verificando token Firebase:', token.substring(0, 20) + '...');
-    
-    // Simular dados de usuário baseados no token (desenvolvimento)
-    const mockPayload = {
-      sub: `firebase-${Date.now()}`,
-      email: req.body.email || "user@linkamz.com",
-      name: req.body.displayName || "Usuário Link-A"
-    };
-    
-    (req as AuthenticatedRequest).user = {
-      claims: {
-        sub: mockPayload.sub,
-        email: mockPayload.email
-      },
-      displayName: mockPayload.name
-    };
-    
-    next();
-  } catch (error) {
-    console.error('Erro ao verificar token:', error);
-    return res.status(401).json({ message: "Token inválido" });
-  }
-};
 
 // Obter dados do usuário autenticado
 router.get('/user', verifyFirebaseToken, async (req, res) => {
@@ -62,17 +16,16 @@ router.get('/user', verifyFirebaseToken, async (req, res) => {
     }
 
     // Verificar se usuário existe na base de dados
-    let user = await storage.getUser(userId);
+    let user = await authStorage.getUser(userId);
     
     if (!user) {
       // Criar usuário automaticamente se não existir
-      user = await storage.upsertUser({
+      user = await authStorage.upsertUser({
         id: userId,
         email: userEmail || null,
         firstName: authReq.user?.displayName?.split(' ')[0] || null,
         lastName: authReq.user?.displayName?.split(' ').slice(1).join(' ') || null,
-        profileImageUrl: null,
-        userType: 'user'
+        profileImageUrl: null
       });
     }
 
@@ -140,14 +93,12 @@ router.post('/setup-user-roles', verifyFirebaseToken, async (req, res) => {
     }
 
     // Criar/atualizar usuário com dados do Firebase
-    let user = await storage.upsertUser({
+    let user = await authStorage.upsertUser({
       id: userId,
       email: email,
       firstName: displayName?.split(' ')[0] || null,
       lastName: displayName?.split(' ').slice(1).join(' ') || null,
-      profileImageUrl: photoURL || null,
-      userType: roles[0], // Usar o primeiro role como userType principal
-      registrationCompleted: true
+      profileImageUrl: photoURL || null
     });
     
     res.json({ 

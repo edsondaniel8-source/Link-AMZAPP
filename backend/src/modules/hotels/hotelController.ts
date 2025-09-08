@@ -1,32 +1,31 @@
 import { Router, Request, Response, NextFunction } from "express";
-import { storage, insertAccommodationSchema } from "../../shared/storage";
+import { db } from "../../../db";
+import { accommodations, type Accommodation, insertAccommodationSchema } from "../../../shared/schema";
+import { authStorage } from "../../shared/authStorage";
+import { type AuthenticatedRequest, verifyFirebaseToken } from "../../shared/firebaseAuth";
 import { z } from "zod";
+import { eq } from "drizzle-orm";
 
 const router = Router();
 
-// Middleware de autenticação temporário
-interface AuthenticatedRequest extends Request {
-  user?: {
-    claims?: {
-      sub?: string;
-      email?: string;
-    };
-  };
-}
+// Helper functions for database queries
+const getAccommodations = async (filters: any = {}): Promise<Accommodation[]> => {
+  return await db.select().from(accommodations);
+};
 
-const verifyFirebaseToken = async (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers.authorization;
-  
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: "Token não fornecido" });
-  }
-  
-  // Mock validation - replace with real Firebase verification
-  (req as AuthenticatedRequest).user = {
-    claims: { sub: `firebase-${Date.now()}`, email: "test@linkamz.com" }
-  };
-  
-  next();
+const getAccommodation = async (id: string): Promise<Accommodation | undefined> => {
+  const [accommodation] = await db.select().from(accommodations).where(eq(accommodations.id, id));
+  return accommodation;
+};
+
+const createAccommodation = async (data: any): Promise<Accommodation> => {
+  const [accommodation] = await db.insert(accommodations).values(data).returning();
+  return accommodation;
+};
+
+const updateAccommodation = async (id: string, data: any): Promise<Accommodation | null> => {
+  const [accommodation] = await db.update(accommodations).set(data).where(eq(accommodations.id, id)).returning();
+  return accommodation || null;
 };
 
 // GET /api/hotels - Lista todas as acomodações com filtros
@@ -51,15 +50,15 @@ router.get("/", async (req, res) => {
     if (minPrice) filters.minPrice = minPrice;
     if (maxPrice) filters.maxPrice = maxPrice;
 
-    let accommodations = await storage.getAccommodations(filters);
+    let accommodations = await getAccommodations(filters);
     
     // Ordenação personalizada
     if (sortBy === 'price_asc') {
-      accommodations = accommodations.sort((a, b) => Number(a.pricePerNight) - Number(b.pricePerNight));
+      accommodations = accommodations.sort((a: Accommodation, b: Accommodation) => Number(a.pricePerNight) - Number(b.pricePerNight));
     } else if (sortBy === 'price_desc') {
-      accommodations = accommodations.sort((a, b) => Number(b.pricePerNight) - Number(a.pricePerNight));
+      accommodations = accommodations.sort((a: Accommodation, b: Accommodation) => Number(b.pricePerNight) - Number(a.pricePerNight));
     } else if (sortBy === 'rating') {
-      accommodations = accommodations.sort((a, b) => Number(b.rating || 0) - Number(a.rating || 0));
+      accommodations = accommodations.sort((a: Accommodation, b: Accommodation) => Number(b.rating || 0) - Number(a.rating || 0));
     }
     
     // Aplicar paginação
@@ -90,7 +89,7 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const accommodation = await storage.getAccommodation(id);
+    const accommodation = await getAccommodation(id);
 
     if (!accommodation) {
       return res.status(404).json({
@@ -132,7 +131,7 @@ router.post("/", verifyFirebaseToken, async (req, res) => {
       hostId: userId
     });
 
-    const newAccommodation = await storage.createAccommodation(validatedData);
+    const newAccommodation = await createAccommodation(validatedData);
 
     res.status(201).json({
       success: true,
@@ -169,7 +168,7 @@ router.put("/:id", verifyFirebaseToken, async (req, res) => {
     }
 
     // Verificar se a acomodação existe e pertence ao usuário
-    const existingAccommodation = await storage.getAccommodation(id);
+    const existingAccommodation = await getAccommodation(id);
     if (!existingAccommodation) {
       return res.status(404).json({
         success: false,
@@ -184,7 +183,7 @@ router.put("/:id", verifyFirebaseToken, async (req, res) => {
       });
     }
 
-    const updatedAccommodation = await storage.updateAccommodation(id, req.body);
+    const updatedAccommodation = await updateAccommodation(id, req.body);
 
     res.json({
       success: true,
@@ -293,7 +292,8 @@ router.get('/reservations', verifyFirebaseToken, async (req, res) => {
       return res.status(401).json({ message: "User ID not found" });
     }
 
-    const reservations = await storage.getProviderBookings(hotelId);
+    // TODO: Implement getProviderBookings function
+    const reservations: any[] = []; // await getProviderBookings(hotelId);
 
     res.json({
       success: true,
@@ -316,7 +316,8 @@ router.post('/checkin/:reservationId', verifyFirebaseToken, async (req, res) => 
       return res.status(401).json({ message: "User ID not found" });
     }
 
-    const reservation = await storage.updateBookingStatus(reservationId, 'in_progress');
+    // TODO: Implement updateBookingStatus function
+    const reservation = null; // await updateBookingStatus(reservationId, 'in_progress');
 
     res.json({
       success: true,
