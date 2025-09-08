@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from "express";
-import { storage, insertUserSchema } from "../../shared/storage";
+import { storage } from "../../../storage";
+import { insertUserSchema } from "../../shared/storage";
 import { verifyFirebaseToken, type AuthenticatedRequest } from "../../shared/firebaseAuth";
 import { z } from "zod";
 
@@ -18,11 +19,11 @@ router.get("/profile", verifyFirebaseToken, async (req, res) => {
     }
 
     // Verificar se usuário existe na base de dados
-    let user = await storage.getUser(userId);
+    let user = await storage.auth.getUser(userId);
     
     if (!user) {
       // Criar usuário automaticamente se não existir
-      user = await storage.upsertUser({
+      user = await storage.auth.upsertUser({
         id: userId,
         email: userEmail || null,
         firstName: null,
@@ -79,7 +80,7 @@ router.put("/profile", verifyFirebaseToken, async (req, res) => {
     if (documentNumber) updateData.documentNumber = documentNumber;
     if (identityDocumentType) updateData.identityDocumentType = identityDocumentType;
 
-    const updatedUser = await storage.upsertUser(updateData);
+    const updatedUser = await storage.auth.upsertUser(updateData);
 
     res.json({
       success: true,
@@ -284,7 +285,7 @@ router.post("/verification", verifyFirebaseToken, async (req, res) => {
       updatedAt: new Date()
     };
 
-    const updatedUser = await storage.upsertUser(updateData);
+    const updatedUser = await storage.auth.upsertUser(updateData);
 
     res.json({
       success: true,

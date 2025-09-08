@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from "express";
-import { storage, insertBookingSchema } from "../../shared/storage";
+import { storage } from "../../../storage";
+import { insertBookingSchema } from "../../shared/storage";
 import { z } from "zod";
 
 const router = Router();
@@ -46,7 +47,7 @@ router.get("/", verifyFirebaseToken, async (req, res) => {
       limit = 20 
     } = req.query;
 
-    let bookings = await storage.getUserBookings(userId);
+    let bookings = await storage.booking.getUserBookings(userId);
     
     // Aplicar filtros
     if (type) {
@@ -92,7 +93,7 @@ router.get("/:id", verifyFirebaseToken, async (req, res) => {
       return res.status(401).json({ message: "Usuário não autenticado" });
     }
 
-    const booking = await storage.getBooking(id);
+    const booking = await storage.booking.getBooking(id);
 
     if (!booking) {
       return res.status(404).json({
@@ -209,7 +210,7 @@ router.post("/", verifyFirebaseToken, async (req, res) => {
       validatedData.providerId = event.organizerId;
     }
 
-    const newBooking = await storage.createBooking(validatedData);
+    const newBooking = await storage.booking.createBooking(validatedData);
 
     res.status(201).json({
       success: true,
@@ -246,7 +247,7 @@ router.put("/:id/status", verifyFirebaseToken, async (req, res) => {
       return res.status(401).json({ message: "Usuário não autenticado" });
     }
 
-    const booking = await storage.getBooking(id);
+    const booking = await storage.booking.getBooking(id);
     if (!booking) {
       return res.status(404).json({
         success: false,
@@ -303,7 +304,7 @@ router.put("/:id/cancel", verifyFirebaseToken, async (req, res) => {
       return res.status(401).json({ message: "Usuário não autenticado" });
     }
 
-    const booking = await storage.getBooking(id);
+    const booking = await storage.booking.getBooking(id);
     if (!booking) {
       return res.status(404).json({
         success: false,
