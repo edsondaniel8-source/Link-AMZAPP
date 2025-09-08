@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { verifyFirebaseToken, type AuthenticatedRequest } from "../../shared/firebaseAuth";
-import { storage } from "../../shared/storage";
+import { storage } from "../../../storage";
 
 const router = Router();
 
@@ -16,7 +16,7 @@ router.get('/rides/search', async (req, res) => {
     }
 
     // Buscar viagens disponíveis
-    const rides = await storage.searchRides(from as string, to as string);
+    const rides = await storage.ride.searchRides({ from: from as string, to: to as string });
 
     res.json({
       success: true,

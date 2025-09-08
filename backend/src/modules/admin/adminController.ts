@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { verifyFirebaseToken, type AuthenticatedRequest } from "../../shared/firebaseAuth";
-import { storage } from "../../shared/storage";
+import { storage } from "../../../storage";
 import { db } from "../../../db";
 import { users, rides, accommodations, bookings, transactions } from "../../../shared/schema";
 import { sql, eq, count, sum, desc, and, gte, like, or } from "drizzle-orm";
@@ -32,7 +32,7 @@ router.get('/dashboard', verifyFirebaseToken, async (req, res) => {
     }
 
     // Verificar se é admin
-    const user = await storage.getUser(userId);
+    const user = await storage.auth.getUser(userId);
     if (!user || user.userType !== 'admin') {
       return res.status(403).json({ message: "Acesso negado" });
     }

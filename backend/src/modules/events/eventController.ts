@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from "express";
-import { storage, insertEventSchema } from "../../shared/storage";
+import { storage } from "../../../storage";
+import { insertEventSchema } from "../../shared/storage";
 import { z } from "zod";
 
 const router = Router();
@@ -52,7 +53,7 @@ router.get("/", async (req, res) => {
     if (isPublic !== undefined) filters.isPublic = isPublic === 'true';
     if (startDate) filters.startDate = new Date(startDate as string);
 
-    let events = await storage.getEvents(filters);
+    let events = await storage.event.getEventsByFilter(filters);
     
     // Filtros adicionais
     if (location) {

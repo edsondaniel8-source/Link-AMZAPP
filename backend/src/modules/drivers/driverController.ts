@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { verifyFirebaseToken, type AuthenticatedRequest } from "../../shared/firebaseAuth";
-import { storage } from "../../shared/storage";
+import { storage } from "../../../storage";
 
 const router = Router();
 
