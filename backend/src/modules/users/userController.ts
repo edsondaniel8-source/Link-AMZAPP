@@ -127,7 +127,7 @@ router.put("/roles", verifyFirebaseToken, async (req, res) => {
       });
     }
 
-    const updatedUser = await storage.updateUserRoles(userId, roles);
+    const updatedUser = await storage.auth.updateUserRoles(userId, roles);
 
     res.json({
       success: true,
@@ -148,7 +148,7 @@ router.put("/roles", verifyFirebaseToken, async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const user = await storage.getUser(id);
+    const user = await storage.auth.getUser(id);
 
     if (!user) {
       return res.status(404).json({
@@ -198,12 +198,12 @@ router.get("/", async (req, res) => {
     let users = [];
 
     if (search) {
-      users = await storage.searchUsers(search as string);
+      users = await storage.auth.searchUsers(search as string);
     } else if (userType) {
-      users = await storage.getUsersByType(userType as string);
+      users = await storage.auth.getUsersByType(userType as string);
     } else {
       // Limitar busca geral para evitar sobrecarga
-      users = await storage.getUsersByType('driver'); // Default para motoristas
+      users = await storage.auth.getUsersByType('driver'); // Default para motoristas
     }
 
     // Filtros adicionais
@@ -311,7 +311,7 @@ router.get("/dashboard/stats", verifyFirebaseToken, async (req, res) => {
       return res.status(401).json({ message: "Token inválido" });
     }
 
-    const user = await storage.getUser(userId);
+    const user = await storage.auth.getUser(userId);
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -320,7 +320,7 @@ router.get("/dashboard/stats", verifyFirebaseToken, async (req, res) => {
     }
 
     // Buscar estatísticas básicas
-    const userBookings = await storage.getUserBookings(userId);
+    const userBookings = await storage.auth.getUserBookings(userId);
     const providerBookings = await storage.getProviderBookings(userId);
 
     const stats = {
