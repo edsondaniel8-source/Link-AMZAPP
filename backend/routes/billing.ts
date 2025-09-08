@@ -165,6 +165,94 @@ router.get('/financial-report', async (req, res) => {
 });
 
 /**
+ * POST /api/billing/create-ride-fee
+ * Cria fee para motorista após viagem concluída
+ */
+router.post('/create-ride-fee', async (req: any, res: any) => {
+  try {
+    const { fromLat, fromLng, toLat, toLng, driverId, clientId, pricePerKm = 15 } = req.body;
+
+    if (!fromLat || !fromLng || !toLat || !toLng || !driverId || !clientId) {
+      return res.status(400).json({ 
+        error: 'Coordenadas, driverId e clientId são obrigatórios' 
+      });
+    }
+
+    // Calcular preço da viagem baseado na distância
+    const ridePrice = await billingService.calculateRidePrice(fromLat, fromLng, toLat, toLng);
+    
+    // Criar fee pendente para o motorista
+    await billingService.createFeeForProvider({
+      providerId: driverId,
+      type: 'ride',
+      totalAmount: ridePrice.suggestedPrice,
+      clientId
+    });
+
+    console.log(`✅ Fee criada para motorista ${driverId}: ${ridePrice.suggestedPrice} MZN`);
+
+    res.json({
+      success: true,
+      ridePrice: ridePrice.suggestedPrice,
+      distance: ridePrice.distance,
+      pricePerKm: ridePrice.pricePerKm,
+      message: 'Fee de viagem criada com sucesso'
+    });
+
+  } catch (error) {
+    console.error('❌ Erro ao criar fee de viagem:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+/**
+ * POST /api/billing/create-hotel-fee
+ * Cria fee para hotel após reserva confirmada
+ */
+router.post('/create-hotel-fee', async (req: any, res: any) => {
+  try {
+    const { nights, pricePerNight, hotelId, clientId } = req.body;
+
+    if (!nights || !pricePerNight || !hotelId || !clientId) {
+      return res.status(400).json({ 
+        error: 'Noites, preço por noite, hotelId e clientId são obrigatórios' 
+      });
+    }
+
+    if (nights < 1 || pricePerNight <= 0) {
+      return res.status(400).json({ 
+        error: 'Número de noites deve ser >= 1 e preço deve ser > 0' 
+      });
+    }
+
+    // Calcular preço total da estadia
+    const totalPrice = nights * pricePerNight;
+    
+    // Criar fee pendente para o hotel
+    await billingService.createFeeForProvider({
+      providerId: hotelId,
+      type: 'hotel',
+      totalAmount: totalPrice,
+      clientId
+    });
+
+    console.log(`✅ Fee criada para hotel ${hotelId}: ${totalPrice} MZN (${nights} noites)`);
+
+    res.json({
+      success: true,
+      bookingPrice: totalPrice,
+      nights,
+      pricePerNight,
+      message: 'Fee de hotel criada com sucesso'
+    });
+
+  } catch (error) {
+    console.error('❌ Erro ao criar fee de hotel:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+/**
  * POST /api/billing/create-billing
  * Cria facturação para uma reserva confirmada
  */

@@ -224,6 +224,34 @@ export class BillingService {
   }
 
   /**
+   * 🆕 HELPER: Cria fee para prestador após serviço realizado
+   * Cliente paga diretamente ao prestador, prestador deve pagar fee à plataforma
+   */
+  async createFeeForProvider(data: {
+    providerId: string;
+    type: 'ride' | 'hotel' | 'event';
+    totalAmount: number;
+    clientId: string;
+  }): Promise<void> {
+    const feePercentage = await this.getPlatformFeePercentage();
+    const feeAmount = (data.totalAmount * feePercentage) / 100;
+
+    // Criar transação da fee pendente
+    await db.insert(transactions).values({
+      bookingId: `${data.type}_${Date.now()}`,
+      userId: data.clientId,
+      providerUserId: data.providerId,
+      type: 'platform_fee',
+      amount: feeAmount,
+      currency: 'MZN',
+      status: 'pending',
+      description: `Fee pendente - ${data.type} (${feePercentage}% de ${data.totalAmount} MZN)`
+    });
+
+    console.log(`✅ Fee criada: ${data.providerId} deve ${feeAmount} MZN à plataforma`);
+  }
+
+  /**
    * Configura preços automáticos baseados na distância
    */
   async setAutomaticPricing(enable: boolean, basePrice: number, pricePerKm: number): Promise<void> {
