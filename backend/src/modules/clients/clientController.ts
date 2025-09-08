@@ -16,7 +16,7 @@ router.get('/rides/search', async (req, res) => {
     }
 
     // Buscar viagens disponíveis
-    const rides = await storage.ride.searchRides({ from: from as string, to: to as string });
+    const rides = await storage.ride.searchRides({ fromLocation: from as string, toLocation: to as string });
 
     res.json({
       success: true,
@@ -51,14 +51,10 @@ router.post('/rides/request', verifyFirebaseToken, async (req, res) => {
 
     // Criar solicitação de viagem
     const bookingData = {
-      userId,
-      type: 'ride',
+      passengerId: userId,
       rideId,
-      status: 'pending_approval',
-      passengers: passengers || 1,
-      originalPrice: "250.00", // Buscar preço real da viagem
-      totalPrice: "250.00",
-      paymentMethod: req.body.paymentMethod || "pending"
+      seatsBooked: passengers || 1,
+      totalPrice: 250.00
     };
 
     const booking = await storage.booking.createBooking(bookingData);

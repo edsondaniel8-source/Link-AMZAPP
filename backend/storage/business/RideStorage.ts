@@ -381,10 +381,10 @@ export class DatabaseRideStorage implements IRideStorage {
       let conditions: any[] = [];
 
       if (dateRange) {
-        baseQuery = baseQuery.where(and(
+        conditions.push(
           gte(rides.createdAt, dateRange.from),
           lte(rides.createdAt, dateRange.to)
-        ));
+        );
       }
 
       const [totalRides] = await db

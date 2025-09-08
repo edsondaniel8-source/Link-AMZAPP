@@ -58,18 +58,17 @@ router.get("/", async (req, res) => {
     // Filtros adicionais
     if (location) {
       events = events.filter(event => 
-        event.address?.toLowerCase().includes((location as string).toLowerCase()) ||
-        event.venue?.toLowerCase().includes((location as string).toLowerCase())
+        event.location?.toLowerCase().includes((location as string).toLowerCase())
       );
     }
     
     // Ordenação personalizada
     if (sortBy === 'date_asc') {
-      events = events.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+      events = events.sort((a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime());
     } else if (sortBy === 'price_asc') {
-      events = events.sort((a, b) => Number(a.ticketPrice || 0) - Number(b.ticketPrice || 0));
+      events = events.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
     } else if (sortBy === 'popular') {
-      events = events.sort((a, b) => (b.ticketsSold || 0) - (a.ticketsSold || 0));
+      events = events.sort((a, b) => (b.currentAttendees || 0) - (a.currentAttendees || 0));
     }
     
     // Aplicar paginação

@@ -72,9 +72,9 @@ router.get('/dashboard', verifyFirebaseToken, async (req, res) => {
       // Total de reservas
       db.select({ count: count() }).from(bookings),
       
-      // Receita total (simulada - precisa da tabela transactions)
+      // Receita total (simulada - usando pricePerSeat da tabela rides)
       db.select({ 
-        total: sql<number>`COALESCE(SUM(CAST(${rides.price} AS DECIMAL)), 0)`
+        total: sql<number>`COALESCE(SUM(CAST(${rides.pricePerSeat} AS DECIMAL)), 0)`
       }).from(rides),
       
       // Usuários recentes
@@ -449,10 +449,10 @@ router.get('/analytics', verifyFirebaseToken, async (req, res) => {
       
       // Receita total e crescimento
       db.select({ 
-        total: sql<number>`COALESCE(SUM(CAST(${rides.price} AS DECIMAL)), 0)`
+        total: sql<number>`COALESCE(SUM(CAST(${rides.pricePerSeat} AS DECIMAL)), 0)`
       }).from(rides),
       db.select({ 
-        total: sql<number>`COALESCE(SUM(CAST(${rides.price} AS DECIMAL)), 0)`
+        total: sql<number>`COALESCE(SUM(CAST(${rides.pricePerSeat} AS DECIMAL)), 0)`
       }).from(rides).where(gte(rides.createdAt, lastMonth)),
       
       // Estatísticas por setor
