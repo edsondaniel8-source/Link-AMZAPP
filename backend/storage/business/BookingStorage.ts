@@ -2,12 +2,13 @@ import { eq, and, or, gte, lte, desc, sql } from 'drizzle-orm';
 import { db } from '../../db';
 import { bookings, users, rides } from '../../shared/schema';
 import { 
-  BookingStatus,
   BookingStats,
   PaymentData,
   Payment,
   DateRange 
 } from '../types';
+// Import from shared types
+import { BookingStatus } from '../../src/shared/types';
 
 // Simplified Booking interface matching actual schema
 export interface Booking {
@@ -25,9 +26,13 @@ export interface Booking {
 
 export interface CreateBookingData {
   rideId?: string;
+  accommodationId?: string;
+  eventId?: string;
   passengerId: string;
   seatsBooked: number;
   totalPrice: number;
+  type?: string;
+  providerId?: string;
 }
 
 export interface IBookingStorage {
@@ -208,8 +213,8 @@ export class DatabaseBookingStorage implements IBookingStorage {
       const payment: Payment = {
         id: `pay_${Date.now()}`,
         bookingId,
-        amount: paymentData.amount.toString(),
-        currency: paymentData.currency,
+        amount: paymentData.amount,
+        currency: paymentData.currency || 'USD',
         status: 'completed',
         method: paymentData.method,
         createdAt: new Date(),

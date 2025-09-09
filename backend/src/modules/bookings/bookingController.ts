@@ -111,24 +111,21 @@ router.post("/", verifyFirebaseToken, async (req, res) => {
       return res.status(401).json({ message: "Usuário não autenticado" });
     }
 
-    // Validar dados com Zod
-    const createBookingSchema = insertBookingSchema.omit({
-      id: true,
-      createdAt: true,
-      updatedAt: true
-    });
-
-    const validatedData = createBookingSchema.parse({
+    // Preparar dados de reserva
+    const bookingData = {
       ...req.body,
       userId,
+      passengerId: userId,
       checkInDate: req.body.checkInDate ? new Date(req.body.checkInDate) : undefined,
       checkOutDate: req.body.checkOutDate ? new Date(req.body.checkOutDate) : undefined,
-      pickupTime: req.body.pickupTime ? new Date(req.body.pickupTime) : undefined
-    });
+      pickupTime: req.body.pickupTime ? new Date(req.body.pickupTime) : undefined,
+      seatsBooked: req.body.seatsBooked || 1,
+      totalPrice: parseFloat(req.body.totalPrice) || 0
+    };
 
     // Verificar se o serviço está disponível
-    if (validatedData.type === 'ride' && validatedData.rideId) {
-      const ride = await storage.ride.getRide(validatedData.rideId);
+    if (bookingData.type === 'ride' && bookingData.rideId) {
+      const ride = await storage.ride.getRide(bookingData.rideId);
       if (!ride) {
         return res.status(404).json({
           success: false,
@@ -144,11 +141,11 @@ router.post("/", verifyFirebaseToken, async (req, res) => {
         });
       }
       
-      validatedData.providerId = ride.driverId;
+      bookingData.providerId = ride.driverId;
     }
 
-    if (validatedData.type === 'stay' && validatedData.accommodationId) {
-      const accommodation = await storage.accommodation.getAccommodation(validatedData.accommodationId);
+    if (bookingData.type === 'stay' && bookingData.accommodationId) {
+      const accommodation = await storage.accommodation.getAccommodation(bookingData.accommodationId);
       if (!accommodation) {
         return res.status(404).json({
           success: false,
@@ -163,11 +160,11 @@ router.post("/", verifyFirebaseToken, async (req, res) => {
         });
       }
       
-      validatedData.providerId = accommodation.hostId;
+      bookingData.providerId = accommodation.hostId;
     }
 
-    if (validatedData.type === 'event' && validatedData.eventId) {
-      const event = await storage.event.getEvent(validatedData.eventId);
+    if (bookingData.type === 'event' && bookingData.eventId) {
+      const event = await storage.event.getEvent(bookingData.eventId);
       if (!event) {
         return res.status(404).json({
           success: false,
@@ -185,10 +182,10 @@ router.post("/", verifyFirebaseToken, async (req, res) => {
         });
       }
       
-      validatedData.providerId = event.organizerId;
+      bookingData.providerId = event.organizerId;
     }
 
-    const newBooking = await storage.booking.createBooking(validatedData);
+    const newBooking = await storage.booking.createBooking(bookingData);
 
     res.status(201).json({
       success: true,
