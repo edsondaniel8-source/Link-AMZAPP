@@ -20,7 +20,9 @@ export interface Event {
   lng?: string;
   price: string;
   maxAttendees?: number;
+  maxTickets?: number; // Total tickets available
   currentAttendees: number;
+  ticketsSold?: number; // Tickets sold so far
   category: string;
   tags: string[];
   images: string[];

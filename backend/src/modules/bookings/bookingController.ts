@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from "express";
 import { storage } from "../../../storage";
 import { z } from "zod";
 import { createApiResponse, createApiError } from "../../shared/firebaseAuth";
+import { insertBookingSchema } from "../../../shared/schema";
 
 const router = Router();
 

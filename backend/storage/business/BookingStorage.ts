@@ -13,10 +13,13 @@ import {
 export interface Booking {
   id: string;
   rideId: string | null;
+  accommodationId?: string | null;
+  eventId?: string | null;
   passengerId: string | null;
   seatsBooked: number;
   totalPrice: string;
   status: string | null;
+  type?: string; // 'ride', 'accommodation', 'event'
   createdAt: Date | null;
 }
 
