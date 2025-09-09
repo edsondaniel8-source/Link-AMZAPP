@@ -3,7 +3,6 @@ import { Request, Response, NextFunction } from "express";
 
 // Type-safe Firebase Admin Auth methods
 export const firebaseAuth = admin.auth();
-export const firebaseDb = admin.firestore();
 
 // Firebase configuration validation
 interface FirebaseConfig {
@@ -68,21 +67,21 @@ export interface FirebaseTokenClaims {
 // Authenticated user data attached to request
 export interface AuthenticatedUser {
   uid: string; // Firebase UID - sempre presente
-  email: string | null; // Email pode ser null para alguns providers
+  email?: string; // Email pode ser undefined para alguns providers
   emailVerified: boolean;
-  displayName: string | null;
-  photoURL: string | null;
+  displayName?: string;
+  photoURL?: string;
   disabled: boolean;
   metadata: {
-    lastSignInTime: string | null;
-    creationTime: string | null;
+    lastSignInTime?: string;
+    creationTime?: string;
   };
-  customClaims: Record<string, any> | null;
+  customClaims?: Record<string, any>;
   providerData: Array<{
     uid: string;
-    displayName: string | null;
-    email: string | null;
-    photoURL: string | null;
+    displayName?: string;
+    email?: string;
+    photoURL?: string;
     providerId: string;
   }>;
 }
@@ -164,16 +163,16 @@ export const verifyFirebaseToken = async (
     authReq.firebaseToken = decodedToken as FirebaseTokenClaims;
     authReq.user = {
       uid: userRecord.uid,
-      email: userRecord.email || null,
+      email: userRecord.email,
       emailVerified: userRecord.emailVerified,
-      displayName: userRecord.displayName || null,
-      photoURL: userRecord.photoURL || null,
+      displayName: userRecord.displayName,
+      photoURL: userRecord.photoURL,
       disabled: userRecord.disabled,
       metadata: {
-        lastSignInTime: userRecord.metadata.lastSignInTime || null,
-        creationTime: userRecord.metadata.creationTime || null,
+        lastSignInTime: userRecord.metadata.lastSignInTime,
+        creationTime: userRecord.metadata.creationTime,
       },
-      customClaims: userRecord.customClaims || null,
+      customClaims: userRecord.customClaims,
       providerData: userRecord.providerData,
     };
     

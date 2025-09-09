@@ -1,24 +1,28 @@
 // Storage Types and Interfaces for Link-A Platform
+// DEPRECATED: Use ../src/shared/types.ts for new types
 import { z } from 'zod';
+import { 
+  UserRole, 
+  VerificationStatus, 
+  BookingStatus, 
+  BookingType, 
+  ServiceType, 
+  DocumentType,
+  PaymentMethod, 
+  PaymentStatus, 
+  MessageType, 
+  NotificationType 
+} from '../src/shared/types';
 
-// ===== ENUMS =====
-export type UserRole = 'client' | 'driver' | 'hotel_manager' | 'admin';
-export type VerificationStatus = 'pending' | 'in_review' | 'verified' | 'rejected';
-export type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'in_progress';
-export type BookingType = 'ride' | 'accommodation' | 'event';
-export type ServiceType = 'ride' | 'stay' | 'event';
-export type DocumentType = 'identity' | 'profile_photo' | 'vehicle_registration' | 'driving_license' | 'vehicle_insurance';
+// Legacy types for backward compatibility
 export type VehicleDocType = 'registration' | 'license' | 'insurance';
-export type PaymentMethod = 'card' | 'mobile_money' | 'bank_transfer';
-export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded';
-export type MessageType = 'text' | 'image' | 'file' | 'system';
-export type NotificationType = 'booking' | 'message' | 'payment' | 'verification' | 'system';
 
 // ===== BASE INTERFACES =====
+// DEPRECATED: Use ../src/shared/types.ts BaseEntity
 export interface BaseEntity {
   id: string;
   createdAt: Date;
-  updatedAt?: Date;
+  updatedAt?: Date | null;
 }
 
 export interface TimePeriod {
@@ -49,31 +53,34 @@ export interface SearchFilters {
 }
 
 // ===== USER & AUTH INTERFACES =====
+// DEPRECATED: Use ../src/shared/types.ts UserProfile
 export interface User extends BaseEntity {
-  email?: string;
-  firstName?: string;
-  lastName?: string;
-  fullName?: string;
-  phone?: string;
-  profileImageUrl?: string;
-  userType: string;
-  roles: string[];
+  email: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  fullName: string | null;
+  phone: string | null;
+  profileImageUrl: string | null;
+  userType: UserRole;
+  roles: UserRole[];
   canOfferServices: boolean;
-  avatar?: string;
-  rating: string;
+  avatar: string | null;
+  rating: number; // Changed from string to number
   totalReviews: number;
   isVerified: boolean;
-  verificationStatus: string;
-  verificationDate?: Date;
-  verificationNotes?: string;
-  identityDocumentUrl?: string;
-  identityDocumentType?: string;
-  profilePhotoUrl?: string;
-  documentNumber?: string;
-  dateOfBirth?: Date;
+  verificationStatus: VerificationStatus;
+  verificationDate: Date | null;
+  verificationNotes: string | null;
+  identityDocumentUrl: string | null;
+  identityDocumentType: string | null;
+  profilePhotoUrl: string | null;
+  documentNumber: string | null;
+  dateOfBirth: Date | null;
   registrationCompleted: boolean;
-  verificationBadge?: string;
-  badgeEarnedDate?: Date;
+  verificationBadge: string | null;
+  badgeEarnedDate: Date | null;
+  // Added missing field for consistency
+  isBlocked?: boolean;
 }
 
 export interface CreateUserData {
@@ -294,12 +301,13 @@ export interface BookingStats {
 // ===== PAYMENT & BILLING INTERFACES =====
 export interface Payment extends BaseEntity {
   bookingId: string;
-  amount: string;
+  amount: number; // Changed from string to number for consistency
   currency: string;
   status: PaymentStatus;
   method: PaymentMethod;
-  stripePaymentIntentId?: string;
+  transactionId?: string; // Generic transaction ID instead of Stripe-specific
   gatewayResponse?: any;
+  processedAt?: Date;
 }
 
 export interface Fee extends BaseEntity {
@@ -313,8 +321,9 @@ export interface Fee extends BaseEntity {
 export interface PaymentData {
   method: PaymentMethod;
   amount: number;
-  currency: string;
+  currency?: string; // Optional with default
   description?: string;
+  details?: any; // For method-specific details like card info, mpesa number
 }
 
 export interface FeeData {
