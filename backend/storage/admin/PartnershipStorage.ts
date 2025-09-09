@@ -251,7 +251,7 @@ export class DatabasePartnershipStorage implements IPartnershipStorage {
       const driverLevelIndex = levelOrder.indexOf(driverLevel);
 
       return accommodationList.filter(accommodation => {
-        const requiredLevelIndex = levelOrder.indexOf(accommodation.minimumDriverLevel);
+        const requiredLevelIndex = levelOrder.indexOf(accommodation.minimumDriverLevel || 'bronze');
         return driverLevelIndex >= requiredLevelIndex;
       }) as Accommodation[];
     } catch (error) {
@@ -279,7 +279,7 @@ export class DatabasePartnershipStorage implements IPartnershipStorage {
           totalRides: 0,
           averageRating: '0.00',
           totalEarnings: '0.00',
-          membershipLevel: 'bronze',
+          partnershipLevel: 'bronze',
         });
         return 'bronze';
       }
@@ -340,7 +340,7 @@ export class DatabasePartnershipStorage implements IPartnershipStorage {
       // Check if driver meets minimum level requirement
       const levelOrder = ['bronze', 'silver', 'gold', 'platinum'];
       const driverLevel = user.verificationBadge || 'bronze';
-      const requiredLevelIndex = levelOrder.indexOf(accommodation.minimumDriverLevel);
+      const requiredLevelIndex = levelOrder.indexOf(accommodation.minimumDriverLevel || 'bronze');
       const driverLevelIndex = levelOrder.indexOf(driverLevel);
 
       if (driverLevelIndex < requiredLevelIndex) return 0;

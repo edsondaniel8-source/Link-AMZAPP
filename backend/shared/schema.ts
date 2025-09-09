@@ -106,9 +106,24 @@ export const ratings = pgTable("ratings", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Chat rooms table - rooms for conversations between users
+export const chatRooms = pgTable("chat_rooms", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  participantOneId: varchar("participant_one_id").references(() => users.id).notNull(),
+  participantTwoId: varchar("participant_two_id").references(() => users.id).notNull(),
+  bookingId: varchar("booking_id"), // Optional booking context
+  serviceType: text("service_type"), // 'ride', 'accommodation', 'event'
+  lastMessage: text("last_message"),
+  lastMessageAt: timestamp("last_message_at"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Chat messages table
 export const chatMessages = pgTable("chat_messages", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  chatRoomId: varchar("chat_room_id").references(() => chatRooms.id).notNull(),
   fromUserId: varchar("from_user_id").references(() => users.id),
   toUserId: varchar("to_user_id").references(() => users.id),
   message: text("message").notNull(),

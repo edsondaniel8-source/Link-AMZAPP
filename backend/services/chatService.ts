@@ -1,11 +1,10 @@
 import { Server as SocketIOServer } from 'socket.io';
 import { Server as HTTPServer } from 'http';
 import { db } from '../db';
-import { chatMessages as messages, bookings, users } from '../shared/schema';
+import { chatMessages, chatRooms, bookings, users } from '../shared/schema';
 import { eq, and, or, desc } from 'drizzle-orm';
 
-// ⚠️ TEMPORARIAMENTE DESABILITADO - FALTAM TABELAS DE chatRooms
-// import { chatRooms } from '../shared/schema';
+// Chat rooms table now available
 
 interface ChatUser {
   id: string;
@@ -92,40 +91,28 @@ export class ChatService {
             return;
           }
 
-          // ⚠️ TEMPORARIAMENTE COMENTADO - FALTA TABELA chatRooms
-          /*
           // Guardar mensagem na base de dados
           const [newMessage] = await db
-            .insert(messages)
+            .insert(chatMessages)
             .values({
               chatRoomId,
-              senderId,
+              fromUserId: senderId,
+              toUserId: await this.getOtherParticipant(chatRoomId, senderId),
               message,
               messageType,
               isRead: false
             })
             .returning();
 
-          // ⚠️ COMENTADO - FALTA TABELA chatRooms
-          /*
           // Actualizar última mensagem da sala
           await db
-            // .update(chatRooms) // ⚠️ COMENTADO - FALTA TABELA
+            .update(chatRooms)
             .set({
               lastMessage: message,
-              lastMessageAt: new Date()
+              lastMessageAt: new Date(),
+              updatedAt: new Date()
             })
-            // .where(eq(chatRooms.id, chatRoomId)) // ⚠️ COMENTADO - FALTA TABELA
-          */
-          
-          // MOCK temporário
-          const newMessage = {
-            id: Date.now().toString(),
-            senderId,
-            message,
-            messageType: messageType || 'text',
-            createdAt: new Date()
-          };
+            .where(eq(chatRooms.id, chatRoomId));
 
           // Obter dados do remetente
           const [sender] = await db
@@ -140,7 +127,12 @@ export class ChatService {
             .limit(1);
 
           const messageWithSender = {
-            ...newMessage,
+            id: newMessage.id,
+            chatRoomId: newMessage.chatRoomId,
+            senderId: newMessage.fromUserId,
+            message: newMessage.message,
+            messageType: newMessage.messageType || 'text',
+            createdAt: newMessage.createdAt,
             sender
           };
 
