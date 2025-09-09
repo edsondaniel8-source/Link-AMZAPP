@@ -116,7 +116,7 @@ router.post("/", verifyFirebaseToken, async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   
   try {
-    const userId = authReq.user?.claims?.sub;
+    const userId = authReq.user?.uid;
     if (!userId) {
       return res.status(401).json({ message: "Usuário não autenticado" });
     }
@@ -160,7 +160,7 @@ router.put("/:id", verifyFirebaseToken, async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   
   try {
-    const userId = authReq.user?.claims?.sub;
+    const userId = authReq.user?.uid;
     const { id } = req.params;
 
     if (!userId) {
@@ -203,7 +203,7 @@ router.put("/:id", verifyFirebaseToken, async (req, res) => {
 router.get('/dashboard', verifyFirebaseToken, async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   try {
-    const userId = authReq.user?.claims?.sub;
+    const userId = authReq.user?.uid;
     if (!userId) {
       return res.status(401).json({ message: "User ID not found" });
     }
@@ -287,7 +287,7 @@ router.get('/dashboard', verifyFirebaseToken, async (req, res) => {
 router.get('/reservations', verifyFirebaseToken, async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   try {
-    const hotelId = authReq.user?.claims?.sub;
+    const hotelId = authReq.user?.uid;
     if (!hotelId) {
       return res.status(401).json({ message: "User ID not found" });
     }
@@ -310,7 +310,7 @@ router.post('/checkin/:reservationId', verifyFirebaseToken, async (req, res) => 
   const authReq = req as AuthenticatedRequest;
   try {
     const { reservationId } = req.params;
-    const hotelId = authReq.user?.claims?.sub;
+    const hotelId = authReq.user?.uid;
 
     if (!hotelId) {
       return res.status(401).json({ message: "User ID not found" });
@@ -334,7 +334,7 @@ router.post('/checkin/:reservationId', verifyFirebaseToken, async (req, res) => 
 router.get('/rooms', verifyFirebaseToken, async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   try {
-    const hotelId = authReq.user?.claims?.sub;
+    const hotelId = authReq.user?.uid;
     if (!hotelId) {
       return res.status(401).json({ message: "User ID not found" });
     }

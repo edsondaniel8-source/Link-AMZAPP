@@ -8,7 +8,7 @@ const router = Router();
 router.get('/user', verifyFirebaseToken, async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   try {
-    const userId = authReq.user?.claims?.sub;
+    const userId = authReq.user?.uid;
     const userEmail = authReq.user?.claims?.email;
     
     if (!userId) {
@@ -82,7 +82,7 @@ router.post('/setup-user-roles', verifyFirebaseToken, async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   try {
     const { uid, email, displayName, photoURL, roles } = req.body;
-    const userId = uid || authReq.user?.claims?.sub;
+    const userId = uid || authReq.user?.uid;
     
     if (!userId) {
       return res.status(401).json({ message: "Token inválido" });

@@ -8,7 +8,7 @@ const router = Router();
 router.get('/dashboard', verifyFirebaseToken, async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   try {
-    const userId = authReq.user?.claims?.sub;
+    const userId = authReq.user?.uid;
     if (!userId) {
       return res.status(401).json({ message: "User ID not found" });
     }
@@ -70,7 +70,7 @@ router.post('/accept-ride/:requestId', verifyFirebaseToken, async (req, res) => 
   const authReq = req as AuthenticatedRequest;
   try {
     const { requestId } = req.params;
-    const driverId = authReq.user?.claims?.sub;
+    const driverId = authReq.user?.uid;
 
     if (!driverId) {
       return res.status(401).json({ message: "User ID not found" });
@@ -102,7 +102,7 @@ router.post('/reject-ride/:requestId', verifyFirebaseToken, async (req, res) => 
   try {
     const { requestId } = req.params;
     const { reason } = req.body;
-    const driverId = authReq.user?.claims?.sub;
+    const driverId = authReq.user?.uid;
 
     if (!driverId) {
       return res.status(401).json({ message: "User ID not found" });
@@ -132,7 +132,7 @@ router.post('/reject-ride/:requestId', verifyFirebaseToken, async (req, res) => 
 router.get('/rides-history', verifyFirebaseToken, async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   try {
-    const driverId = authReq.user?.claims?.sub;
+    const driverId = authReq.user?.uid;
     if (!driverId) {
       return res.status(401).json({ message: "User ID not found" });
     }
@@ -171,7 +171,7 @@ router.get('/rides-history', verifyFirebaseToken, async (req, res) => {
 router.get('/earnings', verifyFirebaseToken, async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   try {
-    const driverId = authReq.user?.claims?.sub;
+    const driverId = authReq.user?.uid;
     if (!driverId) {
       return res.status(401).json({ message: "User ID not found" });
     }

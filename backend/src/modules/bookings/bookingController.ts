@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { storage } from "../../../storage";
 import { z } from "zod";
+import { createApiResponse, createApiError } from "../../shared/firebaseAuth";
 
 const router = Router();
 
@@ -11,7 +12,7 @@ router.get("/", verifyFirebaseToken, async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   
   try {
-    const userId = authReq.user?.claims?.sub;
+    const userId = authReq.user?.uid;
     if (!userId) {
       return res.status(401).json({ message: "Usuário não autenticado" });
     }
@@ -62,7 +63,7 @@ router.get("/:id", verifyFirebaseToken, async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   
   try {
-    const userId = authReq.user?.claims?.sub;
+    const userId = authReq.user?.uid;
     const { id } = req.params;
 
     if (!userId) {
@@ -104,7 +105,7 @@ router.post("/", verifyFirebaseToken, async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   
   try {
-    const userId = authReq.user?.claims?.sub;
+    const userId = authReq.user?.uid;
     if (!userId) {
       return res.status(401).json({ message: "Usuário não autenticado" });
     }
@@ -215,7 +216,7 @@ router.put("/:id/status", verifyFirebaseToken, async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   
   try {
-    const userId = authReq.user?.claims?.sub;
+    const userId = authReq.user?.uid;
     const { id } = req.params;
     const { status, rejectionReason } = req.body;
 
@@ -275,7 +276,7 @@ router.put("/:id/cancel", verifyFirebaseToken, async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   
   try {
-    const userId = authReq.user?.claims?.sub;
+    const userId = authReq.user?.uid;
     const { id } = req.params;
 
     if (!userId) {
@@ -329,7 +330,7 @@ router.get("/provider/:providerId", verifyFirebaseToken, async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   
   try {
-    const userId = authReq.user?.claims?.sub;
+    const userId = authReq.user?.uid;
     const { providerId } = req.params;
 
     if (!userId) {
@@ -390,7 +391,7 @@ router.get("/stats", verifyFirebaseToken, async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   
   try {
-    const userId = authReq.user?.claims?.sub;
+    const userId = authReq.user?.uid;
     if (!userId) {
       return res.status(401).json({ message: "Usuário não autenticado" });
     }

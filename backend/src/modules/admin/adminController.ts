@@ -26,7 +26,7 @@ function formatTimeAgo(date: Date | null): string {
 router.get('/dashboard', verifyFirebaseToken, async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   try {
-    const userId = authReq.user?.claims?.sub;
+    const userId = authReq.user?.uid;
     if (!userId) {
       return res.status(401).json({ message: "User ID not found" });
     }
@@ -162,7 +162,7 @@ router.get('/dashboard', verifyFirebaseToken, async (req, res) => {
 router.get('/users', verifyFirebaseToken, async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   try {
-    const userId = authReq.user?.claims?.sub;
+    const userId = authReq.user?.uid;
     if (!userId) {
       return res.status(401).json({ message: "User ID not found" });
     }
@@ -281,7 +281,7 @@ router.post('/approve/:userId', verifyFirebaseToken, async (req, res) => {
   try {
     const { userId: targetUserId } = req.params;
     const { notes } = req.body;
-    const adminId = authReq.user?.claims?.sub;
+    const adminId = authReq.user?.uid;
 
     if (!adminId) {
       return res.status(401).json({ message: "User ID not found" });
@@ -345,7 +345,7 @@ router.post('/reject/:userId', verifyFirebaseToken, async (req, res) => {
   try {
     const { userId: targetUserId } = req.params;
     const { reason } = req.body;
-    const adminId = authReq.user?.claims?.sub;
+    const adminId = authReq.user?.uid;
 
     if (!adminId) {
       return res.status(401).json({ message: "User ID not found" });
@@ -405,7 +405,7 @@ router.post('/reject/:userId', verifyFirebaseToken, async (req, res) => {
 router.get('/analytics', verifyFirebaseToken, async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   try {
-    const userId = authReq.user?.claims?.sub;
+    const userId = authReq.user?.uid;
     if (!userId) {
       return res.status(401).json({ message: "User ID not found" });
     }

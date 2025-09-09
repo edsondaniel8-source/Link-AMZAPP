@@ -11,7 +11,7 @@ router.get("/profile", verifyFirebaseToken, async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   
   try {
-    const userId = authReq.user?.claims?.sub;
+    const userId = authReq.user?.uid;
     const userEmail = authReq.user?.claims?.email;
     
     if (!userId) {
@@ -52,7 +52,7 @@ router.put("/profile", verifyFirebaseToken, async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   
   try {
-    const userId = authReq.user?.claims?.sub;
+    const userId = authReq.user?.uid;
     if (!userId) {
       return res.status(401).json({ message: "Token inválido" });
     }
@@ -102,7 +102,7 @@ router.put("/roles", verifyFirebaseToken, async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   
   try {
-    const userId = authReq.user?.claims?.sub;
+    const userId = authReq.user?.uid;
     if (!userId) {
       return res.status(401).json({ message: "Token inválido" });
     }
@@ -253,7 +253,7 @@ router.post("/verification", verifyFirebaseToken, async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   
   try {
-    const userId = authReq.user?.claims?.sub;
+    const userId = authReq.user?.uid;
     if (!userId) {
       return res.status(401).json({ message: "Token inválido" });
     }
@@ -306,7 +306,7 @@ router.get("/dashboard/stats", verifyFirebaseToken, async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   
   try {
-    const userId = authReq.user?.claims?.sub;
+    const userId = authReq.user?.uid;
     if (!userId) {
       return res.status(401).json({ message: "Token inválido" });
     }

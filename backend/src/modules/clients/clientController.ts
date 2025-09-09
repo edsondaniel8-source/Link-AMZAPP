@@ -33,7 +33,7 @@ router.get('/rides/search', async (req, res) => {
 router.post('/rides/request', verifyFirebaseToken, async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   try {
-    const userId = authReq.user?.claims?.sub;
+    const userId = authReq.user?.uid;
     if (!userId) {
       return res.status(401).json({ message: "User ID not found" });
     }
@@ -74,7 +74,7 @@ router.post('/rides/request', verifyFirebaseToken, async (req, res) => {
 router.get('/bookings', verifyFirebaseToken, async (req, res) => {
   const authReq = req as AuthenticatedRequest;
   try {
-    const userId = authReq.user?.claims?.sub;
+    const userId = authReq.user?.uid;
     if (!userId) {
       return res.status(401).json({ message: "User ID not found" });
     }
@@ -96,7 +96,7 @@ router.post('/bookings/:bookingId/cancel', verifyFirebaseToken, async (req, res)
   const authReq = req as AuthenticatedRequest;
   try {
     const { bookingId } = req.params;
-    const userId = authReq.user?.claims?.sub;
+    const userId = authReq.user?.uid;
 
     if (!userId) {
       return res.status(401).json({ message: "User ID not found" });
