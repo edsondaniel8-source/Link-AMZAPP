@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { chatService } from '../services/chatService';
+import { AuthenticatedRequest } from '../shared/types';
 
 const router = Router();
 
@@ -7,7 +8,7 @@ const router = Router();
  * GET /api/chat/rooms
  * Obtém salas de chat do utilizador
  */
-router.get('/rooms', async (req, res) => {
+router.get('/rooms', async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.user?.id;
     
@@ -27,7 +28,7 @@ router.get('/rooms', async (req, res) => {
  * GET /api/chat/messages/:chatRoomId
  * Obtém mensagens de uma sala de chat
  */
-router.get('/messages/:chatRoomId', async (req, res) => {
+router.get('/messages/:chatRoomId', async (req: AuthenticatedRequest, res) => {
   try {
     const { chatRoomId } = req.params;
     const { limit = 50 } = req.query;
@@ -55,7 +56,7 @@ router.get('/messages/:chatRoomId', async (req, res) => {
  * POST /api/chat/room
  * Cria ou obtém sala de chat para uma reserva
  */
-router.post('/room', async (req, res) => {
+router.post('/room', async (req: AuthenticatedRequest, res) => {
   try {
     const { bookingId } = req.body;
     const userId = req.user?.id;
