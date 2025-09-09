@@ -214,7 +214,7 @@ export class DatabaseBookingStorage implements IBookingStorage {
         id: `pay_${Date.now()}`,
         bookingId,
         amount: paymentData.amount,
-        currency: paymentData.currency || 'USD',
+        currency: paymentData.currency || 'MZN',
         status: 'completed',
         method: paymentData.method,
         createdAt: new Date(),
