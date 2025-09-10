@@ -4,7 +4,7 @@ import { z } from "zod";
 
 const router = Router();
 
-import { verifyFirebaseToken, type AuthenticatedRequest } from "../../shared/firebaseAuth";
+import { verifyFirebaseToken, type AuthenticatedRequest } from "../../shared/types";
 
 // GET /api/events - Lista todos os eventos públicos com filtros
 router.get("/", async (req, res) => {

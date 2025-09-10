@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { verifyFirebaseToken, requireDriverRole } from '../../middleware/role-auth';
+import { AuthenticatedUser } from '../../shared/types'; // ✅ Importação adicionada
 
 const router = Router();
 
@@ -10,8 +11,12 @@ router.use(requireDriverRole);
 // GET /api/provider/rides - Listar viagens do motorista
 router.get('/', async (req, res) => {
   try {
-    const driverId = req.user?.uid;
+    const driverId = (req.user as AuthenticatedUser)?.uid; // ✅ CORRIGIDO
     const { status, page = 1, limit = 10 } = req.query;
+    
+    if (!driverId) {
+      return res.status(401).json({ error: 'Usuário não autenticado' });
+    }
     
     // Mock data - substituir por consulta real
     const rides = [
@@ -65,7 +70,7 @@ router.get('/', async (req, res) => {
 // POST /api/provider/rides - Criar nova oferta de viagem
 router.post('/', async (req, res) => {
   try {
-    const driverId = req.user?.uid;
+    const driverId = (req.user as AuthenticatedUser)?.uid; // ✅ CORRIGIDO
     const { 
       from, 
       to, 
@@ -75,6 +80,10 @@ router.post('/', async (req, res) => {
       vehicle, 
       description 
     } = req.body;
+    
+    if (!driverId) {
+      return res.status(401).json({ error: 'Usuário não autenticado' });
+    }
     
     // Validação
     if (!from || !to || !departure || !maxPassengers || !price) {
@@ -110,8 +119,12 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const driverId = req.user?.uid;
+    const driverId = (req.user as AuthenticatedUser)?.uid; // ✅ CORRIGIDO
     const updates = req.body;
+    
+    if (!driverId) {
+      return res.status(401).json({ error: 'Usuário não autenticado' });
+    }
     
     // Mock - atualizar viagem
     const updatedRide = {
@@ -132,7 +145,11 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const driverId = req.user?.uid;
+    const driverId = (req.user as AuthenticatedUser)?.uid; // ✅ CORRIGIDO
+    
+    if (!driverId) {
+      return res.status(401).json({ error: 'Usuário não autenticado' });
+    }
     
     // Mock - cancelar viagem
     res.json({

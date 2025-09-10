@@ -2,9 +2,11 @@ import { eq, and, desc, sql } from 'drizzle-orm';
 import { db } from '../../db';
 // Note: Notifications table doesn't exist in current schema, this is a placeholder implementation
 import { 
-  Notification, 
-  CreateNotificationData, 
   NotificationType 
+} from '../../src/shared/types';
+import type { 
+  Notification, 
+  CreateNotificationData 
 } from '../types';
 
 // Simplified in-memory storage until notifications table is added to schema

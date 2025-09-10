@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { db } from "./db";
 import { users, driverDocuments } from "./shared/schema";
 import multer from "multer";
+import { AuthenticatedUser } from "./shared/types"; // ✅ IMPORTAÇÃO ADICIONADA
 
 const router = Router();
 
@@ -17,7 +18,7 @@ const upload = multer({
 // Get user profile
 router.get("/profile", verifyFirebaseToken, async (req, res) => {
   try {
-    const userId = req.user?.uid;
+    const userId = (req.user as AuthenticatedUser)?.uid; // ✅ CORRIGIDO
     if (!userId) {
       return res.status(401).json({ message: "User ID not found" });
     }
@@ -59,7 +60,7 @@ router.get("/profile", verifyFirebaseToken, async (req, res) => {
 // Update user profile
 router.put("/profile", verifyFirebaseToken, upload.single('profilePhoto'), async (req, res) => {
   try {
-    const userId = req.user?.uid;
+    const userId = (req.user as AuthenticatedUser)?.uid; // ✅ CORRIGIDO
     if (!userId) {
       return res.status(401).json({ message: "User ID not found" });
     }
@@ -109,7 +110,7 @@ router.put("/profile", verifyFirebaseToken, upload.single('profilePhoto'), async
 // Switch user role (for multi-role users)
 router.post("/switch-role", verifyFirebaseToken, async (req, res) => {
   try {
-    const userId = req.user?.uid;
+    const userId = (req.user as AuthenticatedUser)?.uid; // ✅ CORRIGIDO
     const { newRole } = req.body;
 
     if (!userId) {
@@ -167,7 +168,7 @@ router.post("/verification", verifyFirebaseToken, upload.fields([
   { name: 'vehicleInsurance', maxCount: 1 }
 ]), async (req, res) => {
   try {
-    const userId = req.user?.uid;
+    const userId = (req.user as AuthenticatedUser)?.uid; // ✅ CORRIGIDO
     if (!userId) {
       return res.status(401).json({ message: "User ID not found" });
     }
@@ -248,7 +249,7 @@ router.post("/verification", verifyFirebaseToken, upload.fields([
 // Get verification status
 router.get("/verification-status", verifyFirebaseToken, async (req, res) => {
   try {
-    const userId = req.user?.uid;
+    const userId = (req.user as AuthenticatedUser)?.uid; // ✅ CORRIGIDO
     if (!userId) {
       return res.status(401).json({ message: "User ID not found" });
     }
@@ -326,7 +327,7 @@ router.get("/verification-status", verifyFirebaseToken, async (req, res) => {
 // Get user bookings and activity
 router.get("/activity", verifyFirebaseToken, async (req, res) => {
   try {
-    const userId = req.user?.uid;
+    const userId = (req.user as AuthenticatedUser)?.uid; // ✅ CORRIGIDO
     if (!userId) {
       return res.status(401).json({ message: "User ID not found" });
     }
@@ -373,7 +374,7 @@ router.get("/activity", verifyFirebaseToken, async (req, res) => {
 // Delete user account
 router.delete("/account", verifyFirebaseToken, async (req, res) => {
   try {
-    const userId = req.user?.uid;
+    const userId = (req.user as AuthenticatedUser)?.uid; // ✅ CORRIGIDO
     if (!userId) {
       return res.status(401).json({ message: "User ID not found" });
     }

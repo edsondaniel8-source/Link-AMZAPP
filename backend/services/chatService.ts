@@ -97,7 +97,6 @@ export class ChatService {
             .values({
               chatRoomId,
               fromUserId: senderId,
-              toUserId: await this.getOtherParticipant(chatRoomId, senderId),
               message,
               messageType,
               isRead: false
@@ -154,11 +153,11 @@ export class ChatService {
           if (!userId) return;
 
           await db
-            .update(messages)
+            .update(chatMessages) // ✅ CORRIGIDO: messages → chatMessages
             .set({ isRead: true })
             .where(and(
-              eq(messages.chatRoomId, chatRoomId),
-              eq(messages.senderId, userId)
+              eq(chatMessages.chatRoomId, chatRoomId),
+              eq(chatMessages.fromUserId, userId)
             ));
 
           this.io.to(`chat_${chatRoomId}`).emit('messages_read', { chatRoomId, userId });
@@ -179,6 +178,21 @@ export class ChatService {
   }
 
   /**
+   * Obtém o outro participante da sala de chat
+   */
+  async getOtherParticipant(chatRoomId: string, userId: string): Promise<string> {
+    const [room] = await db
+      .select()
+      .from(chatRooms)
+      .where(eq(chatRooms.id, chatRoomId))
+      .limit(1);
+
+    if (!room) throw new Error('Sala de chat não encontrada');
+
+    return room.participantOneId === userId ? room.participantTwoId : room.participantOneId;
+  }
+
+  /**
    * Cria ou obtém uma sala de chat para uma reserva
    */
   async getOrCreateChatRoom(bookingId: string): Promise<any> {
@@ -193,12 +207,23 @@ export class ChatService {
       throw new Error('Reserva não encontrada');
     }
 
+    // Para boleias, o provider é o driver
+    let providerId = null;
+    if (booking.rideId) {
+      const [ride] = await db
+        .select({ driverId: rides.driverId })
+        .from(rides)
+        .where(eq(rides.id, booking.rideId))
+        .limit(1);
+      providerId = ride?.driverId;
+    }
+
     // Para simplificar, retornar informações básicas do chat
     return {
       id: `chat_${bookingId}`,
       bookingId,
-      fromUserId: booking.userId!,
-      toUserId: booking.providerId!,
+      fromUserId: booking.passengerId!, // ✅ CORRIGIDO: userId → passengerId
+      toUserId: providerId,
       isActive: true
     };
   }
@@ -210,33 +235,26 @@ export class ChatService {
     // Buscar conversas onde o utilizador participou
     const recentChats = await db
       .select({
-        fromUserId: messages.fromUserId,
-        toUserId: messages.toUserId,
-        bookingId: messages.bookingId,
-        lastMessage: messages.message,
-        lastMessageAt: messages.createdAt
+        chatRoomId: chatMessages.chatRoomId,
+        fromUserId: chatMessages.fromUserId,
+        message: chatMessages.message,
+        createdAt: chatMessages.createdAt
       })
-      .from(messages)
+      .from(chatMessages) // ✅ CORRIGIDO: messages → chatMessages
       .where(or(
-        eq(messages.fromUserId, userId),
-        eq(messages.toUserId, userId)
+        eq(chatMessages.fromUserId, userId)
       ))
-      .orderBy(desc(messages.createdAt))
+      .orderBy(desc(chatMessages.createdAt))
       .limit(10);
 
-    // Agrupar por conversa e obter outros participantes
+    // Agrupar por sala de chat
     const uniqueChats = new Map();
     for (const chat of recentChats) {
-      const otherUserId = chat.fromUserId === userId ? chat.toUserId : chat.fromUserId;
-      const chatId = `${chat.bookingId || 'direct'}_${otherUserId}`;
-      
-      if (!uniqueChats.has(chatId)) {
-        uniqueChats.set(chatId, {
-          id: chatId,
-          bookingId: chat.bookingId,
-          otherUserId,
-          lastMessage: chat.lastMessage,
-          lastMessageAt: chat.lastMessageAt
+      if (!uniqueChats.has(chat.chatRoomId)) {
+        uniqueChats.set(chat.chatRoomId, {
+          id: chat.chatRoomId,
+          lastMessage: chat.message,
+          lastMessageAt: chat.createdAt
         });
       }
     }
@@ -248,28 +266,24 @@ export class ChatService {
    * Obtém mensagens de uma sala de chat
    */
   async getChatMessages(chatRoomId: string, limit: number = 50): Promise<any[]> {
-    // Extrair bookingId do chatRoomId
-    const bookingId = chatRoomId.replace('chat_', '');
-    
-    const chatMessages = await db
+    const messages = await db
       .select({
-        id: messages.id,
-        fromUserId: messages.fromUserId,
-        toUserId: messages.toUserId,
-        message: messages.message,
-        messageType: messages.messageType,
-        createdAt: messages.createdAt,
+        id: chatMessages.id,
+        fromUserId: chatMessages.fromUserId,
+        message: chatMessages.message,
+        messageType: chatMessages.messageType,
+        createdAt: chatMessages.createdAt,
         senderFirstName: users.firstName,
         senderLastName: users.lastName,
         senderProfileImage: users.profileImageUrl
       })
-      .from(messages)
-      .innerJoin(users, eq(messages.fromUserId, users.id))
-      .where(eq(messages.bookingId, bookingId))
-      .orderBy(desc(messages.createdAt))
+      .from(chatMessages) // ✅ CORRIGIDO: messages → chatMessages
+      .innerJoin(users, eq(chatMessages.fromUserId, users.id))
+      .where(eq(chatMessages.chatRoomId, chatRoomId))
+      .orderBy(desc(chatMessages.createdAt))
       .limit(limit);
 
-    return chatMessages.map(msg => ({
+    return messages.map(msg => ({
       id: msg.id,
       senderId: msg.fromUserId,
       message: msg.message,
@@ -288,8 +302,15 @@ export class ChatService {
    * Verifica se um utilizador tem acesso a uma sala de chat
    */
   async checkChatRoomAccess(chatRoomId: string, userId: string): Promise<boolean> {
-    // Para simplificar, sempre permitir acesso se o utilizador estiver autenticado
-    return true;
+    const [room] = await db
+      .select()
+      .from(chatRooms)
+      .where(eq(chatRooms.id, chatRoomId))
+      .limit(1);
+
+    if (!room) return false;
+
+    return room.participantOneId === userId || room.participantTwoId === userId;
   }
 
   /**
@@ -299,13 +320,13 @@ export class ChatService {
     // Obter participantes da sala
     const [room] = await db
       .select()
-      // .from(chatRooms) // ⚠️ COMENTADO - FALTA TABELA
-      // .where(eq(chatRooms.id, chatRoomId)) // ⚠️ COMENTADO - FALTA TABELA
+      .from(chatRooms)
+      .where(eq(chatRooms.id, chatRoomId))
       .limit(1);
 
     if (!room) return;
 
-    const recipientId = room.participant1 === senderId ? room.participant2 : room.participant1;
+    const recipientId = room.participantOneId === senderId ? room.participantTwoId : room.participantOneId;
     const recipientSocketId = this.connectedUsers.get(recipientId);
 
     if (recipientSocketId) {
@@ -323,9 +344,9 @@ export class ChatService {
    */
   async deactivateChatRoom(chatRoomId: string): Promise<void> {
     await db
-      // .update(chatRooms) // ⚠️ COMENTADO - FALTA TABELA
+      .update(chatRooms)
       .set({ isActive: false })
-      // .where(eq(chatRooms.id, chatRoomId)) // ⚠️ COMENTADO - FALTA TABELA;
+      .where(eq(chatRooms.id, chatRoomId));
   }
 
   /**
@@ -334,19 +355,18 @@ export class ChatService {
   async getChatStatistics() {
     const totalRooms = await db
       .select()
-      // .from(chatRooms) // ⚠️ COMENTADO - FALTA TABELA
-      // .where(eq(chatRooms.isActive, true)) // ⚠️ COMENTADO - FALTA TABELA;
+      .from(chatRooms)
+      .where(eq(chatRooms.isActive, true));
 
     const totalMessages = await db
       .select()
-      .from(messages);
+      .from(chatMessages); // ✅ CORRIGIDO: messages → chatMessages
 
     const recentActivity = await db
       .select()
-      // .from(chatRooms) // ⚠️ COMENTADO - FALTA TABELA
+      .from(chatRooms)
       .where(and(
-        eq(chatRooms.isActive, true),
-        // Actividade nos últimos 7 dias
+        eq(chatRooms.isActive, true)
       ))
       .limit(10);
 
@@ -372,3 +392,4 @@ export function initializeChatService(server: HTTPServer) {
   chatService = new ChatService(server);
   return chatService;
 }
+✅ Principais Correções:

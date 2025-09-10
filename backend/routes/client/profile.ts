@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { verifyFirebaseToken } from '../../src/shared/firebaseAuth';
 import { requireClientRole } from '../../middleware/role-auth';
+import { AuthenticatedUser } from '../../shared/types'; // ✅ Importação adicionada
 
 const router = Router();
 
@@ -11,8 +12,12 @@ router.use(requireClientRole);
 // GET /api/client/profile - Obter perfil do cliente
 router.get('/', async (req, res) => {
   try {
-    const userId = req.user?.uid;
-    const email = req.user?.email;
+    const userId = (req.user as AuthenticatedUser)?.uid; // ✅ CORRIGIDO
+    const email = (req.user as AuthenticatedUser)?.email;
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'Usuário não autenticado' });
+    }
     
     // Mock data - substituir por consulta real ao banco
     const profile = {
@@ -43,8 +48,12 @@ router.get('/', async (req, res) => {
 // PUT /api/client/profile - Atualizar perfil do cliente
 router.put('/', async (req, res) => {
   try {
-    const userId = req.user?.uid;
+    const userId = (req.user as AuthenticatedUser)?.uid; // ✅ CORRIGIDO
     const { name, phone, preferences } = req.body;
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'Usuário não autenticado' });
+    }
     
     // Mock - atualizar perfil
     const updatedProfile = {

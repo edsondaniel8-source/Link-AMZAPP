@@ -2,7 +2,7 @@ import { Router, Request, Response, NextFunction } from "express";
 import { db } from "../../../db";
 import { rides, type Ride, insertRideSchema } from "../../../shared/schema";
 import { authStorage } from "../../shared/authStorage";
-import { type AuthenticatedRequest, verifyFirebaseToken } from "../../shared/firebaseAuth";
+import { type AuthenticatedRequest, verifyFirebaseToken } from "../../shared/types";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 

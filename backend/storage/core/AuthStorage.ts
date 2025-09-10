@@ -2,11 +2,13 @@ import { eq, and, or, desc, sql } from 'drizzle-orm';
 import { db } from '../../db';
 import { users, driverDocuments } from '../../shared/schema';
 import { 
+  UserRole, 
+  VerificationStatus 
+} from '../../src/shared/types';
+import type { 
   User, 
   CreateUserData, 
   UpdateUserData, 
-  UserRole, 
-  VerificationStatus,
   DriverDocuments,
   DriverStats 
 } from '../types';

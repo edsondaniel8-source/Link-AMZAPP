@@ -93,7 +93,6 @@ export const accommodations = pgTable("accommodations", {
   minimumDriverLevel: text("minimum_driver_level").default("bronze"), // bronze, silver, gold, platinum
   partnershipBadgeVisible: boolean("partnership_badge_visible").default(false), // Show "Motoristas VIP" badge
 });
-
 // Ratings table for all user types
 export const ratings = pgTable("ratings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -167,7 +166,7 @@ export const priceNegotiations = pgTable("price_negotiations", {
   passengerId: varchar("passenger_id").references(() => users.id),
   driverId: varchar("driver_id").references(() => users.id),
   originalPrice: decimal("original_price", { precision: 8, scale: 2 }).notNull(),
-  proposedPrice: decimal("proposed_price", { precision: 8, scale: 2 }).notNull(),
+  proposedPrice: decimal("proposed_price", { precision: 8, scale: 2 }).notNull(), // ✅ CORRIGIDO
   counterPrice: decimal("counter_price", { precision: 8, scale: 2 }),
   status: text("status").default("pending"), // pending, accepted, rejected, countered
   message: text("message"), // Optional message with the negotiation
@@ -175,7 +174,6 @@ export const priceNegotiations = pgTable("price_negotiations", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
-
 // Pickup requests for en-route pickups
 export const pickupRequests = pgTable("pickup_requests", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -225,15 +223,25 @@ export const payments = pgTable("payments", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Simplified Bookings table following the proposed SQL schema
+// ✅ CORRIGIDO: Simplified Bookings table com todas as colunas necessárias
 export const bookings = pgTable("bookings", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`), // Keep existing UUID format
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   rideId: varchar("ride_id").references(() => rides.id),
   passengerId: varchar("passenger_id").references(() => users.id),
-  seatsBooked: integer("seats_booked").notNull(),
-  totalPrice: decimal("total_price", { precision: 10, scale: 2 }).notNull(),
+  // ✅ COLUNAS ADICIONADAS:
+  accommodationId: varchar("accommodation_id").references(() => accommodations.id),
+  type: varchar("type", { length: 20 }).default('ride'),
   status: varchar("status", { length: 20 }).default("pending"),
+  totalPrice: decimal("total_price", { precision: 10, scale: 2 }).notNull(),
+  seatsBooked: integer("seats_booked").notNull(),
+  passengers: integer("passengers").default(1),
+  guestName: text("guest_name"),
+  guestEmail: text("guest_email"),
+  guestPhone: text("guest_phone"),
+  checkInDate: timestamp("check_in_date"),
+  checkOutDate: timestamp("check_out_date"),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(), // ✅ COLUNA ADICIONADA
 });
 
 // REMOVED: accommodationPartnershipPrograms, driverHotelPartnerships
@@ -245,7 +253,7 @@ export const driverStats = pgTable("driver_stats", {
   driverId: varchar("driver_id").references(() => users.id).unique(),
   totalRides: integer("total_rides").default(0),
   totalDistance: decimal("total_distance", { precision: 10, scale: 2 }).default("0.00"), // in km
-  totalEarnings: decimal("total_earnings", { precision: 12, scale: 2 }).default("0.00"), // in MZN
+  totalEarnings: decimal("total_earnings", { precision: 12, scale: 2 }).default("0.00"), // ✅ CORRIGIDO
   averageRating: decimal("average_rating", { precision: 3, scale: 2 }).default("0.00"),
   completedRidesThisMonth: integer("completed_rides_this_month").default(0),
   completedRidesThisYear: integer("completed_rides_this_year").default(0),
@@ -254,7 +262,6 @@ export const driverStats = pgTable("driver_stats", {
   joinedAt: timestamp("joined_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
-
 // REMOVED: partnershipBenefits, discountUsageLog
 // SIMPLIFIED: Benefits calculated based on driver level, discounts tracked in bookings table
 
@@ -496,7 +503,6 @@ export const hotelRooms = pgTable("hotel_rooms", {
   hasBalcony: boolean("has_balcony").default(false),
   hasKitchen: boolean("has_kitchen").default(false),
   roomAmenities: text("room_amenities").array(), // Additional amenities
-  
   // Availability
   isAvailable: boolean("is_available").default(true),
   maintenanceUntil: timestamp("maintenance_until"), // Room unavailable until this date
@@ -505,6 +511,21 @@ export const hotelRooms = pgTable("hotel_rooms", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// No final do arquivo, antes dos schemas Zod
+export const hotels = pgTable("hotels", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  address: text("address").notNull(),
+  // ... outras colunas
+});
+
+export const roomTypes = pgTable("room_types", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  hotelId: varchar("hotel_id").references(() => hotels.id),
+  type: text("type").notNull(), // "Standard", "Deluxe", etc.
+  pricePerNight: decimal("price_per_night", { precision: 8, scale: 2 }).notNull(),
+  // ... outras colunas
+});
 // Hotel financial reports
 export const hotelFinancialReports = pgTable("hotel_financial_reports", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -545,7 +566,6 @@ export const upsertUserSchema = createInsertSchema(users).pick({
   lastName: true,
   profileImageUrl: true,
 });
-
 export const insertBookingSchema = createInsertSchema(bookings);
 export const insertRideSchema = createInsertSchema(rides);
 export const insertAccommodationSchema = createInsertSchema(accommodations);
@@ -553,61 +573,16 @@ export const insertPartnershipProposalSchema = createInsertSchema(partnershipPro
 export const insertHotelRoomSchema = createInsertSchema(hotelRooms);
 export const insertHotelFinancialReportSchema = createInsertSchema(hotelFinancialReports);
 
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type UpsertUser = z.infer<typeof upsertUserSchema>;
-export type InsertBooking = z.infer<typeof insertBookingSchema>;
-export type InsertRide = z.infer<typeof insertRideSchema>;
-export type InsertAccommodation = z.infer<typeof insertAccommodationSchema>;
-export type InsertPartnershipProposal = z.infer<typeof insertPartnershipProposalSchema>;
-export type InsertHotelRoom = z.infer<typeof insertHotelRoomSchema>;
-export type InsertHotelFinancialReport = z.infer<typeof insertHotelFinancialReportSchema>;
-
-export type User = typeof users.$inferSelect;
-export type Ride = typeof rides.$inferSelect;
-export type Accommodation = typeof accommodations.$inferSelect;
-export type Booking = typeof bookings.$inferSelect;
-export type Rating = typeof ratings.$inferSelect;
-export type Event = typeof events.$inferSelect;
-export type EventManager = typeof eventManagers.$inferSelect;
-export type PartnershipProposal = typeof partnershipProposals.$inferSelect;
-export type HotelRoom = typeof hotelRooms.$inferSelect;
-export type HotelFinancialReport = typeof hotelFinancialReports.$inferSelect;
-// REMOVED: EventPartnership type - data integrated into events table
-// REMOVED: EventBooking type - functionality integrated into Booking type
-export type LoyaltyProgram = typeof loyaltyProgram.$inferSelect;
-export type PointsHistory = typeof pointsHistory.$inferSelect;
-export type Notification = typeof notifications.$inferSelect;
-export type ChatMessage = typeof chatMessages.$inferSelect;
-// REMOVED: Restaurant type - restaurant functionality eliminated
-export type AdminAction = typeof adminActions.$inferSelect;
-export type PriceRegulation = typeof priceRegulations.$inferSelect;
-export type Payment = typeof payments.$inferSelect;
-// REMOVED: Transaction, PaymentMethod types - consolidated into Payment
-export type DriverDocument = typeof driverDocuments.$inferSelect;
-// REMOVED: EventTicket type - data integrated into eventBookings table
-
-// Partnership system types (simplified)
-export type DriverStats = typeof driverStats.$inferSelect;
-// REMOVED: DriverHotelPartnership, PartnershipBenefit, DiscountUsageLog types
-
-// Price negotiation types
-export const insertPriceNegotiationSchema = createInsertSchema(priceNegotiations);
-export type PriceNegotiation = typeof priceNegotiations.$inferSelect;
-export type InsertPriceNegotiation = z.infer<typeof insertPriceNegotiationSchema>;
-
-// Pickup request types
-export const insertPickupRequestSchema = createInsertSchema(pickupRequests);
-export type PickupRequest = typeof pickupRequests.$inferSelect;
-export type InsertPickupRequest = z.infer<typeof insertPickupRequestSchema>;
-
-// Partnership system schemas
-export const insertDriverStatsSchema = createInsertSchema(driverStats).omit({
-  id: true,
-  joinedAt: true,
-  updatedAt: true,
+// ✅ CORRIGIDO: System settings table with missing columns added
+export const systemSettings = pgTable("system_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  key: varchar("key").notNull().unique(),
+  value: text("value").notNull(),
+  description: text("description"),
+  // ✅ COLUNAS ADICIONADAS:
+  type: varchar("type"), // ← Adicionado para resolver erro do 'type'
+  updatedBy: varchar("updated_by"), // ← Adicionado para resolver erro do 'updatedBy'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
-
-export type InsertDriverStats = z.infer<typeof insertDriverStatsSchema>;
-// REMOVED: InsertDriverHotelPartnership schema and type
-
-// REMOVED: Event ticket schemas - functionality integrated into eventBookings
+export type NewSystemSetting = typeof systemSettings.$inferInsert;

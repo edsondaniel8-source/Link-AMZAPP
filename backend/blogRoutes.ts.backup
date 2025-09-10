@@ -1,22 +1,11 @@
-interface BlogPostBody {
-  title: string;
-  content: string;
-  excerpt?: string;
-  category?: string;
-  tags?: string[];
-  featuredImage?: string;
-  isFeatured?: boolean;
-}
-
-import { Router, Request, Response } from "express";
-import { verifyFirebaseToken } from "./middleware/role-auth";
-import { AuthenticatedRequest } from "./shared/types";
+import { Router } from "express";
+import { verifyFirebaseToken, type AuthenticatedRequest } from "./src/shared/firebaseAuth";
 import { storage } from "./storage";
 
 const router = Router();
 
 // Get all blog posts
-router.get("/posts", async (req: Request, res: Response) => {
+router.get("/posts", async (req, res) => {
   try {
     const { category, featured, limit = 10, offset = 0 } = req.query;
 
@@ -116,8 +105,8 @@ router.get("/posts", async (req: Request, res: Response) => {
         readTime: 6,
         views: 892,
         likes: 63
-      }
-    ];
+      }  // ← ESTA LINHA ESTAVA FALTANDO
+    ];   // ← Fechamento do array
 
     // Apply filters
     let filteredPosts = posts;
@@ -156,7 +145,7 @@ router.get("/posts", async (req: Request, res: Response) => {
 });
 
 // Get single blog post
-router.get("/posts/:slug", async (req: Request, res: Response) => {
+router.get("/posts/:slug", async (req, res) => {
   try {
     const { slug } = req.params;
 
@@ -192,7 +181,7 @@ router.get("/posts/:slug", async (req: Request, res: Response) => {
         </ul>
         
         <h2>Chegada ao destino</h2>
-        <p>Ao chegar ao seu destino, não se esqueça de avaliar a experiência na plataforma Link-A. Suas avaliações ajudam a maintain a qualidade dos serviços.</p>
+        <p>Ao chegar ao seu destino, não se esqueça de avaliar a experiência na plataforma Link-A. Suas avaliações ajudam a manter a qualidade dos serviços.</p>
       `,
       category: "seguranca",
       tags: ["viagem", "segurança", "dicas", "moçambique"],
@@ -240,10 +229,9 @@ router.get("/posts/:slug", async (req: Request, res: Response) => {
 });
 
 // Create new blog post (admin only)
-router.post("/posts", verifyFirebaseToken, async (req: Request, res: Response) => {
-  const authReq = req as unknown as AuthenticatedRequest;
+router.post("/posts", verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
   try {
-    const userId = authReq.user?.uid;
+    const userId = req.user?.uid;
     
     // TODO: Verify admin role
     // const user = await storage.getUser(userId);
@@ -251,7 +239,6 @@ router.post("/posts", verifyFirebaseToken, async (req: Request, res: Response) =
     //   return res.status(403).json({ message: "Acesso negado" });
     // }
 
-    const body = req.body as BlogPostBody;
     const {
       title,
       content,
@@ -260,7 +247,7 @@ router.post("/posts", verifyFirebaseToken, async (req: Request, res: Response) =
       tags,
       featuredImage,
       isFeatured = false
-    } = body;
+    } = req.body;
 
     if (!title || !content || !excerpt) {
       return res.status(400).json({ 
@@ -287,7 +274,7 @@ router.post("/posts", verifyFirebaseToken, async (req: Request, res: Response) =
       isFeatured,
       author: {
         id: userId,
-        name: authReq.user?.displayName || "Admin",
+        name: req.user?.displayName || "Admin",
         avatar: null
       },
       publishedAt: new Date().toISOString(),
@@ -313,11 +300,10 @@ router.post("/posts", verifyFirebaseToken, async (req: Request, res: Response) =
 });
 
 // Update blog post (admin only)
-router.put("/posts/:id", verifyFirebaseToken, async (req: Request, res: Response) => {
-  const authReq = req as unknown as AuthenticatedRequest;
+router.put("/posts/:id", verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
-    const userId = authReq.user?.uid;
+    const userId = req.user?.uid;
     
     // TODO: Verify admin role and ownership
     
@@ -343,8 +329,7 @@ router.put("/posts/:id", verifyFirebaseToken, async (req: Request, res: Response
 });
 
 // Delete blog post (admin only)
-router.delete("/posts/:id", verifyFirebaseToken, async (req: Request, res: Response) => {
-  const authReq = req as unknown as AuthenticatedRequest;
+router.delete("/posts/:id", verifyFirebaseToken, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
     
@@ -364,7 +349,7 @@ router.delete("/posts/:id", verifyFirebaseToken, async (req: Request, res: Respo
 });
 
 // Get blog categories
-router.get("/categories", async (req: Request, res: Response) => {
+router.get("/categories", async (req, res) => {
   try {
     const categories = [
       { id: "seguranca", name: "Segurança", description: "Dicas de segurança para viagens" },

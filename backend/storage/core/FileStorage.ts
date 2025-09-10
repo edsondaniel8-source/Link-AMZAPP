@@ -1,7 +1,9 @@
 import { Storage } from '@google-cloud/storage';
 import path from 'path';
 import { 
-  DocumentType, 
+  DocumentType 
+} from '../../src/shared/types';
+import type { 
   VehicleDocType, 
   Document, 
   FileUploadResult 
@@ -204,28 +206,49 @@ export class GoogleCloudFileStorage implements IFileStorage {
   validateFile(file: File | Buffer, allowedTypes: string[], maxSize: number): { valid: boolean; error?: string } {
     try {
       let size: number;
-      let type: string;
+      let detectedType: string = 'application/octet-stream';
 
       if (file instanceof Buffer) {
         size = file.length;
-        type = 'application/octet-stream'; // Default for buffer
+        detectedType = 'application/octet-stream';
       } else {
         size = (file as any).size;
-        type = (file as any).type;
+        detectedType = (file as any).type || 'application/octet-stream';
       }
 
       if (size > maxSize) {
-        return { valid: false, error: `File size exceeds ${maxSize} bytes` };
+        return { 
+          valid: false, 
+          error: `Tamanho do ficheiro excede o limite de ${this.formatBytes(maxSize)}` 
+        };
       }
 
-      if (allowedTypes.length > 0 && !allowedTypes.includes(type)) {
-        return { valid: false, error: `File type ${type} not allowed` };
+      if (allowedTypes.length > 0 && !allowedTypes.includes(detectedType)) {
+        return { 
+          valid: false, 
+          error: `Tipo de ficheiro ${detectedType} não é permitido. Tipos aceites: ${allowedTypes.join(', ')}` 
+        };
       }
 
       return { valid: true };
     } catch (error) {
-      return { valid: false, error: 'Invalid file' };
+      return { 
+        valid: false, 
+        error: 'Ficheiro inválido ou corrompido' 
+      };
     }
+  }
+
+  private formatBytes(bytes: number, decimals: number = 2): string {
+    if (bytes === 0) return '0 Bytes';
+    
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
   }
 }
 

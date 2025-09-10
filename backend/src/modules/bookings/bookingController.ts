@@ -1,12 +1,12 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { storage } from "../../../storage";
 import { z } from "zod";
-import { createApiResponse, createApiError } from "../../shared/firebaseAuth";
+import { createApiResponse, createApiError } from "../../shared/types";
 import { insertBookingSchema } from "../../../shared/schema";
 
 const router = Router();
 
-import { verifyFirebaseToken, type AuthenticatedRequest } from "../../shared/firebaseAuth";
+import { verifyFirebaseToken, type AuthenticatedRequest } from "../../shared/types";
 
 // GET /api/bookings - Lista reservas do usuário
 router.get("/", verifyFirebaseToken, async (req, res) => {

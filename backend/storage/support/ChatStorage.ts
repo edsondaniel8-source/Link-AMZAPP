@@ -2,10 +2,12 @@ import { eq, and, or, desc, sql } from 'drizzle-orm';
 import { db } from '../../db';
 import { chatMessages, users } from '../../shared/schema';
 import { 
+  MessageType 
+} from '../../src/shared/types';
+import type { 
   ChatRoom, 
   Message, 
   MessageData, 
-  MessageType,
   SupportTicket,
   User 
 } from '../types';

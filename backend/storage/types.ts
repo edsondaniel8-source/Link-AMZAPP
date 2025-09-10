@@ -1,6 +1,5 @@
 // Storage Types and Interfaces for Link-A Platform
-// DEPRECATED: Use ../src/shared/types.ts for new types
-import { z } from 'zod';
+// ✅ ATUALIZADO: Importa tipos principais de ../src/shared/types
 import { 
   UserRole, 
   VerificationStatus, 
@@ -11,19 +10,20 @@ import {
   PaymentMethod, 
   PaymentStatus, 
   MessageType, 
-  NotificationType 
+  NotificationType,
+  BaseEntity,
+  UserProfile,
+  CreateUserData as SharedCreateUserData,
+  UpdateUserData as SharedUpdateUserData,
+  ApiError,
+  ApiResponse
 } from '../src/shared/types';
 
 // Legacy types for backward compatibility
 export type VehicleDocType = 'registration' | 'license' | 'insurance';
 
 // ===== BASE INTERFACES =====
-// DEPRECATED: Use ../src/shared/types.ts BaseEntity
-export interface BaseEntity {
-  id: string;
-  createdAt: Date;
-  updatedAt?: Date | null;
-}
+// ✅ REMOVIDAS duplicações - usar BaseEntity importado
 
 export interface TimePeriod {
   startDate: Date;
@@ -53,57 +53,14 @@ export interface SearchFilters {
 }
 
 // ===== USER & AUTH INTERFACES =====
-// DEPRECATED: Use ../src/shared/types.ts UserProfile
-export interface User extends BaseEntity {
-  email: string | null;
-  firstName: string | null;
-  lastName: string | null;
-  fullName: string | null;
-  phone: string | null;
-  profileImageUrl: string | null;
-  userType: UserRole;
-  roles: UserRole[];
-  canOfferServices: boolean;
-  avatar: string | null;
-  rating: number; // Changed from string to number
-  totalReviews: number;
-  isVerified: boolean;
-  verificationStatus: VerificationStatus;
-  verificationDate: Date | null;
-  verificationNotes: string | null;
-  identityDocumentUrl: string | null;
-  identityDocumentType: string | null;
-  profilePhotoUrl: string | null;
-  documentNumber: string | null;
-  dateOfBirth: Date | null;
-  registrationCompleted: boolean;
-  verificationBadge: string | null;
-  badgeEarnedDate: Date | null;
-  // Added missing field for consistency
-  isBlocked?: boolean;
+// ✅ REMOVIDA duplicação - usar UserProfile importado
+export interface User extends UserProfile {
+  // Campos específicos de storage se necessário
 }
 
-export interface CreateUserData {
-  email?: string;
-  firstName?: string;
-  lastName?: string;
-  fullName?: string;
-  phone?: string;
-  userType?: string;
-  firebaseUid?: string;
-}
-
-export interface UpdateUserData {
-  firstName?: string;
-  lastName?: string;
-  fullName?: string;
-  phone?: string;
-  profileImageUrl?: string;
-  verificationStatus?: VerificationStatus;
-  verificationNotes?: string;
-  canOfferServices?: boolean;
-  roles?: UserRole[];
-}
+// ✅ REMOVIDAS duplicações - usar tipos importados
+export interface CreateUserData extends SharedCreateUserData {}
+export interface UpdateUserData extends SharedUpdateUserData {}
 
 export interface DriverDocuments {
   vehicleRegistrationUrl?: string;
@@ -301,11 +258,11 @@ export interface BookingStats {
 // ===== PAYMENT & BILLING INTERFACES =====
 export interface Payment extends BaseEntity {
   bookingId: string;
-  amount: number; // Changed from string to number for consistency
+  amount: number;
   currency: string;
   status: PaymentStatus;
   method: PaymentMethod;
-  transactionId?: string; // Generic transaction ID instead of Stripe-specific
+  transactionId?: string;
   gatewayResponse?: any;
   processedAt?: Date;
 }
@@ -321,9 +278,9 @@ export interface Fee extends BaseEntity {
 export interface PaymentData {
   method: PaymentMethod;
   amount: number;
-  currency?: string; // Optional with default
+  currency?: string;
   description?: string;
-  details?: any; // For method-specific details like card info, mpesa number
+  details?: any;
 }
 
 export interface FeeData {

@@ -2,9 +2,11 @@ import { eq, and, desc, sql } from 'drizzle-orm';
 import { db } from '../../db';
 import { ratings, users } from '../../shared/schema';
 import { 
+  ServiceType 
+} from '../../src/shared/types';
+import type { 
   Rating, 
   CreateRatingData, 
-  ServiceType,
   ModerationAction,
   User 
 } from '../types';
@@ -230,7 +232,7 @@ export class DatabaseRatingStorage implements IRatingStorage {
           bookingId: ratings.bookingId,
           createdAt: ratings.createdAt,
           // User info
-          fromUser: {
+  fromUser: {
             id: users.id,
             firstName: users.firstName,
             lastName: users.lastName,

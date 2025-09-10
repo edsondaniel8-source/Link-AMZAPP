@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { verifyFirebaseToken, requireProviderRole } from '../../middleware/role-auth';
+import { AuthenticatedUser } from '../../shared/types'; // ✅ Importação adicionada
 
 const router = Router();
 
@@ -10,8 +11,12 @@ router.use(requireProviderRole);
 // GET /api/provider/dashboard - Dados do dashboard do prestador
 router.get('/', async (req, res) => {
   try {
-    const userId = req.user?.uid;
-    const userRoles = req.user?.roles || [];
+    const userId = (req.user as AuthenticatedUser)?.uid; // ✅ CORRIGIDO
+    const userRoles = (req.user as AuthenticatedUser)?.roles || []; // ✅ CORRIGIDO
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'Usuário não autenticado' });
+    }
     
     // Mock data baseado nos roles do usuário
     const dashboardData = {
@@ -78,8 +83,12 @@ router.get('/', async (req, res) => {
 // GET /api/provider/analytics - Análises detalhadas
 router.get('/analytics', async (req, res) => {
   try {
-    const userId = req.user?.uid;
+    const userId = (req.user as AuthenticatedUser)?.uid; // ✅ CORRIGIDO
     const { period = '30d' } = req.query;
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'Usuário não autenticado' });
+    }
     
     // Mock data
     const analytics = {

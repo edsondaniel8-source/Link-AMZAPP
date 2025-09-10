@@ -216,4 +216,4 @@ export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 export type PaginationInput = z.infer<typeof paginationSchema>;
 
 // Export all types for convenience
-export type * from './firebaseAuth';
+export type * from "../../shared/types";

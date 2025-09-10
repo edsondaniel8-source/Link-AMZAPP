@@ -2,18 +2,20 @@ import { eq, and, gte, lte, desc, sql } from 'drizzle-orm';
 import { db } from '../../db';
 import { bookings, users } from '../../shared/schema';
 import { 
+  ServiceType,
+  PaymentMethod,
+  PaymentStatus 
+} from '../../src/shared/types';
+import type { 
   Fee, 
   Payment, 
-  PaymentMethod,
-  PaymentStatus,
   PaymentData,
   FeeData,
   Earnings,
   RevenueReport,
   Transaction,
   TransactionFilters,
-  TimePeriod,
-  ServiceType 
+  TimePeriod
 } from '../types';
 
 // In-memory storage for billing data until proper tables are added

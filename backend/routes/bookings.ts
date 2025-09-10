@@ -4,6 +4,7 @@ import { db } from '../db';
 import { bookings, rides } from '../shared/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { verifyFirebaseToken } from '../middleware/role-auth';
+import { AuthenticatedUser } from '../shared/types';
 
 const router = Router();
 
@@ -31,7 +32,7 @@ const createBookingSchema = z.object({
 router.post('/create', verifyFirebaseToken, async (req: any, res) => {
   try {
     const bookingData = createBookingSchema.parse(req.body);
-    const userId = req.user?.uid;
+    const userId = (req.user as AuthenticatedUser)?.uid;
 
     if (!userId) {
       return res.status(401).json({ error: 'Usuário não autenticado' });
@@ -70,12 +71,11 @@ router.post('/create', verifyFirebaseToken, async (req: any, res) => {
         .where(eq(rides.id, bookingData.rideId));
     }
 
-    // Criar reserva
+    // ✅ CORRETO: Usar passengerId (decisão mantida)
     const [newBooking] = await db
       .insert(bookings)
       .values({
-        userId: userId,
-        type: bookingData.type,
+        passengerId: userId, // ✅ passengerId conforme schema atual
         rideId: bookingData.rideId || null,
         accommodationId: bookingData.accommodationId || null,
         status: 'confirmed',
@@ -93,7 +93,10 @@ router.post('/create', verifyFirebaseToken, async (req: any, res) => {
 
     res.status(201).json({
       success: true,
-      booking: newBooking,
+      booking: {
+        ...newBooking,
+        serviceType: bookingData.type // ✅ Adiciona serviceType calculado
+      },
       message: `Reserva de ${bookingData.type} confirmada com sucesso!`
     });
 
@@ -109,7 +112,7 @@ router.post('/create', verifyFirebaseToken, async (req: any, res) => {
 // Buscar reservas do usuário
 router.get('/user', verifyFirebaseToken, async (req: any, res) => {
   try {
-    const userId = req.user?.uid;
+    const userId = (req.user as AuthenticatedUser)?.uid;
 
     if (!userId) {
       return res.status(401).json({ error: 'Usuário não autenticado' });
@@ -117,18 +120,26 @@ router.get('/user', verifyFirebaseToken, async (req: any, res) => {
 
     console.log('🔍 [BOOKING] Buscando reservas do usuário:', userId);
 
+    // ✅ CORRETO: Usar passengerId (decisão mantida)
     const userBookings = await db
       .select()
       .from(bookings)
-      .where(eq(bookings.userId, userId))
+      .where(eq(bookings.passengerId, userId)) // ✅ passengerId conforme schema
       .orderBy(desc(bookings.createdAt))
       .limit(50);
 
     console.log(`✅ [BOOKING] Encontradas ${userBookings.length} reservas`);
 
+    // ✅ SOLUÇÃO 2: Calcular serviceType baseado nas colunas existentes
+    const bookingsWithServiceType = userBookings.map(booking => ({
+      ...booking,
+      serviceType: booking.rideId ? 'ride' : 
+                  booking.accommodationId ? 'accommodation' : 'unknown'
+    }));
+
     res.json({
       success: true,
-      bookings: userBookings
+      bookings: bookingsWithServiceType
     });
 
   } catch (error) {
@@ -144,19 +155,20 @@ router.get('/user', verifyFirebaseToken, async (req: any, res) => {
 router.delete('/:bookingId', verifyFirebaseToken, async (req: any, res) => {
   try {
     const { bookingId } = req.params;
-    const userId = req.user?.uid;
+    const userId = (req.user as AuthenticatedUser)?.uid;
 
     if (!userId) {
       return res.status(401).json({ error: 'Usuário não autenticado' });
     }
 
     // Buscar reserva
+    // ✅ CORRETO: Usar passengerId (decisão mantida)
     const [booking] = await db
       .select()
       .from(bookings)
       .where(and(
         eq(bookings.id, bookingId),
-        eq(bookings.userId, userId)
+        eq(bookings.passengerId, userId) // ✅ passengerId conforme schema
       ));
 
     if (!booking) {
@@ -164,11 +176,12 @@ router.delete('/:bookingId', verifyFirebaseToken, async (req: any, res) => {
     }
 
     // Se for reserva de ride, devolver lugares
-    if (booking.type === 'ride' && booking.rideId) {
+    // ✅ CORREÇÃO: Determinar se é ride pela presença de rideId
+    if (booking.rideId) {
       await db
         .update(rides)
         .set({
-          availableSeats: sql`available_seats + ${booking.passengers || 1}`
+          availableSeats: sql`available_seats + ${booking.passengers || 1}` // ✅ Corrigido: passengers em vez de passengerId
         })
         .where(eq(rides.id, booking.rideId));
     }

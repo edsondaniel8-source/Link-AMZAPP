@@ -116,7 +116,6 @@ export interface UserProfile extends BaseEntity {
   roles: UserRole[];
   canOfferServices: boolean;
   isVerified: boolean;
-  isBlocked?: boolean;
   
   // Profile data
   profileImageUrl: string | null;
@@ -140,13 +139,6 @@ export interface UserProfile extends BaseEntity {
   
   // Status
   registrationCompleted: boolean;
-
-  // Auth claims (para Firebase/auth0)
-  claims?: {
-    sub?: string;
-    email?: string;
-    [key: string]: any;
-  };
 }
 
 export interface CreateUserData {

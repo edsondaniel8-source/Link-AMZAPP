@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { chatService } from '../services/chatService';
 import { AuthenticatedRequest } from '../shared/types';
+import { AuthenticatedUser } from '../shared/types'; // ✅ Importação adicionada
 
 const router = Router();
 
@@ -10,7 +11,7 @@ const router = Router();
  */
 router.get('/rooms', async (req: AuthenticatedRequest, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = (req.user as AuthenticatedUser)?.uid; // ✅ CORRIGIDO: .uid em vez de .id
     
     if (!userId) {
       return res.status(401).json({ error: 'Não autorizado' });
@@ -32,7 +33,7 @@ router.get('/messages/:chatRoomId', async (req: AuthenticatedRequest, res) => {
   try {
     const { chatRoomId } = req.params;
     const { limit = 50 } = req.query;
-    const userId = req.user?.id;
+    const userId = (req.user as AuthenticatedUser)?.uid; // ✅ CORRIGIDO: .uid em vez de .id
 
     if (!userId) {
       return res.status(401).json({ error: 'Não autorizado' });
@@ -59,7 +60,7 @@ router.get('/messages/:chatRoomId', async (req: AuthenticatedRequest, res) => {
 router.post('/room', async (req: AuthenticatedRequest, res) => {
   try {
     const { bookingId } = req.body;
-    const userId = req.user?.id;
+    const userId = (req.user as AuthenticatedUser)?.uid; // ✅ CORRIGIDO: .uid em vez de .id
 
     if (!userId) {
       return res.status(401).json({ error: 'Não autorizado' });
@@ -83,10 +84,10 @@ router.post('/room', async (req: AuthenticatedRequest, res) => {
  * POST /api/chat/deactivate/:chatRoomId
  * Desactiva uma sala de chat
  */
-router.post('/deactivate/:chatRoomId', async (req, res) => {
+router.post('/deactivate/:chatRoomId', async (req: AuthenticatedRequest, res) => {
   try {
     const { chatRoomId } = req.params;
-    const userId = req.user?.id;
+    const userId = (req.user as AuthenticatedUser)?.uid; // ✅ CORRIGIDO: .uid em vez de .id
 
     if (!userId) {
       return res.status(401).json({ error: 'Não autorizado' });
@@ -110,10 +111,10 @@ router.post('/deactivate/:chatRoomId', async (req, res) => {
  * GET /api/chat/statistics
  * Obtém estatísticas de chat (apenas admin)
  */
-router.get('/statistics', async (req, res) => {
+router.get('/statistics', async (req: AuthenticatedRequest, res) => {
   try {
-    const userId = req.user?.id;
-    const userRoles = req.user?.roles || [];
+    const userId = (req.user as AuthenticatedUser)?.uid; // ✅ CORRIGIDO: .uid em vez de .id
+    const userRoles = (req.user as AuthenticatedUser)?.roles || []; // ✅ CORRIGIDO: .roles com type assertion
 
     if (!userId || !userRoles.includes('admin')) {
       return res.status(403).json({ error: 'Apenas administradores podem aceder a estatísticas' });

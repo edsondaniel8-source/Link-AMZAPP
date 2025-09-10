@@ -1,5 +1,5 @@
 import { db } from '../db';
-import { bookings, payments } from '../shared/schema';
+import { bookings, payments, systemSettings } from '../shared/schema';
 import { eq, and } from 'drizzle-orm';
 import { calculateDistance } from './distanceService';
 
@@ -110,37 +110,22 @@ export class BillingService {
     const billing = await this.calculateBilling(params.amount);
 
     // Criar transacção de pagamento recebido
-    await db.insert(transactions).values({
+    await db.insert(payments).values({ // ✅ CORRIGIDO: transactions → payments
       bookingId: params.bookingId,
       userId: params.userId,
-      providerUserId: params.providerUserId,
-      type: 'payment_received',
-      amount: billing.total,
-      currency: 'MZN',
-      status: 'completed',
-      description: `Pagamento recebido - ${params.serviceType}`
+      serviceType: params.serviceType,
+      subtotal: billing.subtotal,
+      platformFee: billing.platformFee,
+      total: billing.total,
+      paymentStatus: 'completed',
+      paymentMethod: 'direct_payment'
     });
-
-    // Criar transacção da taxa da plataforma
-    await db.insert(transactions).values({
-      bookingId: params.bookingId,
-      userId: params.providerUserId,
-      type: 'platform_fee',
-      amount: billing.platformFee,
-      currency: 'MZN',
-      status: 'completed',
-      description: `Taxa da plataforma (${billing.feePercentage}%)`
-    });
-
-    // Nota: Taxa ficará registada como transacção para controlo admin
 
     // Actualizar status da reserva
     await db
       .update(bookings)
       .set({
-        totalAmount: billing.total,
-        platformFee: billing.platformFee,
-        providerAmount: billing.providerAmount,
+        totalPrice: billing.total.toString(), // ✅ CORRIGIDO: totalAmount → totalPrice
         updatedAt: new Date()
       })
       .where(eq(bookings.id, params.bookingId));
@@ -152,17 +137,16 @@ export class BillingService {
   async getPendingFees(providerId: string) {
     return await db
       .select({
-        id: transactions.id,
-        bookingId: transactions.bookingId,
-        amount: transactions.amount,
-        status: transactions.status,
-        createdAt: transactions.createdAt
+        id: payments.id,
+        bookingId: payments.bookingId,
+        amount: payments.platformFee, // ✅ CORRIGIDO: Usar platformFee
+        status: payments.paymentStatus,
+        createdAt: payments.createdAt
       })
-      .from(transactions)
+      .from(payments) // ✅ CORRIGIDO: transactions → payments
       .where(and(
-        eq(transactions.providerUserId, providerId),
-        eq(transactions.type, 'platform_fee'),
-        eq(transactions.status, 'pending')
+        eq(payments.userId, providerId), // ✅ CORRIGIDO: providerUserId → userId
+        eq(payments.paymentStatus, 'pending') // ✅ CORRIGIDO: status → paymentStatus
       ));
   }
 
@@ -171,12 +155,12 @@ export class BillingService {
    */
   async markFeeAsPaid(feeId: string, paymentMethod: string): Promise<void> {
     await db
-      .update(transactions)
+      .update(payments) // ✅ CORRIGIDO: transactions → payments
       .set({
-        status: 'completed',
-        description: `Taxa paga via ${paymentMethod}`
+        paymentStatus: 'completed', // ✅ CORRIGIDO: status → paymentStatus
+        paymentMethod: paymentMethod // ✅ CORRIGIDO: description → paymentMethod
       })
-      .where(eq(transactions.id, feeId));
+      .where(eq(payments.id, feeId));
   }
 
   /**
@@ -186,33 +170,24 @@ export class BillingService {
     // Implementar consultas para relatório financeiro
     const totalTransactions = await db
       .select()
-      .from(transactions)
-      .where(and(
-        eq(transactions.type, 'payment_received'),
-        eq(transactions.status, 'completed')
-      ));
+      .from(payments) // ✅ CORRIGIDO: transactions → payments
+      .where(eq(payments.paymentStatus, 'completed')); // ✅ CORRIGIDO: status → paymentStatus
 
-    const totalRevenue = totalTransactions.reduce((sum, t) => sum + Number(t.amount), 0);
+    const totalRevenue = totalTransactions.reduce((sum, t) => sum + Number(t.total), 0); // ✅ CORRIGIDO: amount → total
     
     const platformFees = await db
       .select()
-      .from(transactions)
-      .where(and(
-        eq(transactions.type, 'platform_fee'),
-        eq(transactions.status, 'completed')
-      ));
+      .from(payments) // ✅ CORRIGIDO: transactions → payments
+      .where(eq(payments.paymentStatus, 'completed')); // ✅ CORRIGIDO: type → paymentStatus
 
-    const totalFees = platformFees.reduce((sum, t) => sum + Number(t.amount), 0);
+    const totalFees = platformFees.reduce((sum, t) => sum + Number(t.platformFee), 0); // ✅ CORRIGIDO: amount → platformFee
 
     const pendingPayouts = await db
       .select()
-      .from(transactions)
-      .where(and(
-        eq(transactions.type, 'platform_fee'),
-        eq(transactions.status, 'pending')
-      ));
+      .from(payments) // ✅ CORRIGIDO: transactions → payments
+      .where(eq(payments.paymentStatus, 'pending')); // ✅ CORRIGIDO: status → paymentStatus
 
-    const totalPendingPayouts = pendingPayouts.reduce((sum, t) => sum + Number(t.amount), 0);
+    const totalPendingPayouts = pendingPayouts.reduce((sum, t) => sum + Number(t.platformFee), 0); // ✅ CORRIGIDO: amount → platformFee
 
     return {
       totalTransactions: totalTransactions.length,
@@ -237,15 +212,15 @@ export class BillingService {
     const feeAmount = (data.totalAmount * feePercentage) / 100;
 
     // Criar transação da fee pendente
-    await db.insert(transactions).values({
+    await db.insert(payments).values({ // ✅ CORRIGIDO: transactions → payments
       bookingId: `${data.type}_${Date.now()}`,
       userId: data.clientId,
-      providerUserId: data.providerId,
-      type: 'platform_fee',
-      amount: feeAmount,
-      currency: 'MZN',
-      status: 'pending',
-      description: `Fee pendente - ${data.type} (${feePercentage}% de ${data.totalAmount} MZN)`
+      serviceType: data.type,
+      subtotal: data.totalAmount,
+      platformFee: feeAmount,
+      total: data.totalAmount,
+      paymentStatus: 'pending',
+      paymentMethod: 'platform_fee'
     });
 
     console.log(`✅ Fee criada: ${data.providerId} deve ${feeAmount} MZN à plataforma`);

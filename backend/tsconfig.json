@@ -16,12 +16,15 @@
     "paths": {
       "@shared/*": ["./shared/*"],
       "@/*": ["./src/*"]
-    }
+    },
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "types": ["express", "node"]
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
-    "shared/**/*"
+    "shared/**/*",
+    "src/types/**/*"
   ],
   "exclude": [
     "node_modules",

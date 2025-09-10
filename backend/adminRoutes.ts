@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { storage } from "./storage";
+import { type UserProfile } from "./shared/types";
 import { verifyFirebaseToken, type AuthenticatedRequest } from "./src/shared/firebaseAuth";
 
 const router = Router();
@@ -28,7 +29,7 @@ router.get("/users", verifyFirebaseToken, async (req, res) => {
     );
     
     // Apply filters to real data
-    let filteredUsers = allUsers;
+    let filteredUsers = allUsers as UserProfile[];
     
     if (search) {
       const searchTerm = (search as string).toLowerCase();
@@ -104,7 +105,7 @@ router.post("/users/:userId/actions", async (req, res) => {
     
     const adminAction = {
       id: `action-${Date.now()}`,
-      adminId: adminId || req.user?.claims?.sub,
+      adminId: adminId || (req.user as any)?.claims?.sub,
       targetUserId: userId,
       action,
       reason,

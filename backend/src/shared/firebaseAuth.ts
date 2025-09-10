@@ -84,12 +84,19 @@ export interface AuthenticatedUser {
     photoURL?: string;
     providerId: string;
   }>;
+  // ✅ ADICIONAR: claims para compatibilidade com outros ficheiros
+  claims?: {
+    sub?: string;
+    email?: string;
+    [key: string]: any;
+  };
 }
 
 // Request extended with authenticated user data
 export interface AuthenticatedRequest extends Request {
   user: AuthenticatedUser;
-  firebaseToken: FirebaseTokenClaims;
+  // ❌ REMOVER: firebaseToken não deve estar aqui pois causa incompatibilidade
+  // firebaseToken: FirebaseTokenClaims;
 }
 
 // API Error response interface
@@ -135,7 +142,7 @@ export const verifyFirebaseToken = async (
   
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     res.status(401).json(createApiError(
-      "Token de autentica\u00e7\u00e3o n\u00e3o fornecido", 
+      "Token de autenticação não fornecido", 
       "AUTH_TOKEN_MISSING"
     ));
     return;
@@ -160,7 +167,9 @@ export const verifyFirebaseToken = async (
     
     // Attach comprehensive user data to request
     const authReq = req as AuthenticatedRequest;
-    authReq.firebaseToken = decodedToken as FirebaseTokenClaims;
+    // ❌ REMOVIDO: Não atribuir firebaseToken diretamente ao request
+    // authReq.firebaseToken = decodedToken as FirebaseTokenClaims;
+    
     authReq.user = {
       uid: userRecord.uid,
       email: userRecord.email,
@@ -174,13 +183,18 @@ export const verifyFirebaseToken = async (
       },
       customClaims: userRecord.customClaims,
       providerData: userRecord.providerData,
+      // ✅ CORRIGIDO: Removida a duplicação da propriedade 'sub'
+      claims: {
+        email: decodedToken.email,
+        ...decodedToken
+      }
     };
     
     next();
   } catch (error) {
-    console.error('Erro na verifica\u00e7\u00e3o do token Firebase:', error);
+    console.error('Erro na verificação do token Firebase:', error);
     
-    let errorMessage = "Token inv\u00e1lido";
+    let errorMessage = "Token inválido";
     let errorCode = "AUTH_TOKEN_INVALID";
     
     if (error instanceof Error) {
