@@ -14,6 +14,10 @@ import geoRoutes from './geo';
 import billingRoutes from './billing';
 import chatRoutes from './chat';
 import pmsRoutes from './pms';
+
+// ===== SISTEMA DE HOTELS =====
+import hotelController from '../src/modules/hotels/hotelController'; // ← NOVA IMPORTACAO
+
 import { initializeChatService } from '../services/chatService';
 
 export async function registerRoutes(app: express.Express): Promise<void> {
@@ -33,6 +37,10 @@ export async function registerRoutes(app: express.Express): Promise<void> {
   app.use('/api/billing', billingRoutes);
   app.use('/api/chat', chatRoutes);
   app.use('/api/pms', pmsRoutes);
+
+  // ===== SISTEMA DE HOTELS =====
+  app.use('/api/hotels', hotelController); // ← NOVA ROTA ADICIONADA
+  console.log('🏨 Rotas de hotels registradas com sucesso');
 
   // Rota de estatísticas para o painel admin
   app.get('/api/admin/stats', async (req, res) => {
