@@ -75,8 +75,18 @@ function getLocationSuggestions(query: string, limit: number = 5) {
       if (aExact && !bExact) return -1;
       if (!aExact && bExact) return 1;
       
-      const typeOrder = { capital: 0, city: 1, town: 2 };
-      return typeOrder[a.type] - typeOrder[b.type];
+      // ✅ CORREÇÃO: Definir typeOrder com assinatura de índice
+      const typeOrder: Record<string, number> = {
+        capital: 0,
+        city: 1,
+        town: 2
+      };
+      
+      // ✅ CORREÇÃO: Usar fallback para tipos desconhecidos
+      const aOrder = typeOrder[a.type] ?? 3;
+      const bOrder = typeOrder[b.type] ?? 3;
+      
+      return aOrder - bOrder;
     });
   
   return matches.slice(0, limit);

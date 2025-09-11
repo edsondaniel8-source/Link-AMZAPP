@@ -13,6 +13,49 @@ import type {
   DriverStats 
 } from '../types';
 
+// Helper functions for proper type mapping
+function mapToUser(user: any): User {
+  return {
+    ...user,
+    rating: user.rating ? Number(user.rating) : 0,
+    totalReviews: user.totalReviews || 0,
+    isVerified: user.isVerified ?? false,
+    createdAt: user.createdAt || new Date(),
+    updatedAt: user.updatedAt || new Date(),
+    email: user.email || '',
+    phone: user.phone || '',
+    userType: user.userType || 'client',
+    roles: user.roles || ['client'],
+    canOfferServices: user.canOfferServices ?? false,
+    firstName: user.firstName || '',
+    lastName: user.lastName || '',
+    profileImageUrl: user.profileImageUrl || '',
+    verificationStatus: user.verificationStatus || 'pending',
+    verificationDate: user.verificationDate || null,
+    verificationNotes: user.verificationNotes || '',
+    identityDocumentUrl: user.identityDocumentUrl || '',
+    identityDocumentType: user.identityDocumentType || '',
+    profilePhotoUrl: user.profilePhotoUrl || '',
+    fullName: user.fullName || '',
+    documentNumber: user.documentNumber || '',
+    dateOfBirth: user.dateOfBirth || null,
+    registrationCompleted: user.registrationCompleted ?? false,
+    verificationBadge: user.verificationBadge || '',
+    badgeEarnedDate: user.badgeEarnedDate || null,
+    avatar: user.avatar || ''
+  } as User;
+}
+
+function mapToDriverDocuments(docs: any): DriverDocuments {
+  return {
+    ...docs,
+    createdAt: docs.createdAt || new Date(),
+    updatedAt: docs.updatedAt || new Date(),
+    isVerified: docs.isVerified ?? false,
+    vehicleYear: docs.vehicleYear || null
+  } as DriverDocuments;
+}
+
 export interface IAuthStorage {
   // Basic user operations
   getUser(id: string): Promise<User | undefined>;
@@ -57,7 +100,7 @@ export class DatabaseAuthStorage implements IAuthStorage {
   async getUser(id: string): Promise<User | undefined> {
     try {
       const [user] = await db.select().from(users).where(eq(users.id, id));
-      return user as User;
+      return user ? mapToUser(user) : undefined;
     } catch (error) {
       console.error('Error fetching user:', error);
       return undefined;
@@ -67,7 +110,7 @@ export class DatabaseAuthStorage implements IAuthStorage {
   async getUserByEmail(email: string): Promise<User | undefined> {
     try {
       const [user] = await db.select().from(users).where(eq(users.email, email));
-      return user as User;
+      return user ? mapToUser(user) : undefined;
     } catch (error) {
       console.error('Error fetching user by email:', error);
       return undefined;
@@ -84,7 +127,7 @@ export class DatabaseAuthStorage implements IAuthStorage {
           updatedAt: new Date(),
         })
         .returning();
-      return user as User;
+      return mapToUser(user);
     } catch (error) {
       console.error('Error creating user:', error);
       throw new Error('Failed to create user');
@@ -101,7 +144,7 @@ export class DatabaseAuthStorage implements IAuthStorage {
         })
         .where(eq(users.id, id))
         .returning();
-      return user as User;
+      return mapToUser(user);
     } catch (error) {
       console.error('Error updating user:', error);
       throw new Error('Failed to update user');
@@ -138,7 +181,7 @@ export class DatabaseAuthStorage implements IAuthStorage {
         .select()
         .from(users)
         .where(eq(users.userType, role));
-      return userList as User[];
+      return userList.map(mapToUser);
     } catch (error) {
       console.error('Error fetching users by role:', error);
       return [];
@@ -155,7 +198,7 @@ export class DatabaseAuthStorage implements IAuthStorage {
         })
         .where(eq(users.id, userId))
         .returning();
-      return user as User;
+      return mapToUser(user);
     } catch (error) {
       console.error('Error updating user roles:', error);
       throw new Error('Failed to update user roles');
@@ -208,7 +251,7 @@ export class DatabaseAuthStorage implements IAuthStorage {
         })
         .where(eq(users.id, userId))
         .returning();
-      return user as User;
+      return mapToUser(user);
     } catch (error) {
       console.error('Error updating verification status:', error);
       throw new Error('Failed to update verification status');
@@ -221,7 +264,7 @@ export class DatabaseAuthStorage implements IAuthStorage {
         .select()
         .from(users)
         .where(eq(users.isVerified, false));
-      return userList as User[];
+      return userList.map(mapToUser);
     } catch (error) {
       console.error('Error fetching unverified users:', error);
       return [];
@@ -237,7 +280,7 @@ export class DatabaseAuthStorage implements IAuthStorage {
           eq(users.verificationStatus, 'pending'),
           eq(users.verificationStatus, 'in_review')
         ));
-      return userList as User[];
+      return userList.map(mapToUser);
     } catch (error) {
       console.error('Error fetching pending verifications:', error);
       return [];
@@ -274,7 +317,7 @@ export class DatabaseAuthStorage implements IAuthStorage {
         .select()
         .from(driverDocuments)
         .where(eq(driverDocuments.driverId, driverId));
-      return docs as DriverDocuments;
+      return docs ? mapToDriverDocuments(docs) : undefined;
     } catch (error) {
       console.error('Error fetching driver documents:', error);
       return undefined;
@@ -313,7 +356,7 @@ export class DatabaseAuthStorage implements IAuthStorage {
           // @ts-ignore
           sql`${users.email} ILIKE ${`%${query}%`}`
         ));
-      return userList as User[];
+      return userList.map(mapToUser);
     } catch (error) {
       console.error('Error searching users:', error);
       return [];
@@ -336,7 +379,7 @@ export class DatabaseAuthStorage implements IAuthStorage {
         .from(users);
       
       return {
-        users: userList as User[],
+        users: userList.map(mapToUser),
         total: Number(count),
       };
     } catch (error) {
@@ -359,7 +402,7 @@ export class DatabaseAuthStorage implements IAuthStorage {
           })
           .where(eq(users.id, userData.id))
           .returning();
-        return user as User;
+        return mapToUser(user);
       } else {
         // Create new user
         return this.createUser(userData);
@@ -378,7 +421,7 @@ export class DatabaseAuthStorage implements IAuthStorage {
         .where(eq(users.userType, userType))
         .orderBy(desc(users.createdAt));
       
-      return userList as User[];
+      return userList.map(mapToUser);
     } catch (error) {
       console.error('Error fetching users by type:', error);
       return [];

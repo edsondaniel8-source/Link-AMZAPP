@@ -10,6 +10,41 @@ import {
   User 
 } from '../types';
 
+// Helper functions for proper type mapping
+function mapToRide(ride: any, driver?: any): Ride {
+  return {
+    ...ride,
+    pricePerSeat: ride.pricePerSeat ? Number(ride.pricePerSeat) : 0,
+    availableSeats: ride.availableSeats || 0,
+    createdAt: ride.createdAt || new Date(),
+    updatedAt: ride.updatedAt || new Date(),
+    departureDate: ride.departureDate || new Date(),
+    status: ride.status || 'active',
+    vehicleType: ride.vehicleType || '',
+    additionalInfo: ride.additionalInfo || '',
+    driver: driver ? mapToUser(driver) : null
+  } as Ride;
+}
+
+function mapToUser(user: any): User {
+  return {
+    ...user,
+    rating: user.rating ? Number(user.rating) : 0,
+    totalReviews: user.totalReviews || 0,
+    isVerified: user.isVerified ?? false,
+    createdAt: user.createdAt || new Date(),
+    updatedAt: user.updatedAt || new Date(),
+    email: user.email || '',
+    phone: user.phone || '',
+    userType: user.userType || 'driver',
+    roles: user.roles || ['driver'],
+    canOfferServices: user.canOfferServices ?? true,
+    firstName: user.firstName || '',
+    lastName: user.lastName || '',
+    profileImageUrl: user.profileImageUrl || ''
+  } as User;
+}
+
 export interface IRideStorage {
   // Ride management
   createRide(rideData: CreateRideData): Promise<Ride>;
@@ -56,7 +91,7 @@ export class DatabaseRideStorage implements IRideStorage {
         })
         .returning();
       
-      return ride as Ride;
+      return mapToRide(ride);
     } catch (error) {
       console.error('Error creating ride:', error);
       throw new Error('Failed to create ride');
@@ -76,7 +111,7 @@ export class DatabaseRideStorage implements IRideStorage {
         .where(eq(rides.id, rideId))
         .returning();
       
-      return ride as Ride;
+      return mapToRide(ride);
     } catch (error) {
       console.error('Error updating ride:', error);
       throw new Error('Failed to update ride');
@@ -94,40 +129,19 @@ export class DatabaseRideStorage implements IRideStorage {
 
   async getRide(rideId: string): Promise<Ride | undefined> {
     try {
-      const [ride] = await db
+      const result = await db
         .select({
-          id: rides.id,
-          driverId: rides.driverId,
-          fromLocation: rides.fromLocation,
-          toLocation: rides.toLocation,
-          departureDate: rides.departureDate,
-          departureTime: rides.departureTime,
-          availableSeats: rides.availableSeats,
-          pricePerSeat: rides.pricePerSeat,
-          vehicleType: rides.vehicleType,
-          additionalInfo: rides.additionalInfo,
-          status: rides.status,
-          createdAt: rides.createdAt,
-          updatedAt: sql`NULL`,
-          // Driver information
-          driver: {
-            id: users.id,
-            firstName: users.firstName,
-            lastName: users.lastName,
-            profileImageUrl: users.profileImageUrl,
-            rating: users.rating,
-            totalReviews: users.totalReviews,
-            isVerified: users.isVerified,
-          },
+          ride: rides,
+          driver: users
         })
         .from(rides)
         .leftJoin(users, eq(rides.driverId, users.id))
         .where(eq(rides.id, rideId));
       
-      return ride ? {
-        ...ride,
-        driver: ride.driver as User,
-      } as Ride : undefined;
+      if (result.length === 0) return undefined;
+      
+      const { ride, driver } = result[0];
+      return mapToRide(ride, driver);
     } catch (error) {
       console.error('Error fetching ride:', error);
       return undefined;
@@ -140,28 +154,8 @@ export class DatabaseRideStorage implements IRideStorage {
     try {
       let query = db
         .select({
-          id: rides.id,
-          driverId: rides.driverId,
-          fromLocation: rides.fromLocation,
-          toLocation: rides.toLocation,
-          departureDate: rides.departureDate,
-          departureTime: rides.departureTime,
-          availableSeats: rides.availableSeats,
-          pricePerSeat: rides.pricePerSeat,
-          vehicleType: rides.vehicleType,
-          additionalInfo: rides.additionalInfo,
-          status: rides.status,
-          createdAt: rides.createdAt,
-          updatedAt: sql`NULL`,
-          driver: {
-            id: users.id,
-            firstName: users.firstName,
-            lastName: users.lastName,
-            profileImageUrl: users.profileImageUrl,
-            rating: users.rating,
-            totalReviews: users.totalReviews,
-            isVerified: users.isVerified,
-          },
+          ride: rides,
+          driver: users
         })
         .from(rides)
         .leftJoin(users, eq(rides.driverId, users.id));
@@ -192,15 +186,12 @@ export class DatabaseRideStorage implements IRideStorage {
         conditions.push(eq(rides.driverId, criteria.driverId));
       }
 
-      const rideList = await query
+      const results = await query
         .where(and(...conditions))
         .orderBy(desc(rides.departureDate))
         .limit(50);
 
-      return rideList.map(ride => ({
-        ...ride,
-        driver: ride.driver as User,
-      })) as Ride[];
+      return results.map(({ ride, driver }) => mapToRide(ride, driver));
     } catch (error) {
       console.error('Error searching rides:', error);
       return [];
@@ -215,7 +206,7 @@ export class DatabaseRideStorage implements IRideStorage {
         .where(eq(rides.driverId, driverId))
         .orderBy(desc(rides.departureDate));
       
-      return rideList as Ride[];
+      return rideList.map(ride => mapToRide(ride));
     } catch (error) {
       console.error('Error fetching rides by driver:', error);
       return [];
@@ -224,30 +215,10 @@ export class DatabaseRideStorage implements IRideStorage {
 
   async getActiveRides(): Promise<Ride[]> {
     try {
-      const rideList = await db
+      const results = await db
         .select({
-          id: rides.id,
-          driverId: rides.driverId,
-          fromLocation: rides.fromLocation,
-          toLocation: rides.toLocation,
-          departureDate: rides.departureDate,
-          departureTime: rides.departureTime,
-          availableSeats: rides.availableSeats,
-          pricePerSeat: rides.pricePerSeat,
-          vehicleType: rides.vehicleType,
-          additionalInfo: rides.additionalInfo,
-          status: rides.status,
-          createdAt: rides.createdAt,
-          updatedAt: sql`NULL`,
-          driver: {
-            id: users.id,
-            firstName: users.firstName,
-            lastName: users.lastName,
-            profileImageUrl: users.profileImageUrl,
-            rating: users.rating,
-            totalReviews: users.totalReviews,
-            isVerified: users.isVerified,
-          },
+          ride: rides,
+          driver: users
         })
         .from(rides)
         .leftJoin(users, eq(rides.driverId, users.id))
@@ -258,10 +229,7 @@ export class DatabaseRideStorage implements IRideStorage {
         .orderBy(desc(rides.departureDate))
         .limit(100);
 
-      return rideList.map(ride => ({
-        ...ride,
-        driver: ride.driver as User,
-      })) as Ride[];
+      return results.map(({ ride, driver }) => mapToRide(ride, driver));
     } catch (error) {
       console.error('Error fetching active rides:', error);
       return [];
@@ -362,7 +330,7 @@ export class DatabaseRideStorage implements IRideStorage {
         .orderBy(desc(rides.departureDate))
         .limit(limit);
       
-      return rideList as Ride[];
+      return rideList.map(ride => mapToRide(ride));
     } catch (error) {
       console.error('Error fetching driver ride history:', error);
       return [];

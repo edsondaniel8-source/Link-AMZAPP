@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { storage } from "../../../storage";
 // import { insertUserSchema } from "../../shared/storage";
-import { verifyFirebaseToken, type AuthenticatedRequest } from "../../shared/types";
+import { verifyFirebaseToken, type AuthenticatedRequest } from "../../../src/shared/firebaseAuth";
 import { z } from "zod";
 
 const router = Router();

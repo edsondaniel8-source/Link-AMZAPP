@@ -18,6 +18,7 @@ export interface Partnership {
     discountRate?: number;
     commissionRate?: number;
     minimumRequirements?: any;
+    description?: string; // ✅ ADICIONADO: Campo para descrição
   };
   metrics: {
     totalTransactions: number;
@@ -33,6 +34,12 @@ export interface CreatePartnershipData {
   providerId: string;
   partnerId?: string;
   terms: Partnership['terms'];
+  status?: Partnership['status']; // ✅ ADICIONADO: Status opcional
+  metrics?: { // ✅ ADICIONADO: Metrics opcional
+    totalTransactions?: number;
+    totalSavings?: number;
+    totalCommissions?: number;
+  };
 }
 
 export interface PartnershipMetrics {
@@ -57,12 +64,12 @@ class InMemoryPartnershipStorage {
       type: data.type,
       providerId: data.providerId,
       partnerId: data.partnerId,
-      status: 'active',
+      status: data.status || 'active', // ✅ Usar status fornecido ou padrão
       terms: data.terms,
       metrics: {
-        totalTransactions: 0,
-        totalSavings: 0,
-        totalCommissions: 0,
+        totalTransactions: data.metrics?.totalTransactions || 0,
+        totalSavings: data.metrics?.totalSavings || 0,
+        totalCommissions: data.metrics?.totalCommissions || 0,
       },
       createdAt: new Date(),
       updatedAt: new Date(),

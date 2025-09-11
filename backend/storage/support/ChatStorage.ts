@@ -1,6 +1,6 @@
 import { eq, and, or, desc, sql } from 'drizzle-orm';
 import { db } from '../../db';
-import { chatMessages, users } from '../../shared/schema';
+import { chatMessages, chatRooms, users } from '../../shared/schema';
 import { 
   MessageType 
 } from '../../src/shared/types';
@@ -48,11 +48,15 @@ export class DatabaseChatStorage implements IChatStorage {
   
   async sendMessage(fromUserId: string, toUserId: string, messageData: MessageData, bookingId?: string): Promise<Message> {
     try {
+      // Primeiro, precisamos obter ou criar um chatRoomId
+      const chatRoom = await this.getOrCreateChatRoom(fromUserId, toUserId, bookingId);
+      
       const [message] = await db
         .insert(chatMessages)
         .values({
-          fromUserId,
-          toUserId,
+          chatRoomId: chatRoom.id, // ✅ AGORA OBRIGATÓRIO
+          fromUserId: fromUserId,
+          toUserId: toUserId,
           message: messageData.message,
           messageType: messageData.messageType || 'text',
           bookingId: bookingId || null,
@@ -62,7 +66,7 @@ export class DatabaseChatStorage implements IChatStorage {
       
       return {
         id: message.id,
-        chatRoomId: `${fromUserId}-${toUserId}`, // Simulated chat room ID
+        chatRoomId: message.chatRoomId!,
         senderId: message.fromUserId!,
         message: message.message,
         messageType: (message.messageType as MessageType) || 'text',
@@ -180,7 +184,7 @@ export class DatabaseChatStorage implements IChatStorage {
             toUserId: otherUserId,
             bookingId: conv.bookingId || undefined,
             lastMessage: conv.lastMessage,
-            lastMessageAt: conv.lastMessageAt,
+            lastMessageAt: conv.lastMessageAt || undefined,
             isActive: true,
           });
         }
@@ -195,13 +199,55 @@ export class DatabaseChatStorage implements IChatStorage {
 
   async getOrCreateChatRoom(fromUserId: string, toUserId: string, bookingId?: string): Promise<SimpleChatRoom> {
     try {
-      // Simulate chat room creation
+      // Verificar se já existe um chat room
+      const existingRoom = await db
+        .select()
+        .from(chatRooms)
+        .where(and(
+          or(
+            and(
+              eq(chatRooms.participantOneId, fromUserId),
+              eq(chatRooms.participantTwoId, toUserId)
+            ),
+            and(
+              eq(chatRooms.participantOneId, toUserId),
+              eq(chatRooms.participantTwoId, fromUserId)
+            )
+          ),
+          bookingId ? eq(chatRooms.bookingId, bookingId) : sql`1=1`
+        ))
+        .limit(1);
+
+      if (existingRoom[0]) {
+        return {
+          id: existingRoom[0].id,
+          fromUserId: existingRoom[0].participantOneId,
+          toUserId: existingRoom[0].participantTwoId,
+          bookingId: existingRoom[0].bookingId || undefined,
+          lastMessage: existingRoom[0].lastMessage || undefined,
+          lastMessageAt: existingRoom[0].lastMessageAt || undefined,
+          isActive: existingRoom[0].isActive ?? false, // ✅ CORRIGIDO: usando operador ??
+        };
+      }
+
+      // Criar novo chat room
+      const [newRoom] = await db
+        .insert(chatRooms)
+        .values({
+          participantOneId: fromUserId,
+          participantTwoId: toUserId,
+          bookingId: bookingId || null,
+          serviceType: bookingId ? 'booking' : 'general',
+          isActive: true,
+        })
+        .returning();
+
       return {
-        id: `${fromUserId}-${toUserId}-${bookingId || 'general'}`,
-        fromUserId,
-        toUserId,
-        bookingId,
-        isActive: true,
+        id: newRoom.id,
+        fromUserId: newRoom.participantOneId,
+        toUserId: newRoom.participantTwoId,
+        bookingId: newRoom.bookingId || undefined,
+        isActive: newRoom.isActive ?? false, // ✅ CORRIGIDO: usando operador ??
       };
     } catch (error) {
       console.error('Error creating chat room:', error);

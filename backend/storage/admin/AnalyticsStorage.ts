@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, desc, sql } from 'drizzle-orm';
+import { eq, and, gte, lte, desc, sql, count, sum } from 'drizzle-orm';
 import { db } from '../../db';
 import { users, rides, accommodations, bookings, ratings } from '../../shared/schema';
 import { 
@@ -53,7 +53,6 @@ export interface IAnalyticsStorage {
     revenueGrowthRate: number;
   }>;
 }
-
 export class DatabaseAnalyticsStorage implements IAnalyticsStorage {
   
   // ===== USER ANALYTICS =====
@@ -67,48 +66,44 @@ export class DatabaseAnalyticsStorage implements IAnalyticsStorage {
   }> {
     try {
       // Total users
-      const [totalUsers] = await db
-        .select({ count: sql`count(*)` })
+      const totalUsersResult = await db
+        .select({ count: count() })
         .from(users);
+      const totalUsers = totalUsersResult[0]?.count || 0;
 
       // Verified users
-      const [verifiedUsers] = await db
-        .select({ count: sql`count(*)` })
+      const verifiedUsersResult = await db
+        .select({ count: count() })
         .from(users)
         .where(eq(users.isVerified, true));
+      const verifiedUsers = verifiedUsersResult[0]?.count || 0;
 
       // New registrations in date range
-      let newRegistrationsQuery = db
-        .select({ count: sql`count(*)` })
-        .from(users);
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const startDate = dateRange?.from || thirtyDaysAgo;
+      const endDate = dateRange?.to || new Date();
 
-      if (dateRange) {
-        newRegistrationsQuery = newRegistrationsQuery.where(and(
-          gte(users.createdAt, dateRange.from),
-          lte(users.createdAt, dateRange.to)
+      const newRegistrationsResult = await db
+        .select({ count: count() })
+        .from(users)
+        .where(and(
+          gte(users.createdAt, startDate),
+          lte(users.createdAt, endDate)
         ));
-      } else {
-        // Default to last 30 days
-        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-        newRegistrationsQuery = newRegistrationsQuery.where(
-          gte(users.createdAt, thirtyDaysAgo)
-        );
-      }
-
-      const [newRegistrations] = await newRegistrationsQuery;
+      const newRegistrations = newRegistrationsResult[0]?.count || 0;
 
       // Active users (users with bookings in the last 30 days)
-      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-      const [activeUsers] = await db
-        .select({ count: sql`count(DISTINCT ${bookings.passengerId})` })
+      const activeUsersResult = await db
+        .select({ count: count(bookings.passengerId) })
         .from(bookings)
         .where(gte(bookings.createdAt, thirtyDaysAgo));
+      const activeUsers = activeUsersResult[0]?.count || 0;
 
       // Users by role
       const roleData = await db
         .select({
           userType: users.userType,
-          count: sql`count(*)`,
+          count: count(),
         })
         .from(users)
         .groupBy(users.userType);
@@ -121,10 +116,10 @@ export class DatabaseAnalyticsStorage implements IAnalyticsStorage {
       });
 
       return {
-        totalUsers: Number(totalUsers.count),
-        activeUsers: Number(activeUsers.count),
-        newRegistrations: Number(newRegistrations.count),
-        verifiedUsers: Number(verifiedUsers.count),
+        totalUsers: Number(totalUsers),
+        activeUsers: Number(activeUsers),
+        newRegistrations: Number(newRegistrations),
+        verifiedUsers: Number(verifiedUsers),
         usersByRole,
       };
     } catch (error) {
@@ -150,48 +145,50 @@ export class DatabaseAnalyticsStorage implements IAnalyticsStorage {
   }> {
     try {
       // Total rides
-      const [totalRides] = await db
-        .select({ count: sql`count(*)` })
+      const totalRidesResult = await db
+        .select({ count: count() })
         .from(rides);
+      const totalRides = totalRidesResult[0]?.count || 0;
 
       // Total accommodations
-      const [totalAccommodations] = await db
-        .select({ count: sql`count(*)` })
+      const totalAccommodationsResult = await db
+        .select({ count: count() })
         .from(accommodations);
+      const totalAccommodations = totalAccommodationsResult[0]?.count || 0;
 
-      // Total bookings
-      let bookingsQuery = db
+      // Total bookings and revenue
+      const startDate = dateRange?.from || new Date(0);
+      const endDate = dateRange?.to || new Date();
+
+      const bookingDataResult = await db
         .select({ 
-          count: sql`count(*)`,
-          revenue: sql`SUM(CAST(${bookings.totalPrice} AS DECIMAL))`,
+          count: count(),
+          revenue: sum(bookings.totalPrice).as('revenue'),
         })
-        .from(bookings);
-
-      if (dateRange) {
-        bookingsQuery = bookingsQuery.where(and(
-          gte(bookings.createdAt, dateRange.from),
-          lte(bookings.createdAt, dateRange.to)
+        .from(bookings)
+        .where(and(
+          gte(bookings.createdAt, startDate),
+          lte(bookings.createdAt, endDate)
         ));
-      }
-
-      const [bookingData] = await bookingsQuery;
+      const bookingData = bookingDataResult[0] || { count: 0, revenue: 0 };
 
       // Calculate conversion rate (bookings vs rides created)
-      const [rideViews] = await db
-        .select({ count: sql`count(*)` })
+      const rideViewsResult = await db
+        .select({ count: count() })
         .from(rides)
-        .where(dateRange ? and(
-          gte(rides.createdAt, dateRange.from),
-          lte(rides.createdAt, dateRange.to)
-        ) : sql`1=1`);
+        .where(and(
+          gte(rides.createdAt, startDate),
+          lte(rides.createdAt, endDate)
+        ));
+      const rideViews = rideViewsResult[0]?.count || 0;
 
-      const conversionRate = Number(rideViews.count) > 0 
-        ? (Number(bookingData.count) / Number(rideViews.count)) * 100 
+      const conversionRate = rideViews > 0 
+        ? (Number(bookingData.count) / Number(rideViews)) * 100 
         : 0;
 
       return {
-        totalRides: Number(totalRides.count),
-        totalAccommodations: Number(totalAccommodations.count),
+        totalRides: Number(totalRides),
+        totalAccommodations: Number(totalAccommodations),
         totalBookings: Number(bookingData.count),
         totalRevenue: Number(bookingData.revenue) || 0,
         conversionRate: Math.round(conversionRate * 100) / 100,
@@ -217,7 +214,6 @@ export class DatabaseAnalyticsStorage implements IAnalyticsStorage {
   }> {
     try {
       // These would typically come from monitoring systems
-      // For now, return mock data
       return {
         averageResponseTime: 150, // ms
         systemUptime: 99.9, // percentage
@@ -244,30 +240,30 @@ export class DatabaseAnalyticsStorage implements IAnalyticsStorage {
       const topCities = await db
         .select({
           city: rides.fromLocation,
-          count: sql`count(*)`,
+          count: count(),
         })
         .from(rides)
         .groupBy(rides.fromLocation)
-        .orderBy(desc(sql`count(*)`))
+        .orderBy(desc(count()))
         .limit(10);
 
       // Rides by location
       const ridesByLocation = await db
         .select({
           location: rides.fromLocation,
-          rides: sql`count(*)`,
+          rides: count(),
         })
         .from(rides)
         .groupBy(rides.fromLocation)
-        .orderBy(desc(sql`count(*)`));
+        .orderBy(desc(count()));
 
       return {
         topCities: topCities.map(item => ({
-          city: item.city,
+          city: item.city || 'Unknown',
           count: Number(item.count),
         })),
         ridesByLocation: ridesByLocation.map(item => ({
-          location: item.location,
+          location: item.location || 'Unknown',
           rides: Number(item.rides),
         })),
       };
@@ -289,18 +285,19 @@ export class DatabaseAnalyticsStorage implements IAnalyticsStorage {
   }> {
     try {
       // Total revenue in period
-      const [totalRevenue] = await db
-        .select({ revenue: sql`SUM(CAST(${bookings.totalPrice} AS DECIMAL))` })
+      const totalRevenueResult = await db
+        .select({ revenue: sum(bookings.totalPrice).as('revenue') })
         .from(bookings)
         .where(and(
           eq(bookings.status, 'completed'),
           gte(bookings.createdAt, period.startDate),
           lte(bookings.createdAt, period.endDate)
         ));
+      const totalRevenue = totalRevenueResult[0]?.revenue || 0;
 
-      // Revenue by service (for now, all bookings are rides)
+      // Revenue by service
       const revenueByService = {
-        rides: Number(totalRevenue.revenue) || 0,
+        rides: Number(totalRevenue) || 0,
         accommodations: 0,
         events: 0,
       };
@@ -313,8 +310,8 @@ export class DatabaseAnalyticsStorage implements IAnalyticsStorage {
         const startOfMonth = new Date(month.getFullYear(), month.getMonth(), 1);
         const endOfMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0);
 
-        const [monthRevenue] = await db
-          .select({ revenue: sql`SUM(CAST(${bookings.totalPrice} AS DECIMAL))` })
+        const monthRevenueResult = await db
+          .select({ revenue: sum(bookings.totalPrice).as('revenue') })
           .from(bookings)
           .where(and(
             eq(bookings.status, 'completed'),
@@ -322,14 +319,16 @@ export class DatabaseAnalyticsStorage implements IAnalyticsStorage {
             lte(bookings.createdAt, endOfMonth)
           ));
 
+        const monthRevenue = monthRevenueResult[0]?.revenue || 0;
+
         monthlyTrend.push({
           month: `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, '0')}`,
-          revenue: Number(monthRevenue.revenue) || 0,
+          revenue: Number(monthRevenue),
         });
       }
 
       return {
-        totalRevenue: Number(totalRevenue.revenue) || 0,
+        totalRevenue: Number(totalRevenue),
         revenueByService,
         monthlyTrend,
       };
@@ -353,71 +352,77 @@ export class DatabaseAnalyticsStorage implements IAnalyticsStorage {
     try {
       const periodDays = Math.ceil((period.endDate.getTime() - period.startDate.getTime()) / (1000 * 60 * 60 * 24));
       const previousPeriodStart = new Date(period.startDate.getTime() - periodDays * 24 * 60 * 60 * 1000);
-      const previousPeriodEnd = period.startDate;
+      const previousPeriodEnd = new Date(period.startDate.getTime() - 1);
 
       // User growth
-      const [currentUsers] = await db
-        .select({ count: sql`count(*)` })
+      const currentUsersResult = await db
+        .select({ count: count() })
         .from(users)
         .where(and(
           gte(users.createdAt, period.startDate),
           lte(users.createdAt, period.endDate)
         ));
+      const currentUsers = currentUsersResult[0]?.count || 0;
 
-      const [previousUsers] = await db
-        .select({ count: sql`count(*)` })
+      const previousUsersResult = await db
+        .select({ count: count() })
         .from(users)
         .where(and(
           gte(users.createdAt, previousPeriodStart),
           lte(users.createdAt, previousPeriodEnd)
         ));
+      const previousUsers = previousUsersResult[0]?.count || 0;
 
-      const userGrowthRate = Number(previousUsers.count) > 0
-        ? ((Number(currentUsers.count) - Number(previousUsers.count)) / Number(previousUsers.count)) * 100
+      const userGrowthRate = previousUsers > 0
+        ? ((Number(currentUsers) - Number(previousUsers)) / Number(previousUsers)) * 100
         : 0;
 
       // Booking growth
-      const [currentBookings] = await db
-        .select({ count: sql`count(*)` })
+      const currentBookingsResult = await db
+        .select({ count: count() })
         .from(bookings)
         .where(and(
           gte(bookings.createdAt, period.startDate),
           lte(bookings.createdAt, period.endDate)
         ));
+      const currentBookings = currentBookingsResult[0]?.count || 0;
 
-      const [previousBookings] = await db
-        .select({ count: sql`count(*)` })
+      const previousBookingsResult = await db
+        .select({ count: count() })
         .from(bookings)
         .where(and(
           gte(bookings.createdAt, previousPeriodStart),
           lte(bookings.createdAt, previousPeriodEnd)
         ));
+      const previousBookings = previousBookingsResult[0]?.count || 0;
 
-      const bookingGrowthRate = Number(previousBookings.count) > 0
-        ? ((Number(currentBookings.count) - Number(previousBookings.count)) / Number(previousBookings.count)) * 100
+      const bookingGrowthRate = previousBookings > 0
+        ? ((Number(currentBookings) - Number(previousBookings)) / Number(previousBookings)) * 100
         : 0;
 
       // Revenue growth
-      const [currentRevenue] = await db
-        .select({ revenue: sql`SUM(CAST(${bookings.totalPrice} AS DECIMAL))` })
+      const currentRevenueResult = await db
+        .select({ revenue: sum(bookings.totalPrice).as('revenue') })
         .from(bookings)
         .where(and(
           eq(bookings.status, 'completed'),
           gte(bookings.createdAt, period.startDate),
           lte(bookings.createdAt, period.endDate)
         ));
+      const currentRevenue = currentRevenueResult[0]?.revenue || 0;
 
-      const [previousRevenue] = await db
-        .select({ revenue: sql`SUM(CAST(${bookings.totalPrice} AS DECIMAL))` })
+      const previousRevenueResult = await db
+        .select({ revenue: sum(bookings.totalPrice).as('revenue') })
         .from(bookings)
         .where(and(
           eq(bookings.status, 'completed'),
           gte(bookings.createdAt, previousPeriodStart),
           lte(bookings.createdAt, previousPeriodEnd)
         ));
+      const previousRevenue = previousRevenueResult[0]?.revenue || 0;
 
-      const revenueGrowthRate = Number(previousRevenue.revenue) > 0
-        ? ((Number(currentRevenue.revenue) - Number(previousRevenue.revenue)) / Number(previousRevenue.revenue)) * 100
+      const revenueGrowthRate = Number(previousRevenue) > 0
+        ? ((Number(currentRevenue) - Number(previousRevenue)) / Number(previousRevenue)) * 100
         : 0;
 
       return {
@@ -444,8 +449,18 @@ export class DatabaseAnalyticsStorage implements IAnalyticsStorage {
       const performanceMetrics = await this.getPerformanceMetrics();
 
       return {
-        userMetrics,
-        businessMetrics,
+        userMetrics: {
+          totalUsers: userMetrics.totalUsers,
+          activeUsers: userMetrics.activeUsers,
+          newRegistrations: userMetrics.newRegistrations,
+          verifiedUsers: userMetrics.verifiedUsers,
+        },
+        businessMetrics: {
+          totalRides: businessMetrics.totalRides,
+          totalAccommodations: businessMetrics.totalAccommodations,
+          totalBookings: businessMetrics.totalBookings,
+          totalRevenue: businessMetrics.totalRevenue,
+        },
         performanceMetrics,
       };
     } catch (error) {
@@ -471,7 +486,6 @@ export class DatabaseAnalyticsStorage implements IAnalyticsStorage {
       };
     }
   }
-
   // ===== UTILITY METHODS =====
   
   private getMonthsBetween(startDate: Date, endDate: Date): Date[] {
@@ -491,12 +505,12 @@ export class DatabaseAnalyticsStorage implements IAnalyticsStorage {
     try {
       const routes = await db
         .select({
-          route: sql`${rides.fromLocation} || ' → ' || ${rides.toLocation}`,
-          count: sql`count(*)`,
+          route: sql`${rides.fromLocation} || ' → ' || ${rides.toLocation}`.as('route'),
+          count: count(),
         })
         .from(rides)
         .groupBy(rides.fromLocation, rides.toLocation)
-        .orderBy(desc(sql`count(*)`))
+        .orderBy(desc(count()))
         .limit(limit);
 
       return routes.map(item => ({
@@ -514,23 +528,25 @@ export class DatabaseAnalyticsStorage implements IAnalyticsStorage {
       const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
       
       // Users who registered in the period
-      const [newUsers] = await db
-        .select({ count: sql`count(*)` })
+      const newUsersResult = await db
+        .select({ count: count() })
         .from(users)
         .where(gte(users.createdAt, startDate));
+      const newUsers = newUsersResult[0]?.count || 0;
 
       // Users who made a booking after registration
-      const [activeUsers] = await db
-        .select({ count: sql`count(DISTINCT ${users.id})` })
+      const activeUsersResult = await db
+        .select({ count: count() })
         .from(users)
-        .leftJoin(bookings, eq(users.id, bookings.passengerId))
+        .innerJoin(bookings, eq(users.id, bookings.passengerId))
         .where(and(
           gte(users.createdAt, startDate),
-          sql`${bookings.createdAt} > ${users.createdAt}`
+          gte(bookings.createdAt, users.createdAt)
         ));
+      const activeUsers = activeUsersResult[0]?.count || 0;
 
-      return Number(newUsers.count) > 0
-        ? (Number(activeUsers.count) / Number(newUsers.count)) * 100
+      return newUsers > 0
+        ? (Number(activeUsers) / Number(newUsers)) * 100
         : 0;
     } catch (error) {
       console.error('Error calculating user retention rate:', error);

@@ -16,5 +16,6 @@ console.log('🔧 [DB DEBUG] DATABASE_URL configurada:', process.env.DATABASE_UR
 console.log('🔧 [DB DEBUG] DATABASE_URL (mascarada):', process.env.DATABASE_URL?.replace(/:[^:@]*@/, ':***@'));
 console.log('🔧 [DB DEBUG] Tentando conectar ao banco...');
 
+// CORREÇÃO: Use o Pool corretamente
 export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-export const db = drizzle({ client: pool, schema });
+export const db = drizzle(pool, { schema });

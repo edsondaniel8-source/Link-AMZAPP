@@ -1,10 +1,13 @@
 import {
   users,
-  type User,
-  type UpsertUser,
 } from "@shared/schema";
 import { db } from "../../db";
 import { eq } from "drizzle-orm";
+import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
+
+// Use os tipos inferidos do Drizzle ORM
+type User = InferSelectModel<typeof users>;
+type UpsertUser = InferInsertModel<typeof users>;
 
 // Interface for authentication storage operations
 export interface IAuthStorage {
@@ -17,13 +20,13 @@ export interface IAuthStorage {
 export class DatabaseAuthStorage implements IAuthStorage {
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
+    return user as User | undefined;
   }
 
   async getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined> {
     // Note: Using id field as Firebase UID for now
     const [user] = await db.select().from(users).where(eq(users.id, firebaseUid));
-    return user;
+    return user as User | undefined;
   }
 
   async createUser(userData: any): Promise<User> {
@@ -31,7 +34,7 @@ export class DatabaseAuthStorage implements IAuthStorage {
       .insert(users)
       .values(userData)
       .returning();
-    return user;
+    return user as User;
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
@@ -46,7 +49,7 @@ export class DatabaseAuthStorage implements IAuthStorage {
         },
       })
       .returning();
-    return user;
+    return user as User;
   }
 }
 

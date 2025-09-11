@@ -33,7 +33,7 @@ class InMemoryBillingStorage {
       id: this.generateId('fee'),
       bookingId,
       type: feeData.type as any,
-      amount: feeData.amount.toString(),
+      amount: Number(feeData.amount), // CORRIGIDO: number em vez de string
       percentage: feeData.percentage,
       description: feeData.description,
       createdAt: new Date(),
@@ -48,8 +48,8 @@ class InMemoryBillingStorage {
     const payment: Payment = {
       id: this.generateId('pay'),
       bookingId,
-      amount: paymentData.amount.toString(),
-      currency: paymentData.currency,
+      amount: Number(paymentData.amount), // CORRIGIDO: number em vez de string
+      currency: paymentData.currency || 'MZN', // CORRIGIDO: valor padrão MZN
       status: 'completed',
       method: paymentData.method,
       createdAt: new Date(),
@@ -62,8 +62,8 @@ class InMemoryBillingStorage {
     const transaction: Transaction = {
       id: this.generateId('txn'),
       type: 'payment',
-      amount: paymentData.amount,
-      currency: paymentData.currency,
+      amount: Number(paymentData.amount), // CORRIGIDO: garantir que é number
+      currency: paymentData.currency || 'MZN', // CORRIGIDO: valor padrão MZN
       status: 'completed',
       userId: 'user_id', // Would get from booking
       bookingId,
@@ -197,7 +197,7 @@ export class DatabaseBillingStorage implements IBillingStorage {
       const paymentData: PaymentData = {
         method: paymentMethod,
         amount: Number(booking.totalPrice),
-        currency: 'MZN',
+        currency: 'MZN', // Moeda padrão: Meticais
         description: `Payment for booking ${bookingId}`,
       };
 

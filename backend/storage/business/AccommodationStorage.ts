@@ -10,6 +10,51 @@ import {
   User 
 } from '../types';
 
+// Helper function for proper type mapping
+function mapToAccommodation(accommodation: any, host?: any): Accommodation {
+  return {
+    ...accommodation,
+    createdAt: accommodation.createdAt || new Date(),
+    updatedAt: accommodation.updatedAt || new Date(),
+    rating: accommodation.rating ? Number(accommodation.rating) : 0,
+    reviewCount: accommodation.reviewCount || 0,
+    pricePerNight: accommodation.pricePerNight ? Number(accommodation.pricePerNight) : 0,
+    distanceFromCenter: accommodation.distanceFromCenter ? Number(accommodation.distanceFromCenter) : 0,
+    lat: accommodation.lat ? Number(accommodation.lat) : null,
+    lng: accommodation.lng ? Number(accommodation.lng) : null,
+    images: accommodation.images || [],
+    amenities: accommodation.amenities || [],
+    isAvailable: accommodation.isAvailable ?? true,
+    offerDriverDiscounts: accommodation.offerDriverDiscounts ?? false,
+    driverDiscountRate: accommodation.driverDiscountRate ? Number(accommodation.driverDiscountRate) : 0,
+    minimumDriverLevel: accommodation.minimumDriverLevel || 'bronze',
+    partnershipBadgeVisible: accommodation.partnershipBadgeVisible ?? false,
+    host: host ? {
+      ...host,
+      rating: host.rating ? Number(host.rating) : 0,
+      totalReviews: host.totalReviews || 0,
+      isVerified: host.isVerified ?? false
+    } as User : null
+  } as Accommodation;
+}
+
+function mapToUser(user: any): User {
+  return {
+    ...user,
+    rating: user.rating ? Number(user.rating) : 0,
+    totalReviews: user.totalReviews || 0,
+    isVerified: user.isVerified ?? false,
+    createdAt: user.createdAt || new Date(),
+    updatedAt: user.updatedAt || new Date(),
+    // Add other required User fields with defaults
+    email: user.email || '',
+    phone: user.phone || '',
+    userType: user.userType || 'client',
+    roles: user.roles || ['client'],
+    canOfferServices: user.canOfferServices ?? false
+  } as User;
+}
+
 export interface IAccommodationStorage {
   // Accommodation management
   createAccommodation(data: CreateAccommodationData): Promise<Accommodation>;
@@ -66,7 +111,7 @@ export class DatabaseAccommodationStorage implements IAccommodationStorage {
         })
         .returning();
       
-      return accommodation as Accommodation;
+      return mapToAccommodation(accommodation);
     } catch (error) {
       console.error('Error creating accommodation:', error);
       throw new Error('Failed to create accommodation');
@@ -90,7 +135,7 @@ export class DatabaseAccommodationStorage implements IAccommodationStorage {
         .where(eq(accommodations.id, id))
         .returning();
       
-      return accommodation as Accommodation;
+      return mapToAccommodation(accommodation);
     } catch (error) {
       console.error('Error updating accommodation:', error);
       throw new Error('Failed to update accommodation');
@@ -108,48 +153,19 @@ export class DatabaseAccommodationStorage implements IAccommodationStorage {
 
   async getAccommodation(id: string): Promise<Accommodation | undefined> {
     try {
-      const [accommodation] = await db
+      const result = await db
         .select({
-          id: accommodations.id,
-          name: accommodations.name,
-          type: accommodations.type,
-          hostId: accommodations.hostId,
-          address: accommodations.address,
-          lat: accommodations.lat,
-          lng: accommodations.lng,
-          pricePerNight: accommodations.pricePerNight,
-          rating: accommodations.rating,
-          reviewCount: accommodations.reviewCount,
-          images: accommodations.images,
-          amenities: accommodations.amenities,
-          description: accommodations.description,
-          distanceFromCenter: accommodations.distanceFromCenter,
-          isAvailable: accommodations.isAvailable,
-          offerDriverDiscounts: accommodations.offerDriverDiscounts,
-          driverDiscountRate: accommodations.driverDiscountRate,
-          minimumDriverLevel: accommodations.minimumDriverLevel,
-          partnershipBadgeVisible: accommodations.partnershipBadgeVisible,
-          createdAt: sql`NULL`,
-          updatedAt: sql`NULL`,
-          // Host information
-          host: {
-            id: users.id,
-            firstName: users.firstName,
-            lastName: users.lastName,
-            profileImageUrl: users.profileImageUrl,
-            rating: users.rating,
-            totalReviews: users.totalReviews,
-            isVerified: users.isVerified,
-          },
+          accommodation: accommodations,
+          host: users
         })
         .from(accommodations)
         .leftJoin(users, eq(accommodations.hostId, users.id))
         .where(eq(accommodations.id, id));
       
-      return accommodation ? {
-        ...accommodation,
-        host: accommodation.host as User,
-      } as Accommodation : undefined;
+      if (result.length === 0) return undefined;
+      
+      const { accommodation, host } = result[0];
+      return mapToAccommodation(accommodation, host);
     } catch (error) {
       console.error('Error fetching accommodation:', error);
       return undefined;
@@ -162,36 +178,8 @@ export class DatabaseAccommodationStorage implements IAccommodationStorage {
     try {
       let query = db
         .select({
-          id: accommodations.id,
-          name: accommodations.name,
-          type: accommodations.type,
-          hostId: accommodations.hostId,
-          address: accommodations.address,
-          lat: accommodations.lat,
-          lng: accommodations.lng,
-          pricePerNight: accommodations.pricePerNight,
-          rating: accommodations.rating,
-          reviewCount: accommodations.reviewCount,
-          images: accommodations.images,
-          amenities: accommodations.amenities,
-          description: accommodations.description,
-          distanceFromCenter: accommodations.distanceFromCenter,
-          isAvailable: accommodations.isAvailable,
-          offerDriverDiscounts: accommodations.offerDriverDiscounts,
-          driverDiscountRate: accommodations.driverDiscountRate,
-          minimumDriverLevel: accommodations.minimumDriverLevel,
-          partnershipBadgeVisible: accommodations.partnershipBadgeVisible,
-          createdAt: sql`NULL`,
-          updatedAt: sql`NULL`,
-          host: {
-            id: users.id,
-            firstName: users.firstName,
-            lastName: users.lastName,
-            profileImageUrl: users.profileImageUrl,
-            rating: users.rating,
-            totalReviews: users.totalReviews,
-            isVerified: users.isVerified,
-          },
+          accommodation: accommodations,
+          host: users
         })
         .from(accommodations)
         .leftJoin(users, eq(accommodations.hostId, users.id));
@@ -218,15 +206,14 @@ export class DatabaseAccommodationStorage implements IAccommodationStorage {
         conditions.push(eq(accommodations.hostId, criteria.hostId));
       }
 
-      const accommodationList = await query
+      const results = await query
         .where(and(...conditions))
         .orderBy(desc(accommodations.rating))
         .limit(50);
 
-      return accommodationList.map(accommodation => ({
-        ...accommodation,
-        host: accommodation.host as User,
-      })) as Accommodation[];
+      return results.map(({ accommodation, host }) => 
+        mapToAccommodation(accommodation, host)
+      );
     } catch (error) {
       console.error('Error searching accommodations:', error);
       return [];
@@ -241,7 +228,7 @@ export class DatabaseAccommodationStorage implements IAccommodationStorage {
         .where(eq(accommodations.hostId, hostId))
         .orderBy(desc(accommodations.rating));
       
-      return accommodationList as Accommodation[];
+      return accommodationList.map(accommodation => mapToAccommodation(accommodation));
     } catch (error) {
       console.error('Error fetching accommodations by host:', error);
       return [];
@@ -250,39 +237,10 @@ export class DatabaseAccommodationStorage implements IAccommodationStorage {
 
   async getAvailableAccommodations(checkIn?: Date, checkOut?: Date): Promise<Accommodation[]> {
     try {
-      // TODO: Implement availability checking with booking dates when booking system is complete
-      const accommodationList = await db
+      const results = await db
         .select({
-          id: accommodations.id,
-          name: accommodations.name,
-          type: accommodations.type,
-          hostId: accommodations.hostId,
-          address: accommodations.address,
-          lat: accommodations.lat,
-          lng: accommodations.lng,
-          pricePerNight: accommodations.pricePerNight,
-          rating: accommodations.rating,
-          reviewCount: accommodations.reviewCount,
-          images: accommodations.images,
-          amenities: accommodations.amenities,
-          description: accommodations.description,
-          distanceFromCenter: accommodations.distanceFromCenter,
-          isAvailable: accommodations.isAvailable,
-          offerDriverDiscounts: accommodations.offerDriverDiscounts,
-          driverDiscountRate: accommodations.driverDiscountRate,
-          minimumDriverLevel: accommodations.minimumDriverLevel,
-          partnershipBadgeVisible: accommodations.partnershipBadgeVisible,
-          createdAt: sql`NULL`,
-          updatedAt: sql`NULL`,
-          host: {
-            id: users.id,
-            firstName: users.firstName,
-            lastName: users.lastName,
-            profileImageUrl: users.profileImageUrl,
-            rating: users.rating,
-            totalReviews: users.totalReviews,
-            isVerified: users.isVerified,
-          },
+          accommodation: accommodations,
+          host: users
         })
         .from(accommodations)
         .leftJoin(users, eq(accommodations.hostId, users.id))
@@ -290,10 +248,9 @@ export class DatabaseAccommodationStorage implements IAccommodationStorage {
         .orderBy(desc(accommodations.rating))
         .limit(100);
 
-      return accommodationList.map(accommodation => ({
-        ...accommodation,
-        host: accommodation.host as User,
-      })) as Accommodation[];
+      return results.map(({ accommodation, host }) => 
+        mapToAccommodation(accommodation, host)
+      );
     } catch (error) {
       console.error('Error fetching available accommodations:', error);
       return [];
@@ -302,38 +259,10 @@ export class DatabaseAccommodationStorage implements IAccommodationStorage {
 
   async getFeaturedAccommodations(limit: number = 10): Promise<Accommodation[]> {
     try {
-      const accommodationList = await db
+      const results = await db
         .select({
-          id: accommodations.id,
-          name: accommodations.name,
-          type: accommodations.type,
-          hostId: accommodations.hostId,
-          address: accommodations.address,
-          lat: accommodations.lat,
-          lng: accommodations.lng,
-          pricePerNight: accommodations.pricePerNight,
-          rating: accommodations.rating,
-          reviewCount: accommodations.reviewCount,
-          images: accommodations.images,
-          amenities: accommodations.amenities,
-          description: accommodations.description,
-          distanceFromCenter: accommodations.distanceFromCenter,
-          isAvailable: accommodations.isAvailable,
-          offerDriverDiscounts: accommodations.offerDriverDiscounts,
-          driverDiscountRate: accommodations.driverDiscountRate,
-          minimumDriverLevel: accommodations.minimumDriverLevel,
-          partnershipBadgeVisible: accommodations.partnershipBadgeVisible,
-          createdAt: sql`NULL`,
-          updatedAt: sql`NULL`,
-          host: {
-            id: users.id,
-            firstName: users.firstName,
-            lastName: users.lastName,
-            profileImageUrl: users.profileImageUrl,
-            rating: users.rating,
-            totalReviews: users.totalReviews,
-            isVerified: users.isVerified,
-          },
+          accommodation: accommodations,
+          host: users
         })
         .from(accommodations)
         .leftJoin(users, eq(accommodations.hostId, users.id))
@@ -344,10 +273,9 @@ export class DatabaseAccommodationStorage implements IAccommodationStorage {
         .orderBy(desc(accommodations.rating), desc(accommodations.reviewCount))
         .limit(limit);
 
-      return accommodationList.map(accommodation => ({
-        ...accommodation,
-        host: accommodation.host as User,
-      })) as Accommodation[];
+      return results.map(({ accommodation, host }) => 
+        mapToAccommodation(accommodation, host)
+      );
     } catch (error) {
       console.error('Error fetching featured accommodations:', error);
       return [];
@@ -371,38 +299,10 @@ export class DatabaseAccommodationStorage implements IAccommodationStorage {
 
   async getPartnerAccommodations(): Promise<Accommodation[]> {
     try {
-      const accommodationList = await db
+      const results = await db
         .select({
-          id: accommodations.id,
-          name: accommodations.name,
-          type: accommodations.type,
-          hostId: accommodations.hostId,
-          address: accommodations.address,
-          lat: accommodations.lat,
-          lng: accommodations.lng,
-          pricePerNight: accommodations.pricePerNight,
-          rating: accommodations.rating,
-          reviewCount: accommodations.reviewCount,
-          images: accommodations.images,
-          amenities: accommodations.amenities,
-          description: accommodations.description,
-          distanceFromCenter: accommodations.distanceFromCenter,
-          isAvailable: accommodations.isAvailable,
-          offerDriverDiscounts: accommodations.offerDriverDiscounts,
-          driverDiscountRate: accommodations.driverDiscountRate,
-          minimumDriverLevel: accommodations.minimumDriverLevel,
-          partnershipBadgeVisible: accommodations.partnershipBadgeVisible,
-          createdAt: sql`NULL`,
-          updatedAt: sql`NULL`,
-          host: {
-            id: users.id,
-            firstName: users.firstName,
-            lastName: users.lastName,
-            profileImageUrl: users.profileImageUrl,
-            rating: users.rating,
-            totalReviews: users.totalReviews,
-            isVerified: users.isVerified,
-          },
+          accommodation: accommodations,
+          host: users
         })
         .from(accommodations)
         .leftJoin(users, eq(accommodations.hostId, users.id))
@@ -412,10 +312,9 @@ export class DatabaseAccommodationStorage implements IAccommodationStorage {
         ))
         .orderBy(desc(accommodations.driverDiscountRate));
 
-      return accommodationList.map(accommodation => ({
-        ...accommodation,
-        host: accommodation.host as User,
-      })) as Accommodation[];
+      return results.map(({ accommodation, host }) => 
+        mapToAccommodation(accommodation, host)
+      );
     } catch (error) {
       console.error('Error fetching partner accommodations:', error);
       return [];

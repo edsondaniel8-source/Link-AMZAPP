@@ -45,6 +45,8 @@ router.post('/create', verifyFirebaseToken, async (req: any, res) => {
       accommodationId: bookingData.accommodationId
     });
 
+    const passengers = bookingData.details.passengers || 1;
+
     // Verificar se é reserva de ride
     if (bookingData.type === 'ride' && bookingData.rideId) {
       const [ride] = await db
@@ -57,7 +59,6 @@ router.post('/create', verifyFirebaseToken, async (req: any, res) => {
       }
 
       // Verificar lugares disponíveis
-      const passengers = bookingData.details.passengers || 1;
       if ((ride.availableSeats || 0) < passengers) {
         return res.status(400).json({ error: 'Lugares insuficientes' });
       }
@@ -71,11 +72,11 @@ router.post('/create', verifyFirebaseToken, async (req: any, res) => {
         .where(eq(rides.id, bookingData.rideId));
     }
 
-    // ✅ CORRETO: Usar passengerId (decisão mantida)
+    // ✅ CORREÇÃO: Adicionar seatsBooked (conforme schema)
     const [newBooking] = await db
       .insert(bookings)
       .values({
-        passengerId: userId, // ✅ passengerId conforme schema atual
+        passengerId: userId,
         rideId: bookingData.rideId || null,
         accommodationId: bookingData.accommodationId || null,
         status: 'confirmed',
@@ -85,7 +86,8 @@ router.post('/create', verifyFirebaseToken, async (req: any, res) => {
         guestPhone: bookingData.guestInfo.phone,
         checkInDate: bookingData.details.checkIn ? new Date(bookingData.details.checkIn) : null,
         checkOutDate: bookingData.details.checkOut ? new Date(bookingData.details.checkOut) : null,
-        passengers: bookingData.details.passengers || 1,
+        passengers: passengers,
+        seatsBooked: passengers, // ✅ ADICIONADO: propriedade obrigatória
       })
       .returning();
 
@@ -95,7 +97,7 @@ router.post('/create', verifyFirebaseToken, async (req: any, res) => {
       success: true,
       booking: {
         ...newBooking,
-        serviceType: bookingData.type // ✅ Adiciona serviceType calculado
+        serviceType: bookingData.type
       },
       message: `Reserva de ${bookingData.type} confirmada com sucesso!`
     });
@@ -120,17 +122,15 @@ router.get('/user', verifyFirebaseToken, async (req: any, res) => {
 
     console.log('🔍 [BOOKING] Buscando reservas do usuário:', userId);
 
-    // ✅ CORRETO: Usar passengerId (decisão mantida)
     const userBookings = await db
       .select()
       .from(bookings)
-      .where(eq(bookings.passengerId, userId)) // ✅ passengerId conforme schema
+      .where(eq(bookings.passengerId, userId))
       .orderBy(desc(bookings.createdAt))
       .limit(50);
 
     console.log(`✅ [BOOKING] Encontradas ${userBookings.length} reservas`);
 
-    // ✅ SOLUÇÃO 2: Calcular serviceType baseado nas colunas existentes
     const bookingsWithServiceType = userBookings.map(booking => ({
       ...booking,
       serviceType: booking.rideId ? 'ride' : 
@@ -162,13 +162,12 @@ router.delete('/:bookingId', verifyFirebaseToken, async (req: any, res) => {
     }
 
     // Buscar reserva
-    // ✅ CORRETO: Usar passengerId (decisão mantida)
     const [booking] = await db
       .select()
       .from(bookings)
       .where(and(
         eq(bookings.id, bookingId),
-        eq(bookings.passengerId, userId) // ✅ passengerId conforme schema
+        eq(bookings.passengerId, userId)
       ));
 
     if (!booking) {
@@ -176,12 +175,11 @@ router.delete('/:bookingId', verifyFirebaseToken, async (req: any, res) => {
     }
 
     // Se for reserva de ride, devolver lugares
-    // ✅ CORREÇÃO: Determinar se é ride pela presença de rideId
     if (booking.rideId) {
       await db
         .update(rides)
         .set({
-          availableSeats: sql`available_seats + ${booking.passengers || 1}` // ✅ Corrigido: passengers em vez de passengerId
+          availableSeats: sql`available_seats + ${booking.passengers || 1}`
         })
         .where(eq(rides.id, booking.rideId));
     }

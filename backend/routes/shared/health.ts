@@ -35,11 +35,15 @@ router.get('/', async (req, res) => {
 
   } catch (error) {
     console.error('❌ [HEALTH] Erro no health check:', error);
+    
+    // ✅ CORREÇÃO: Verificar se error é uma instância de Error
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+    
     res.status(500).json({
       status: 'ERROR',
       message: 'Falha no health check',
       timestamp: new Date().toISOString(),
-      error: error.message,
+      error: errorMessage, // ✅ CORREÇÃO: Usar errorMessage em vez de error.message
       services: {
         api: 'unhealthy',
         database: 'unhealthy',
@@ -102,11 +106,15 @@ router.get('/detailed', async (req, res) => {
 
   } catch (error) {
     console.error('❌ [HEALTH] Erro no health check detalhado:', error);
+    
+    // ✅ CORREÇÃO: Verificar se error é uma instância de Error
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+    
     res.status(500).json({
       status: 'ERROR',
       message: 'Falha no health check detalhado',
       timestamp: new Date().toISOString(),
-      error: error.message
+      error: errorMessage // ✅ CORREÇÃO: Usar errorMessage em vez de error.message
     });
   }
 });
@@ -139,7 +147,11 @@ api_info{version="1.0.0",environment="${process.env.NODE_ENV || 'development'}"}
 
   } catch (error) {
     console.error('❌ [HEALTH] Erro ao gerar métricas:', error);
-    res.status(500).send('# Error generating metrics');
+    
+    // ✅ CORREÇÃO: Verificar se error é uma instância de Error
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+    
+    res.status(500).send(`# Error generating metrics: ${errorMessage}`);
   }
 });
 

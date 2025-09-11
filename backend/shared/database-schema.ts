@@ -1,11 +1,11 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, decimal, integer, boolean, jsonb, index, serial } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, decimal, integer, boolean, jsonb, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // ===== ESQUEMA BASEADO NA ESTRUTURA REAL DO DATABASE =====
 
-// Session storage table for Replit Auth
+// Session storage table for Replit Auth - CORRIGIDO
 export const sessions = pgTable(
   "sessions",
   {
@@ -13,7 +13,10 @@ export const sessions = pgTable(
     sess: jsonb("sess").notNull(),
     expire: timestamp("expire").notNull(),
   },
-  (table) => [index("IDX_session_expire").on(table.expire)],
+  (table) => ({
+    // CORREÇÃO: Retorna objeto em vez de array
+    expireIdx: index("IDX_session_expire").on(table.expire),
+  })
 );
 
 // Users table (estrutura existente)

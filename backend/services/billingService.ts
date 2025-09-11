@@ -109,14 +109,14 @@ export class BillingService {
   async createBilling(params: CreateBillingParams): Promise<void> {
     const billing = await this.calculateBilling(params.amount);
 
-    // Criar transacção de pagamento recebido
-    await db.insert(payments).values({ // ✅ CORRIGIDO: transactions → payments
-      bookingId: params.bookingId,
+    // ✅ CORREÇÃO: Usar bookingId que existe no schema
+    await db.insert(payments).values({
+      bookingId: params.bookingId, // ✅ CORRETO: bookingId existe na tabela payments
       userId: params.userId,
       serviceType: params.serviceType,
-      subtotal: billing.subtotal,
-      platformFee: billing.platformFee,
-      total: billing.total,
+      subtotal: billing.subtotal.toString(),
+      platformFee: billing.platformFee.toString(),
+      total: billing.total.toString(),
       paymentStatus: 'completed',
       paymentMethod: 'direct_payment'
     });
@@ -125,7 +125,7 @@ export class BillingService {
     await db
       .update(bookings)
       .set({
-        totalPrice: billing.total.toString(), // ✅ CORRIGIDO: totalAmount → totalPrice
+        totalPrice: billing.total.toString(),
         updatedAt: new Date()
       })
       .where(eq(bookings.id, params.bookingId));
@@ -138,15 +138,15 @@ export class BillingService {
     return await db
       .select({
         id: payments.id,
-        bookingId: payments.bookingId,
-        amount: payments.platformFee, // ✅ CORRIGIDO: Usar platformFee
+        bookingId: payments.bookingId, // ✅ CORRETO: bookingId existe
+        amount: payments.platformFee,
         status: payments.paymentStatus,
         createdAt: payments.createdAt
       })
-      .from(payments) // ✅ CORRIGIDO: transactions → payments
+      .from(payments)
       .where(and(
-        eq(payments.userId, providerId), // ✅ CORRIGIDO: providerUserId → userId
-        eq(payments.paymentStatus, 'pending') // ✅ CORRIGIDO: status → paymentStatus
+        eq(payments.userId, providerId),
+        eq(payments.paymentStatus, 'pending')
       ));
   }
 
@@ -155,10 +155,10 @@ export class BillingService {
    */
   async markFeeAsPaid(feeId: string, paymentMethod: string): Promise<void> {
     await db
-      .update(payments) // ✅ CORRIGIDO: transactions → payments
+      .update(payments)
       .set({
-        paymentStatus: 'completed', // ✅ CORRIGIDO: status → paymentStatus
-        paymentMethod: paymentMethod // ✅ CORRIGIDO: description → paymentMethod
+        paymentStatus: 'completed',
+        paymentMethod: paymentMethod
       })
       .where(eq(payments.id, feeId));
   }
@@ -170,24 +170,24 @@ export class BillingService {
     // Implementar consultas para relatório financeiro
     const totalTransactions = await db
       .select()
-      .from(payments) // ✅ CORRIGIDO: transactions → payments
-      .where(eq(payments.paymentStatus, 'completed')); // ✅ CORRIGIDO: status → paymentStatus
+      .from(payments)
+      .where(eq(payments.paymentStatus, 'completed'));
 
-    const totalRevenue = totalTransactions.reduce((sum, t) => sum + Number(t.total), 0); // ✅ CORRIGIDO: amount → total
+    const totalRevenue = totalTransactions.reduce((sum, t) => sum + Number(t.total), 0);
     
     const platformFees = await db
       .select()
-      .from(payments) // ✅ CORRIGIDO: transactions → payments
-      .where(eq(payments.paymentStatus, 'completed')); // ✅ CORRIGIDO: type → paymentStatus
+      .from(payments)
+      .where(eq(payments.paymentStatus, 'completed'));
 
-    const totalFees = platformFees.reduce((sum, t) => sum + Number(t.platformFee), 0); // ✅ CORRIGIDO: amount → platformFee
+    const totalFees = platformFees.reduce((sum, t) => sum + Number(t.platformFee), 0);
 
     const pendingPayouts = await db
       .select()
-      .from(payments) // ✅ CORRIGIDO: transactions → payments
-      .where(eq(payments.paymentStatus, 'pending')); // ✅ CORRIGIDO: status → paymentStatus
+      .from(payments)
+      .where(eq(payments.paymentStatus, 'pending'));
 
-    const totalPendingPayouts = pendingPayouts.reduce((sum, t) => sum + Number(t.platformFee), 0); // ✅ CORRIGIDO: amount → platformFee
+    const totalPendingPayouts = pendingPayouts.reduce((sum, t) => sum + Number(t.platformFee), 0);
 
     return {
       totalTransactions: totalTransactions.length,
@@ -211,14 +211,14 @@ export class BillingService {
     const feePercentage = await this.getPlatformFeePercentage();
     const feeAmount = (data.totalAmount * feePercentage) / 100;
 
-    // Criar transação da fee pendente
-    await db.insert(payments).values({ // ✅ CORRIGIDO: transactions → payments
-      bookingId: `${data.type}_${Date.now()}`,
+    // ✅ CORREÇÃO: Usar bookingId com valor gerado
+    await db.insert(payments).values({
+      bookingId: `${data.type}_${Date.now()}`, // ✅ CORRETO: bookingId existe
       userId: data.clientId,
       serviceType: data.type,
-      subtotal: data.totalAmount,
-      platformFee: feeAmount,
-      total: data.totalAmount,
+      subtotal: data.totalAmount.toString(),
+      platformFee: feeAmount.toString(),
+      total: data.totalAmount.toString(),
       paymentStatus: 'pending',
       paymentMethod: 'platform_fee'
     });

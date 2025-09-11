@@ -1,12 +1,15 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { db } from "../../../db";
-import { accommodations, type Accommodation, insertAccommodationSchema } from "../../../shared/schema";
+import { accommodations, insertAccommodationSchema } from "../../../shared/schema";
 import { authStorage } from "../../shared/authStorage";
-import { type AuthenticatedRequest, verifyFirebaseToken } from "../../shared/types";
+import { type AuthenticatedRequest, verifyFirebaseToken } from "../../../src/shared/firebaseAuth";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 
 const router = Router();
+
+// Define o tipo Accommodation baseado na tabela accommodations
+type Accommodation = typeof accommodations.$inferSelect;
 
 // Helper functions for database queries
 const getAccommodations = async (filters: any = {}): Promise<Accommodation[]> => {
@@ -50,29 +53,29 @@ router.get("/", async (req, res) => {
     if (minPrice) filters.minPrice = minPrice;
     if (maxPrice) filters.maxPrice = maxPrice;
 
-    let accommodations = await getAccommodations(filters);
+    let accommodationsList = await getAccommodations(filters);
     
     // Ordenação personalizada
     if (sortBy === 'price_asc') {
-      accommodations = accommodations.sort((a: Accommodation, b: Accommodation) => Number(a.pricePerNight) - Number(b.pricePerNight));
+      accommodationsList = accommodationsList.sort((a: Accommodation, b: Accommodation) => Number(a.pricePerNight) - Number(b.pricePerNight));
     } else if (sortBy === 'price_desc') {
-      accommodations = accommodations.sort((a: Accommodation, b: Accommodation) => Number(b.pricePerNight) - Number(a.pricePerNight));
+      accommodationsList = accommodationsList.sort((a: Accommodation, b: Accommodation) => Number(b.pricePerNight) - Number(a.pricePerNight));
     } else if (sortBy === 'rating') {
-      accommodations = accommodations.sort((a: Accommodation, b: Accommodation) => Number(b.rating || 0) - Number(a.rating || 0));
+      accommodationsList = accommodationsList.sort((a: Accommodation, b: Accommodation) => Number(b.rating || 0) - Number(a.rating || 0));
     }
     
     // Aplicar paginação
     const startIndex = (Number(page) - 1) * Number(limit);
     const endIndex = startIndex + Number(limit);
-    const paginatedAccommodations = accommodations.slice(startIndex, endIndex);
+    const paginatedAccommodations = accommodationsList.slice(startIndex, endIndex);
 
     res.json({
       success: true,
       data: {
         accommodations: paginatedAccommodations,
-        total: accommodations.length,
+        total: accommodationsList.length,
         page: Number(page),
-        totalPages: Math.ceil(accommodations.length / Number(limit))
+        totalPages: Math.ceil(accommodationsList.length / Number(limit))
       }
     });
   } catch (error) {

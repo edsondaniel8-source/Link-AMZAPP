@@ -11,6 +11,40 @@ import type {
   User 
 } from '../types';
 
+// Helper functions for proper type mapping
+function mapToRating(rating: any, fromUser?: any, otherUser?: any): Rating {
+  return {
+    ...rating,
+    rating: rating.rating || 0,
+    createdAt: rating.createdAt || new Date(),
+    updatedAt: rating.updatedAt || rating.createdAt || new Date(),
+    comment: rating.comment || '',
+    serviceType: rating.serviceType as ServiceType,
+    bookingId: rating.bookingId || null,
+    fromUser: fromUser ? mapToUser(fromUser) : undefined,
+    otherUser: otherUser ? mapToUser(otherUser) : undefined
+  } as Rating;
+}
+
+function mapToUser(user: any): User {
+  return {
+    ...user,
+    rating: user.rating ? Number(user.rating) : 0,
+    totalReviews: user.totalReviews || 0,
+    isVerified: user.isVerified ?? false,
+    createdAt: user.createdAt || new Date(),
+    updatedAt: user.updatedAt || new Date(),
+    email: user.email || '',
+    phone: user.phone || '',
+    userType: user.userType || 'client',
+    roles: user.roles || ['client'],
+    canOfferServices: user.canOfferServices ?? false,
+    firstName: user.firstName || '',
+    lastName: user.lastName || '',
+    profileImageUrl: user.profileImageUrl || ''
+  } as User;
+}
+
 export interface IRatingStorage {
   // Rating operations
   createRating(data: CreateRatingData): Promise<Rating>;
@@ -58,18 +92,10 @@ export class DatabaseRatingStorage implements IRatingStorage {
       // Update the target user's average rating
       await this.updateUserRatingAverage(data.toUserId);
       
-      return {
-        id: rating.id,
-        fromUserId: rating.fromUserId!,
-        toUserId: rating.toUserId!,
-        rating: rating.rating,
-        comment: rating.comment,
-        serviceType: rating.serviceType as ServiceType,
-        bookingId: rating.bookingId,
-        serviceId: data.serviceId,
-        createdAt: rating.createdAt!,
-        updatedAt: rating.createdAt!,
-      } as Rating;
+      return mapToRating({
+        ...rating,
+        serviceId: data.serviceId
+      });
     } catch (error) {
       console.error('Error creating rating:', error);
       throw new Error('Failed to create rating');
@@ -81,41 +107,19 @@ export class DatabaseRatingStorage implements IRatingStorage {
       const field = type === 'given' ? ratings.fromUserId : ratings.toUserId;
       const otherField = type === 'given' ? ratings.toUserId : ratings.fromUserId;
       
-      const ratingList = await db
+      const results = await db
         .select({
-          id: ratings.id,
-          fromUserId: ratings.fromUserId,
-          toUserId: ratings.toUserId,
-          rating: ratings.rating,
-          comment: ratings.comment,
-          serviceType: ratings.serviceType,
-          bookingId: ratings.bookingId,
-          createdAt: ratings.createdAt,
-          // Other user info
-          otherUser: {
-            id: users.id,
-            firstName: users.firstName,
-            lastName: users.lastName,
-            profileImageUrl: users.profileImageUrl,
-          },
+          rating: ratings,
+          otherUser: users
         })
         .from(ratings)
         .leftJoin(users, eq(otherField, users.id))
         .where(eq(field, userId))
         .orderBy(desc(ratings.createdAt));
 
-      return ratingList.map(rating => ({
-        id: rating.id,
-        fromUserId: rating.fromUserId!,
-        toUserId: rating.toUserId!,
-        rating: rating.rating,
-        comment: rating.comment,
-        serviceType: rating.serviceType as ServiceType,
-        bookingId: rating.bookingId,
-        createdAt: rating.createdAt!,
-        updatedAt: rating.createdAt!,
-        otherUser: rating.otherUser as User,
-      })) as Rating[];
+      return results.map(({ rating, otherUser }) => 
+        mapToRating(rating, undefined, otherUser)
+      );
     } catch (error) {
       console.error('Error fetching ratings by user:', error);
       return [];
@@ -155,23 +159,10 @@ export class DatabaseRatingStorage implements IRatingStorage {
   async getRatingsForService(serviceId: string, serviceType: ServiceType): Promise<Rating[]> {
     try {
       // Since we don't have a direct serviceId field, we'll use bookingId as a proxy
-      const ratingList = await db
+      const results = await db
         .select({
-          id: ratings.id,
-          fromUserId: ratings.fromUserId,
-          toUserId: ratings.toUserId,
-          rating: ratings.rating,
-          comment: ratings.comment,
-          serviceType: ratings.serviceType,
-          bookingId: ratings.bookingId,
-          createdAt: ratings.createdAt,
-          // From user info
-          fromUser: {
-            id: users.id,
-            firstName: users.firstName,
-            lastName: users.lastName,
-            profileImageUrl: users.profileImageUrl,
-          },
+          rating: ratings,
+          fromUser: users
         })
         .from(ratings)
         .leftJoin(users, eq(ratings.fromUserId, users.id))
@@ -181,19 +172,9 @@ export class DatabaseRatingStorage implements IRatingStorage {
         ))
         .orderBy(desc(ratings.createdAt));
 
-      return ratingList.map(rating => ({
-        id: rating.id,
-        fromUserId: rating.fromUserId!,
-        toUserId: rating.toUserId!,
-        rating: rating.rating,
-        comment: rating.comment,
-        serviceType: rating.serviceType as ServiceType,
-        bookingId: rating.bookingId,
-        serviceId,
-        createdAt: rating.createdAt!,
-        updatedAt: rating.createdAt!,
-        fromUser: rating.fromUser as User,
-      })) as Rating[];
+      return results.map(({ rating, fromUser }) => 
+        mapToRating({ ...rating, serviceId }, fromUser)
+      );
     } catch (error) {
       console.error('Error fetching ratings for service:', error);
       return [];
@@ -221,42 +202,19 @@ export class DatabaseRatingStorage implements IRatingStorage {
   
   async getRating(ratingId: string): Promise<Rating | undefined> {
     try {
-      const [rating] = await db
+      const results = await db
         .select({
-          id: ratings.id,
-          fromUserId: ratings.fromUserId,
-          toUserId: ratings.toUserId,
-          rating: ratings.rating,
-          comment: ratings.comment,
-          serviceType: ratings.serviceType,
-          bookingId: ratings.bookingId,
-          createdAt: ratings.createdAt,
-          // User info
-  fromUser: {
-            id: users.id,
-            firstName: users.firstName,
-            lastName: users.lastName,
-            profileImageUrl: users.profileImageUrl,
-          },
+          rating: ratings,
+          fromUser: users
         })
         .from(ratings)
         .leftJoin(users, eq(ratings.fromUserId, users.id))
         .where(eq(ratings.id, ratingId));
 
-      if (!rating) return undefined;
+      if (results.length === 0) return undefined;
 
-      return {
-        id: rating.id,
-        fromUserId: rating.fromUserId!,
-        toUserId: rating.toUserId!,
-        rating: rating.rating,
-        comment: rating.comment,
-        serviceType: rating.serviceType as ServiceType,
-        bookingId: rating.bookingId,
-        createdAt: rating.createdAt!,
-        updatedAt: rating.createdAt!,
-        fromUser: rating.fromUser as User,
-      } as Rating;
+      const { rating, fromUser } = results[0];
+      return mapToRating(rating, fromUser);
     } catch (error) {
       console.error('Error fetching rating:', error);
       return undefined;
@@ -394,14 +352,7 @@ export class DatabaseRatingStorage implements IRatingStorage {
           userId: ratings.toUserId,
           avgRating: sql`AVG(${ratings.rating})`,
           totalRatings: sql`COUNT(${ratings.rating})`,
-          user: {
-            id: users.id,
-            firstName: users.firstName,
-            lastName: users.lastName,
-            profileImageUrl: users.profileImageUrl,
-            rating: users.rating,
-            totalReviews: users.totalReviews,
-          },
+          user: users
         })
         .from(ratings)
         .leftJoin(users, eq(ratings.toUserId, users.id))
@@ -411,7 +362,7 @@ export class DatabaseRatingStorage implements IRatingStorage {
         .orderBy(desc(sql`AVG(${ratings.rating})`))
         .limit(limit);
 
-      return topUsers.map(item => item.user as User);
+      return topUsers.map(item => mapToUser(item.user));
     } catch (error) {
       console.error('Error fetching top rated users:', error);
       return [];

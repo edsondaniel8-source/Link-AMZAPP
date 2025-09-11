@@ -1,5 +1,6 @@
 import admin from "firebase-admin";
 import { Request, Response, NextFunction } from "express";
+import { AuthenticatedUser as SharedAuthenticatedUser } from "./types";
 
 // Type-safe Firebase Admin Auth methods
 export const firebaseAuth = admin.auth();
@@ -64,39 +65,12 @@ export interface FirebaseTokenClaims {
   uid?: string; // Sometimes present in custom tokens
 }
 
-// Authenticated user data attached to request
-export interface AuthenticatedUser {
-  uid: string; // Firebase UID - sempre presente
-  email?: string; // Email pode ser undefined para alguns providers
-  emailVerified: boolean;
-  displayName?: string;
-  photoURL?: string;
-  disabled: boolean;
-  metadata: {
-    lastSignInTime?: string;
-    creationTime?: string;
-  };
-  customClaims?: Record<string, any>;
-  providerData: Array<{
-    uid: string;
-    displayName?: string;
-    email?: string;
-    photoURL?: string;
-    providerId: string;
-  }>;
-  // ✅ ADICIONAR: claims para compatibilidade com outros ficheiros
-  claims?: {
-    sub?: string;
-    email?: string;
-    [key: string]: any;
-  };
-}
+// Use the AuthenticatedUser definition from types.ts
+export interface AuthenticatedUser extends SharedAuthenticatedUser {}
 
 // Request extended with authenticated user data
 export interface AuthenticatedRequest extends Request {
   user: AuthenticatedUser;
-  // ❌ REMOVER: firebaseToken não deve estar aqui pois causa incompatibilidade
-  // firebaseToken: FirebaseTokenClaims;
 }
 
 // API Error response interface
@@ -124,13 +98,19 @@ export const createApiResponse = <T>(data: T, message?: string): ApiResponse<T> 
   timestamp: new Date().toISOString(),
 });
 
-export const createApiError = (message: string, code: string, details?: any): ApiError => ({
+// CORREÇÃO APLICADA: Valor padrão para code e tratamento de details
+export const createApiError = (message: string, code: string = "API_ERROR", details?: any): ApiError => ({
   success: false,
   message,
   code,
-  details,
+  details: details instanceof Error ? details.message : details,
   timestamp: new Date().toISOString(),
 });
+
+// Helper function to convert null to undefined for compatibility
+const nullToUndefined = <T>(value: T | null): T | undefined => {
+  return value === null ? undefined : value;
+};
 
 // Enhanced Firebase token verification middleware
 export const verifyFirebaseToken = async (
@@ -167,27 +147,60 @@ export const verifyFirebaseToken = async (
     
     // Attach comprehensive user data to request
     const authReq = req as AuthenticatedRequest;
-    // ❌ REMOVIDO: Não atribuir firebaseToken diretamente ao request
-    // authReq.firebaseToken = decodedToken as FirebaseTokenClaims;
+    
+    // Create claims object without sub duplication
+    const { sub, ...decodedTokenWithoutSub } = decodedToken;
+    const claims = {
+      sub: decodedToken.sub,
+      email: decodedToken.email,
+      ...decodedTokenWithoutSub
+    };
     
     authReq.user = {
+      // Core properties from SharedAuthenticatedUser
+      id: userRecord.uid, // Use uid as id for compatibility
       uid: userRecord.uid,
-      email: userRecord.email,
-      emailVerified: userRecord.emailVerified,
-      displayName: userRecord.displayName,
-      photoURL: userRecord.photoURL,
-      disabled: userRecord.disabled,
-      metadata: {
-        lastSignInTime: userRecord.metadata.lastSignInTime,
-        creationTime: userRecord.metadata.creationTime,
-      },
-      customClaims: userRecord.customClaims,
-      providerData: userRecord.providerData,
-      // ✅ CORRIGIDO: Removida a duplicação da propriedade 'sub'
-      claims: {
-        email: decodedToken.email,
-        ...decodedToken
-      }
+      email: nullToUndefined(userRecord.email),
+      firstName: nullToUndefined(userRecord.displayName?.split(' ')[0]),
+      lastName: nullToUndefined(userRecord.displayName?.split(' ').slice(1).join(' ')),
+      fullName: nullToUndefined(userRecord.displayName),
+      phone: nullToUndefined(userRecord.phoneNumber),
+      
+      // System data (default values)
+      userType: 'client' as const,
+      roles: ['client'],
+      canOfferServices: false,
+      isVerified: userRecord.emailVerified || false,
+      
+      // Profile data
+      profileImageUrl: nullToUndefined(userRecord.photoURL),
+      avatar: nullToUndefined(userRecord.photoURL),
+      rating: 0,
+      totalReviews: 0,
+      
+      // Verification data
+      verificationStatus: 'pending' as const,
+      verificationDate: null,
+      verificationNotes: null,
+      verificationBadge: null,
+      badgeEarnedDate: null,
+      
+      // Documents
+      identityDocumentUrl: null,
+      identityDocumentType: null,
+      profilePhotoUrl: nullToUndefined(userRecord.photoURL),
+      documentNumber: null,
+      dateOfBirth: null,
+      
+      // Status
+      registrationCompleted: false,
+      
+      // Auth claims
+      claims: claims,
+      
+      // Additional properties for compatibility
+      createdAt: new Date(userRecord.metadata.creationTime || Date.now()),
+      updatedAt: userRecord.metadata.lastSignInTime ? new Date(userRecord.metadata.lastSignInTime) : null
     };
     
     next();
@@ -207,8 +220,10 @@ export const verifyFirebaseToken = async (
       }
     }
     
-    res.status(401).json(createApiError(errorMessage, errorCode, {
-      originalError: error instanceof Error ? error.message : String(error)
-    }));
+    res.status(401).json(createApiError(
+      errorMessage, 
+      errorCode, 
+      error instanceof Error ? error.message : String(error)
+    ));
   }
 };

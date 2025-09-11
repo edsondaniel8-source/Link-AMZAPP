@@ -1,10 +1,8 @@
 import { Server as SocketIOServer } from 'socket.io';
 import { Server as HTTPServer } from 'http';
 import { db } from '../db';
-import { chatMessages, chatRooms, bookings, users } from '../shared/schema';
+import { chatMessages, chatRooms, bookings, users, rides } from '../shared/schema';
 import { eq, and, or, desc } from 'drizzle-orm';
-
-// Chat rooms table now available
 
 interface ChatUser {
   id: string;
@@ -153,7 +151,7 @@ export class ChatService {
           if (!userId) return;
 
           await db
-            .update(chatMessages) // ✅ CORRIGIDO: messages → chatMessages
+            .update(chatMessages)
             .set({ isRead: true })
             .where(and(
               eq(chatMessages.chatRoomId, chatRoomId),
@@ -222,7 +220,7 @@ export class ChatService {
     return {
       id: `chat_${bookingId}`,
       bookingId,
-      fromUserId: booking.passengerId!, // ✅ CORRIGIDO: userId → passengerId
+      fromUserId: booking.passengerId!,
       toUserId: providerId,
       isActive: true
     };
@@ -240,7 +238,7 @@ export class ChatService {
         message: chatMessages.message,
         createdAt: chatMessages.createdAt
       })
-      .from(chatMessages) // ✅ CORRIGIDO: messages → chatMessages
+      .from(chatMessages)
       .where(or(
         eq(chatMessages.fromUserId, userId)
       ))
@@ -277,7 +275,7 @@ export class ChatService {
         senderLastName: users.lastName,
         senderProfileImage: users.profileImageUrl
       })
-      .from(chatMessages) // ✅ CORRIGIDO: messages → chatMessages
+      .from(chatMessages)
       .innerJoin(users, eq(chatMessages.fromUserId, users.id))
       .where(eq(chatMessages.chatRoomId, chatRoomId))
       .orderBy(desc(chatMessages.createdAt))
@@ -360,7 +358,7 @@ export class ChatService {
 
     const totalMessages = await db
       .select()
-      .from(chatMessages); // ✅ CORRIGIDO: messages → chatMessages
+      .from(chatMessages);
 
     const recentActivity = await db
       .select()
@@ -392,4 +390,3 @@ export function initializeChatService(server: HTTPServer) {
   chatService = new ChatService(server);
   return chatService;
 }
-✅ Principais Correções:

@@ -270,7 +270,7 @@ export interface Payment extends BaseEntity {
 export interface Fee extends BaseEntity {
   bookingId: string;
   type: 'platform_commission' | 'payment_processing' | 'service_charge';
-  amount: string;
+  amount: number; // ✅ CORRIGIDO: mudado de string para number
   percentage: number;
   description?: string;
 }

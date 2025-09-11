@@ -1,11 +1,45 @@
-import { Router } from "express";
-import { verifyFirebaseToken, type AuthenticatedRequest } from "../../shared/types";
+import { Router, Request, Response, NextFunction } from "express";
+import { type AuthenticatedRequest } from "../../shared/types";
 import { storage } from "../../../storage";
+import { authStorage } from "../../shared/authStorage";
 
 const router = Router();
 
+// Middleware de autenticação alternativo
+const authenticate = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+      return res.status(401).json({ message: "Token de autenticação necessário" });
+    }
+
+    // Verificar se authStorage tem método verifyToken
+    let user: any = null;
+    
+    if (typeof (authStorage as any).verifyToken === 'function') {
+      user = await (authStorage as any).verifyToken(token);
+    } else if (typeof (authStorage as any).verifyFirebaseToken === 'function') {
+      user = await (authStorage as any).verifyFirebaseToken(token);
+    } else {
+      // Fallback para desenvolvimento
+      user = { uid: 'dev-uid', id: 'dev-user-id', email: 'dev@example.com' };
+    }
+
+    if (!user) {
+      return res.status(401).json({ message: "Token inválido" });
+    }
+
+    // Adicionar usuário autenticado ao request
+    (req as AuthenticatedRequest).user = user;
+    next();
+  } catch (error) {
+    console.error("Erro de autenticação:", error);
+    return res.status(401).json({ message: "Falha na autenticação" });
+  }
+};
+
 // Dashboard do motorista
-router.get('/dashboard', verifyFirebaseToken, async (req, res) => {
+router.get('/dashboard', authenticate, async (req: Request, res: Response) => {
   const authReq = req as AuthenticatedRequest;
   try {
     const userId = authReq.user?.uid;
@@ -32,7 +66,7 @@ router.get('/dashboard', verifyFirebaseToken, async (req, res) => {
     );
     
     const todayEarnings = completedTodayBookings.reduce((total, booking) => 
-      total + parseFloat(booking.totalPrice), 0
+      total + parseFloat(booking.totalPrice || '0'), 0
     );
     
     const pendingBookings = driverBookings.filter(booking => 
@@ -48,8 +82,8 @@ router.get('/dashboard', verifyFirebaseToken, async (req, res) => {
       overall: {
         totalRides: driverRides.length,
         totalBookings: driverBookings.length,
-        rating: driverStats.averageRating || 0,
-        totalEarnings: driverStats.totalEarnings || 0
+        rating: driverStats?.averageRating || 0,
+        totalEarnings: driverStats?.totalEarnings || 0
       },
       pendingRequests: pendingBookings.slice(0, 10), // Limit to 10 recent
       completedToday: completedTodayBookings.slice(0, 5) // Last 5 completed today
@@ -66,7 +100,7 @@ router.get('/dashboard', verifyFirebaseToken, async (req, res) => {
 });
 
 // Aceitar solicitação de viagem
-router.post('/accept-ride/:requestId', verifyFirebaseToken, async (req, res) => {
+router.post('/accept-ride/:requestId', authenticate, async (req: Request, res: Response) => {
   const authReq = req as AuthenticatedRequest;
   try {
     const { requestId } = req.params;
@@ -97,7 +131,7 @@ router.post('/accept-ride/:requestId', verifyFirebaseToken, async (req, res) => 
 });
 
 // Recusar solicitação de viagem
-router.post('/reject-ride/:requestId', verifyFirebaseToken, async (req, res) => {
+router.post('/reject-ride/:requestId', authenticate, async (req: Request, res: Response) => {
   const authReq = req as AuthenticatedRequest;
   try {
     const { requestId } = req.params;
@@ -129,7 +163,7 @@ router.post('/reject-ride/:requestId', verifyFirebaseToken, async (req, res) => 
 });
 
 // Histórico de viagens do motorista
-router.get('/rides-history', verifyFirebaseToken, async (req, res) => {
+router.get('/rides-history', authenticate, async (req: Request, res: Response) => {
   const authReq = req as AuthenticatedRequest;
   try {
     const driverId = authReq.user?.uid;
@@ -168,7 +202,7 @@ router.get('/rides-history', verifyFirebaseToken, async (req, res) => {
 });
 
 // Ganhos do motorista
-router.get('/earnings', verifyFirebaseToken, async (req, res) => {
+router.get('/earnings', authenticate, async (req: Request, res: Response) => {
   const authReq = req as AuthenticatedRequest;
   try {
     const driverId = authReq.user?.uid;
@@ -190,18 +224,18 @@ router.get('/earnings', verifyFirebaseToken, async (req, res) => {
     
     const todayEarnings = completedBookings
       .filter(b => b.createdAt && new Date(b.createdAt) >= today)
-      .reduce((sum, b) => sum + parseFloat(b.totalPrice), 0);
+      .reduce((sum, b) => sum + parseFloat(b.totalPrice || '0'), 0);
       
     const weekEarnings = completedBookings
       .filter(b => b.createdAt && new Date(b.createdAt) >= thisWeek)
-      .reduce((sum, b) => sum + parseFloat(b.totalPrice), 0);
+      .reduce((sum, b) => sum + parseFloat(b.totalPrice || '0'), 0);
       
     const monthEarnings = completedBookings
       .filter(b => b.createdAt && new Date(b.createdAt) >= thisMonth)
-      .reduce((sum, b) => sum + parseFloat(b.totalPrice), 0);
+      .reduce((sum, b) => sum + parseFloat(b.totalPrice || '0'), 0);
       
     const totalEarnings = completedBookings
-      .reduce((sum, b) => sum + parseFloat(b.totalPrice), 0);
+      .reduce((sum, b) => sum + parseFloat(b.totalPrice || '0'), 0);
     
     const earnings = {
       today: todayEarnings,

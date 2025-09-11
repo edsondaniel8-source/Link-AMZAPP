@@ -1,6 +1,7 @@
+
 import { Router } from 'express';
 import { verifyFirebaseToken, requireProviderRole } from '../../middleware/role-auth';
-import { AuthenticatedUser } from '../../shared/types'; // ✅ Importação adicionada
+import { AuthenticatedUser } from '../../shared/types';
 
 const router = Router();
 
@@ -8,24 +9,61 @@ const router = Router();
 router.use(verifyFirebaseToken);
 router.use(requireProviderRole);
 
+// Definir interface para ActivityItem
+interface ActivityItem {
+  type: string;
+  description: string;
+  time: string;
+  amount: number;
+}
+
+// Definir interface para DashboardData
+interface DashboardData {
+  user: {
+    id: string;
+    roles: string[];
+  };
+  stats: {
+    totalRides?: number;
+    completedRides?: number;
+    pendingRides?: number;
+    rating?: number;
+    earnings?: {
+      today: number;
+      thisWeek: number;
+      thisMonth: number;
+    };
+    totalBookings?: number;
+    activeBookings?: number;
+    occupancyRate?: number;
+    averageRating?: number;
+    revenue?: {
+      today: number;
+      thisWeek: number;
+      thisMonth: number;
+    };
+  };
+  recentActivity: ActivityItem[];
+}
+
 // GET /api/provider/dashboard - Dados do dashboard do prestador
 router.get('/', async (req, res) => {
   try {
-    const userId = (req.user as AuthenticatedUser)?.uid; // ✅ CORRIGIDO
-    const userRoles = (req.user as AuthenticatedUser)?.roles || []; // ✅ CORRIGIDO
+    const userId = (req.user as AuthenticatedUser)?.uid;
+    const userRoles = (req.user as AuthenticatedUser)?.roles || [];
     
     if (!userId) {
       return res.status(401).json({ error: 'Usuário não autenticado' });
     }
     
-    // Mock data baseado nos roles do usuário
-    const dashboardData = {
+    // ✅ CORREÇÃO: Definir tipo explicitamente para dashboardData
+    const dashboardData: DashboardData = {
       user: {
         id: userId,
         roles: userRoles
       },
       stats: {},
-      recentActivity: []
+      recentActivity: [] as ActivityItem[] // ✅ CORREÇÃO: Tipo explícito
     };
     
     // Estatísticas específicas por role
@@ -43,6 +81,7 @@ router.get('/', async (req, res) => {
         }
       };
       
+      // ✅ CORREÇÃO: Agora o TypeScript conhece o tipo de recentActivity
       dashboardData.recentActivity.push({
         type: 'ride_completed',
         description: 'Viagem Maputo → Matola concluída',
@@ -65,6 +104,7 @@ router.get('/', async (req, res) => {
         }
       };
       
+      // ✅ CORREÇÃO: Agora o TypeScript conhece o tipo de recentActivity
       dashboardData.recentActivity.push({
         type: 'booking_received',
         description: 'Nova reserva para 20-25 Janeiro',
@@ -83,7 +123,7 @@ router.get('/', async (req, res) => {
 // GET /api/provider/analytics - Análises detalhadas
 router.get('/analytics', async (req, res) => {
   try {
-    const userId = (req.user as AuthenticatedUser)?.uid; // ✅ CORRIGIDO
+    const userId = (req.user as AuthenticatedUser)?.uid;
     const { period = '30d' } = req.query;
     
     if (!userId) {

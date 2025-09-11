@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { verifyFirebaseToken, type AuthenticatedRequest } from "../../shared/types";
+import { verifyFirebaseToken, type AuthenticatedRequest } from "../../../src/shared/firebaseAuth";
 import { storage } from "../../../storage";
 import { db } from "../../../db";
 import { users, rides, accommodations, bookings } from "../../../shared/schema";

@@ -165,13 +165,10 @@ export class PMSService {
     };
 
     if (existing.length > 0) {
-      // Actualizar existente
+      // ✅ CORREÇÃO: Remover updatedAt que não existe no schema
       await db
         .update(accommodations)
-        .set({
-          ...accommodationData,
-          updatedAt: new Date()
-        })
+        .set(accommodationData) // ✅ Apenas dados que existem no schema
         .where(eq(accommodations.id, existing[0].id));
     } else {
       // Criar novo
@@ -273,19 +270,22 @@ export class PMSService {
         throw new Error(`Propriedade não encontrada: ${externalBooking.propertyId}`);
       }
 
-      // Criar reserva na nossa plataforma
+      // ✅ CORREÇÃO: Usar colunas que existem na tabela bookings
       const [booking] = await db
         .insert(bookings)
         .values({
-          type: 'stay',
           accommodationId: accommodation[0].id,
-          userId: 'external_' + externalBooking.channel, // Utilizador virtual para reservas externas
+          // ✅ Usar passengerId em vez de userId (conforme schema)
+          passengerId: 'external_' + externalBooking.channel,
           status: 'confirmed',
+          totalPrice: externalBooking.totalPrice.toString(),
+          guestName: externalBooking.guestName,
+          guestEmail: externalBooking.guestEmail,
           checkInDate: externalBooking.checkIn,
           checkOutDate: externalBooking.checkOut,
-          totalPrice: externalBooking.totalPrice.toString(),
-          originalPrice: externalBooking.totalPrice.toString(),
-          paymentMethod: externalBooking.channel + '_payment'
+          // ✅ Adicionar seatsBooked obrigatório
+          seatsBooked: 1,
+          // ✅ Remover type, originalPrice, paymentMethod que não existem
         })
         .returning();
 
@@ -378,20 +378,20 @@ export class PMSService {
         .where(eq(bookings.id, bookingId))
         .limit(1);
 
-      if (!booking || booking.type !== 'stay') {
+      if (!booking || !booking.accommodationId) {
         return;
       }
 
       // Bloquear datas em todos os canais conectados
       const availability: ChannelAvailability[] = [{
-        roomId: booking.accommodationId!,
+        roomId: booking.accommodationId,
         date: booking.checkInDate!.toISOString().split('T')[0],
         available: false,
         price: parseFloat(booking.totalPrice),
         minStay: 1
       }];
 
-      await this.syncAvailabilityToChannels(booking.accommodationId!, availability);
+      await this.syncAvailabilityToChannels(booking.accommodationId, availability);
 
     } catch (error) {
       console.error('Erro ao sincronizar reserva para canais:', error);

@@ -1,10 +1,16 @@
-import { Router, Request, Response, NextFunction } from "express";
+import { Router, Request, Response } from "express";
 import { storage } from "../../../storage";
-import { z } from "zod";
-
 const router = Router();
 
-import { verifyFirebaseToken, type AuthenticatedRequest } from "../../shared/types";
+import { 
+  verifyFirebaseToken, 
+  type AuthenticatedRequest,
+  createApiResponse,
+  createApiError 
+} from "../../shared/firebaseAuth";
+
+import { validateEventData } from "../../../shared/event-validation";
+import { CreateEventData } from "../../../storage/business/EventStorage";
 
 // GET /api/events - Lista todos os eventos públicos com filtros
 router.get("/", async (req, res) => {
@@ -52,22 +58,15 @@ router.get("/", async (req, res) => {
     const endIndex = startIndex + Number(limit);
     const paginatedEvents = events.slice(startIndex, endIndex);
 
-    res.json({
-      success: true,
-      data: {
-        events: paginatedEvents,
-        total: events.length,
-        page: Number(page),
-        totalPages: Math.ceil(events.length / Number(limit))
-      }
-    });
+    res.json(createApiResponse({
+      events: paginatedEvents,
+      total: events.length,
+      page: Number(page),
+      totalPages: Math.ceil(events.length / Number(limit))
+    }, "Eventos listados com sucesso"));
   } catch (error) {
     console.error("Erro ao listar eventos:", error);
-    res.status(500).json({
-      success: false,
-      message: "Erro interno do servidor",
-      error: "Failed to fetch events"
-    });
+    res.status(500).json(createApiError("Erro interno do servidor", "INTERNAL_ERROR", error instanceof Error ? error.message : String(error)));
   }
 });
 
@@ -78,75 +77,73 @@ router.get("/:id", async (req, res) => {
     const event = await storage.event.getEvent(id);
 
     if (!event) {
-      return res.status(404).json({
-        success: false,
-        message: "Evento não encontrado"
-      });
+      return res.status(404).json(createApiError("Evento não encontrado", "EVENT_NOT_FOUND"));
     }
 
-    res.json({
-      success: true,
-      data: { event }
-    });
+    res.json(createApiResponse({ event }, "Evento encontrado com sucesso"));
   } catch (error) {
     console.error("Erro ao buscar evento:", error);
-    res.status(500).json({
-      success: false,
-      message: "Erro interno do servidor"
-    });
+    res.status(500).json(createApiError("Erro interno do servidor", "INTERNAL_ERROR", error instanceof Error ? error.message : String(error)));
   }
 });
 
 // POST /api/events - Criar novo evento (apenas organizadores)
-router.post("/", verifyFirebaseToken, async (req, res) => {
+router.post("/", verifyFirebaseToken, async (req: Request, res: Response) => {
   const authReq = req as AuthenticatedRequest;
   
   try {
     const userId = authReq.user?.uid;
     if (!userId) {
-      return res.status(401).json({ message: "Usuário não autenticado" });
+      return res.status(401).json(createApiError("Usuário não autenticado", "UNAUTHENTICATED"));
     }
 
-    // Validar dados com Zod
-    const createEventSchema = insertEventSchema.omit({
-      id: true,
-      createdAt: true,
-      updatedAt: true
-    });
-
-    const validatedData = createEventSchema.parse({
+    // Validação manual
+    const validation = validateEventData({
       ...req.body,
       organizerId: userId,
-      startDate: new Date(req.body.startDate),
-      endDate: new Date(req.body.endDate)
+      organizerName: authReq.user?.name || authReq.user?.email || 'Organizador'
     });
 
-    const newEvent = await storage.event.createEvent(validatedData);
-
-    res.status(201).json({
-      success: true,
-      message: "Evento criado com sucesso",
-      data: { event: newEvent }
-    });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (!validation.isValid) {
       return res.status(400).json({
         success: false,
         message: "Dados inválidos",
-        errors: error.errors
+        errors: validation.errors
       });
     }
 
+    // MAPEAMENTO CORRETO: Converter dados do frontend para o formato do backend
+    const eventData: CreateEventData = {
+      // Campos obrigatórios do CreateEventData
+      name: validation.validatedData!.title,                   // title → name
+      eventDate: new Date(validation.validatedData!.startDate), // startDate → eventDate
+      startTime: validation.validatedData!.startTime || '10:00', // Valor padrão se não fornecido
+      location: validation.validatedData!.address,             // address → location
+      price: validation.validatedData!.ticketPrice || 0,       // ticketPrice → price
+      category: validation.validatedData!.category,
+      organizerId: validation.validatedData!.organizerId,
+      
+      // Campos opcionais mapeados
+      description: validation.validatedData!.description,
+      endTime: validation.validatedData!.endTime,
+      maxAttendees: validation.validatedData!.maxAttendees,
+      tags: validation.validatedData!.tags,
+      images: validation.validatedData!.images,
+      isPublic: validation.validatedData!.isPublic,
+      requiresApproval: validation.validatedData!.requiresApproval || false,
+    };
+
+    const newEvent = await storage.event.createEvent(eventData);
+
+    res.status(201).json(createApiResponse(newEvent, "Evento criado com sucesso"));
+  } catch (error) {
     console.error("Erro ao criar evento:", error);
-    res.status(500).json({
-      success: false,
-      message: "Erro interno do servidor"
-    });
+    res.status(500).json(createApiError("Erro interno do servidor", "INTERNAL_ERROR", error instanceof Error ? error.message : String(error)));
   }
 });
 
 // PUT /api/events/:id - Atualizar evento
-router.put("/:id", verifyFirebaseToken, async (req, res) => {
+router.put("/:id", verifyFirebaseToken, async (req: Request, res: Response) => {
   const authReq = req as AuthenticatedRequest;
   
   try {
@@ -154,49 +151,37 @@ router.put("/:id", verifyFirebaseToken, async (req, res) => {
     const { id } = req.params;
 
     if (!userId) {
-      return res.status(401).json({ message: "Usuário não autenticado" });
+      return res.status(401).json(createApiError("Usuário não autenticado", "UNAUTHENTICATED"));
     }
 
     // Verificar se o evento existe e pertence ao usuário
     const existingEvent = await storage.event.getEvent(id);
     if (!existingEvent) {
-      return res.status(404).json({
-        success: false,
-        message: "Evento não encontrado"
-      });
+      return res.status(404).json(createApiError("Evento não encontrado", "EVENT_NOT_FOUND"));
     }
 
     if (existingEvent.organizerId !== userId) {
-      return res.status(403).json({
-        success: false,
-        message: "Sem permissão para editar este evento"
-      });
+      return res.status(403).json(createApiError("Sem permissão para editar este evento", "FORBIDDEN"));
     }
 
     const updateData = {
       ...req.body,
       startDate: req.body.startDate ? new Date(req.body.startDate) : undefined,
-      endDate: req.body.endDate ? new Date(req.body.endDate) : undefined
+      endDate: req.body.endDate ? new Date(req.body.endDate) : undefined,
+      updatedAt: new Date()
     };
 
     const updatedEvent = await storage.event.updateEvent(id, updateData);
 
-    res.json({
-      success: true,
-      message: "Evento atualizado com sucesso",
-      data: { event: updatedEvent }
-    });
+    res.json(createApiResponse(updatedEvent, "Evento atualizado com sucesso"));
   } catch (error) {
     console.error("Erro ao atualizar evento:", error);
-    res.status(500).json({
-      success: false,
-      message: "Erro interno do servidor"
-    });
+    res.status(500).json(createApiError("Erro interno do servidor", "INTERNAL_ERROR", error instanceof Error ? error.message : String(error)));
   }
 });
 
 // DELETE /api/events/:id - Excluir evento
-router.delete("/:id", verifyFirebaseToken, async (req, res) => {
+router.delete("/:id", verifyFirebaseToken, async (req: Request, res: Response) => {
   const authReq = req as AuthenticatedRequest;
   
   try {
@@ -204,54 +189,35 @@ router.delete("/:id", verifyFirebaseToken, async (req, res) => {
     const { id } = req.params;
 
     if (!userId) {
-      return res.status(401).json({ message: "Usuário não autenticado" });
+      return res.status(401).json(createApiError("Usuário não autenticado", "UNAUTHENTICATED"));
     }
 
     // Verificar se o evento existe e pertence ao usuário
     const existingEvent = await storage.event.getEvent(id);
     if (!existingEvent) {
-      return res.status(404).json({
-        success: false,
-        message: "Evento não encontrado"
-      });
+      return res.status(404).json(createApiError("Evento não encontrado", "EVENT_NOT_FOUND"));
     }
 
     if (existingEvent.organizerId !== userId) {
-      return res.status(403).json({
-        success: false,
-        message: "Sem permissão para excluir este evento"
-      });
+      return res.status(403).json(createApiError("Sem permissão para excluir este evento", "FORBIDDEN"));
     }
 
-    const deleted = await storage.event.deleteEvent(id);
-    
-    if (!deleted) {
-      return res.status(500).json({
-        success: false,
-        message: "Erro ao excluir evento"
-      });
-    }
+    await storage.event.deleteEvent(id);
 
-    res.json({
-      success: true,
-      message: "Evento excluído com sucesso"
-    });
+    res.json(createApiResponse(null, "Evento excluído com sucesso"));
   } catch (error) {
     console.error("Erro ao excluir evento:", error);
-    res.status(500).json({
-      success: false,
-      message: "Erro interno do servidor"
-    });
+    res.status(500).json(createApiError("Erro interno do servidor", "INTERNAL_ERROR", error instanceof Error ? error.message : String(error)));
   }
 });
 
 // Dashboard do organizador de eventos
-router.get('/dashboard', verifyFirebaseToken, async (req, res) => {
+router.get('/dashboard', verifyFirebaseToken, async (req: Request, res: Response) => {
   const authReq = req as AuthenticatedRequest;
   try {
     const userId = authReq.user?.uid;
     if (!userId) {
-      return res.status(401).json({ message: "User ID not found" });
+      return res.status(401).json(createApiError("ID do usuário não encontrado", "USER_ID_NOT_FOUND"));
     }
 
     const stats = {
@@ -308,132 +274,60 @@ router.get('/dashboard', verifyFirebaseToken, async (req, res) => {
       ]
     };
 
-    res.json({
-      success: true,
-      stats
-    });
+    res.json(createApiResponse(stats, "Dashboard carregado com sucesso"));
   } catch (error) {
     console.error("Event dashboard error:", error);
-    res.status(500).json({ message: "Erro ao carregar dashboard" });
+    res.status(500).json(createApiError("Erro ao carregar dashboard", "INTERNAL_ERROR", error instanceof Error ? error.message : String(error)));
   }
 });
 
 // Lista de eventos do organizador
-router.get('/events', verifyFirebaseToken, async (req, res) => {
+router.get('/organizer/events', verifyFirebaseToken, async (req: Request, res: Response) => {
   const authReq = req as AuthenticatedRequest;
   try {
     const organizerId = authReq.user?.uid;
     if (!organizerId) {
-      return res.status(401).json({ message: "User ID not found" });
+      return res.status(401).json(createApiError("ID do usuário não encontrado", "USER_ID_NOT_FOUND"));
     }
 
-    // TODO: Implementar busca real de eventos
-    const events = [
-      {
-        id: "event-1",
-        title: "Festival de Música Moçambicana",
-        description: "Celebração da música tradicional e moderna",
-        date: "2024-08-30T19:00:00Z",
-        venue: "Centro de Conferências",
-        capacity: 500,
-        ticketsSold: 450,
-        price: 250.00,
-        status: "active"
-      }
-    ];
+    // Buscar eventos reais do organizador
+    const events = await storage.event.getEventsByFilter({ organizerId });
 
-    res.json({
-      success: true,
-      events
-    });
+    res.json(createApiResponse(events, "Eventos do organizador listados com sucesso"));
   } catch (error) {
     console.error("Event list error:", error);
-    res.status(500).json({ message: "Erro ao carregar eventos" });
-  }
-});
-
-// Criar novo evento
-router.post('/events', verifyFirebaseToken, async (req, res) => {
-  const authReq = req as AuthenticatedRequest;
-  try {
-    const organizerId = authReq.user?.uid;
-    if (!organizerId) {
-      return res.status(401).json({ message: "User ID not found" });
-    }
-
-    const {
-      title,
-      description,
-      date,
-      venue,
-      capacity,
-      price,
-      imageUrl
-    } = req.body;
-
-    if (!title || !date || !venue || !capacity || !price) {
-      return res.status(400).json({ 
-        message: "Dados obrigatórios não fornecidos" 
-      });
-    }
-
-    // TODO: Implementar criação real do evento
-    const event = {
-      id: `event-${Date.now()}`,
-      title,
-      description,
-      date,
-      venue,
-      capacity,
-      price,
-      imageUrl,
-      organizerId,
-      status: "active",
-      ticketsSold: 0,
-      createdAt: new Date()
-    };
-
-    res.status(201).json({
-      success: true,
-      message: "Evento criado com sucesso",
-      event
-    });
-  } catch (error) {
-    console.error("Create event error:", error);
-    res.status(500).json({ message: "Erro ao criar evento" });
+    res.status(500).json(createApiError("Erro ao carregar eventos", "INTERNAL_ERROR", error instanceof Error ? error.message : String(error)));
   }
 });
 
 // Inscrições/vendas de ingressos
-router.get('/bookings', verifyFirebaseToken, async (req, res) => {
+router.get('/organizer/bookings', verifyFirebaseToken, async (req: Request, res: Response) => {
   const authReq = req as AuthenticatedRequest;
   try {
     const organizerId = authReq.user?.uid;
     if (!organizerId) {
-      return res.status(401).json({ message: "User ID not found" });
+      return res.status(401).json(createApiError("ID do usuário não encontrado", "USER_ID_NOT_FOUND"));
     }
 
     const bookings = await storage.booking.getProviderBookings(organizerId);
 
-    res.json({
-      success: true,
-      bookings
-    });
+    res.json(createApiResponse(bookings, "Inscrições carregadas com sucesso"));
   } catch (error) {
     console.error("Event bookings error:", error);
-    res.status(500).json({ message: "Erro ao carregar inscrições" });
+    res.status(500).json(createApiError("Erro ao carregar inscrições", "INTERNAL_ERROR", error instanceof Error ? error.message : String(error)));
   }
 });
 
 // Relatórios de evento
-router.get('/analytics', verifyFirebaseToken, async (req, res) => {
+router.get('/organizer/analytics', verifyFirebaseToken, async (req: Request, res: Response) => {
   const authReq = req as AuthenticatedRequest;
   try {
     const organizerId = authReq.user?.uid;
     if (!organizerId) {
-      return res.status(401).json({ message: "User ID not found" });
+      return res.status(401).json(createApiError("ID do usuário não encontrado", "USER_ID_NOT_FOUND"));
     }
 
+    // TODO: Implementar analytics reais
     const analytics = {
       totalEvents: 15,
       totalRevenue: 125000.00,
@@ -454,13 +348,10 @@ router.get('/analytics', verifyFirebaseToken, async (req, res) => {
       ]
     };
 
-    res.json({
-      success: true,
-      analytics
-    });
+    res.json(createApiResponse(analytics, "Relatórios carregados com sucesso"));
   } catch (error) {
     console.error("Event analytics error:", error);
-    res.status(500).json({ message: "Erro ao carregar relatórios" });
+    res.status(500).json(createApiError("Erro ao carregar relatórios", "INTERNAL_ERROR", error instanceof Error ? error.message : String(error)));
   }
 });
 
