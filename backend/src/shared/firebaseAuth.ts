@@ -2,9 +2,6 @@ import admin from "firebase-admin";
 import { Request, Response, NextFunction } from "express";
 import { AuthenticatedUser as SharedAuthenticatedUser } from "./types";
 
-// Type-safe Firebase Admin Auth methods
-export const firebaseAuth = admin.auth();
-
 // Firebase configuration validation
 interface FirebaseConfig {
   projectId: string;
@@ -44,6 +41,10 @@ if (!admin.apps.length) {
     process.exit(1); // Exit if Firebase can't be initialized
   }
 }
+
+// ✅ CORREÇÃO: Mover para depois da inicialização
+// Type-safe Firebase Admin Auth methods
+export const firebaseAuth = admin.auth();
 
 // Firebase token claims interface
 export interface FirebaseTokenClaims {

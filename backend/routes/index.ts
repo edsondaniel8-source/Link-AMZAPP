@@ -24,6 +24,21 @@ import providerDashboardRoutes from './provider/dashboard';
 import rideController from '../src/modules/rides/rideController';
 import driverController from '../src/modules/drivers/driverController';
 
+// ===== NOVAS IMPORTACOES IDENTIFICADAS =====
+import { PartnershipController } from '../src/modules/partnerships/partnershipController';
+import { driverPartnershipRoutes } from '../src/modules/drivers/partnershipRoutes';
+import { hotelPartnershipRoutes } from '../src/modules/hotels/partnershipRoutes';
+import clientController from '../src/modules/clients/clientController';
+import adminController from '../src/modules/admin/adminController';
+import eventController from '../src/modules/events/eventController';
+import userController from '../src/modules/users/userController';
+
+// ===== ROTAS INDIVIDUAIS DA RAIZ =====
+import adminRoutes from '../adminRoutes';
+import paymentRoutes from '../paymentRoutes';
+import profileRoutes from '../profileRoutes';
+import searchRoutes from '../searchRoutes';
+
 import { initializeChatService } from '../services/chatService';
 
 export async function registerRoutes(app: express.Express): Promise<void> {
@@ -55,10 +70,44 @@ export async function registerRoutes(app: express.Express): Promise<void> {
   app.use('/api/driver', driverController);
   console.log('🚗 Rotas de provider/driver registradas com sucesso');
 
-  // Rota de estatísticas para o painel admin
+  // ===== ROTAS DE PARCERIAS =====
+  const partnershipController = new PartnershipController();
+  const partnershipRouter = express.Router();
+  
+  partnershipRouter.get('/proposals/available', partnershipController.getAvailableProposals);
+  partnershipRouter.get('/proposals/my', partnershipController.getMyProposals);
+  
+  app.use('/api/partnerships', partnershipRouter);
+  app.use('/api/driver/partnership', driverPartnershipRoutes);
+  app.use('/api/hotel/partnership', hotelPartnershipRoutes);
+  console.log('🤝 Rotas de parceria registradas com sucesso');
+
+  // ===== ROTAS DE CLIENTES =====
+  app.use('/api/clients', clientController);
+  console.log('👥 Rotas de clientes registradas com sucesso');
+
+  // ===== ROTAS DE ADMINISTRAÇÃO =====
+  app.use('/api/admin/system', adminController);
+  console.log('👨‍💼 Rotas de administração registradas com sucesso');
+
+  // ===== ROTAS DE EVENTOS =====
+  app.use('/api/events', eventController);
+  console.log('🎉 Rotas de eventos registradas com sucesso');
+
+  // ===== ROTAS DE USUÁRIOS =====
+  app.use('/api/users', userController);
+  console.log('👤 Rotas de usuários registradas com sucesso');
+
+  // ===== ROTAS INDIVIDUAIS DA RAIZ =====
+  app.use('/api/admin-legacy', adminRoutes);
+  app.use('/api/payment', paymentRoutes);
+  app.use('/api/profile', profileRoutes);
+  app.use('/api/search', searchRoutes);
+  console.log('📁 Rotas individuais registradas com sucesso');
+
+  // ===== ROTA DE ESTATÍSTICAS ADMIN =====
   app.get('/api/admin/stats', async (req, res) => {
     try {
-      // TODO: Implementar com dados reais da base de dados
       res.json({
         totalUsers: 1250,
         totalRides: 89,
@@ -74,7 +123,5 @@ export async function registerRoutes(app: express.Express): Promise<void> {
     }
   });
 
-  // Inicializar sistema de chat WebSocket apenas se necessário
-  // initializeChatService será chamado quando o servidor HTTP for criado
-  console.log('🔌 Rotas registradas - pronto para criar servidor HTTP');
+  console.log('🔌 Todas as rotas registradas - pronto para criar servidor HTTP');
 }

@@ -1,4 +1,16 @@
-import 'dotenv/config';
+import { config } from 'dotenv';
+
+// ✅ CORREÇÃO: Carregar variáveis de ambiente em TODOS os ambientes
+if (process.env.NODE_ENV === 'production') {
+  // Produção: carregar do arquivo .env explicitamente
+  config({ path: '.env' });
+  console.log('🌍 [PRODUCTION] Variáveis de ambiente carregadas do .env');
+} else {
+  // Desenvolvimento: carregar normalmente
+  config();
+  console.log('🌍 [DEVELOPMENT] Variáveis de ambiente carregadas');
+}
+
 import express from "express";
 import cors from "cors";
 import path from "path";
@@ -83,6 +95,7 @@ async function startServer() {
     console.log('🌍 [ENV DEBUG] NODE_ENV:', process.env.NODE_ENV || 'development');
     console.log('🌍 [ENV DEBUG] PORT:', process.env.PORT || '3001');
     console.log('🌍 [ENV DEBUG] DATABASE_URL existe:', !!process.env.DATABASE_URL);
+    console.log('🌍 [ENV DEBUG] FIREBASE_PROJECT_ID existe:', !!process.env.FIREBASE_PROJECT_ID);
 
     // 1. Registrar todas as rotas da API PRIMEIRO
     await registerRoutes(app);
